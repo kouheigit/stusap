@@ -97,6 +97,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private data class Speaker(
+    val isReady: Boolean,
+    val speak: (String) -> Unit
+)
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -179,24 +184,28 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
 }
 
 @Composable
-private fun rememberSpeaker(): (String) -> Unit {
+private fun rememberSpeaker(): Speaker {
     val context = LocalContext.current
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var isReady by remember { mutableStateOf(false) }
     DisposableEffect(context) {
         val instance = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale.US
+                isReady = true
             }
         }
         tts = instance
         onDispose {
+            isReady = false
             instance.stop()
             instance.shutdown()
         }
     }
-    return { text ->
+    val speak: (String) -> Unit = { text ->
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "word-${text.hashCode()}")
     }
+    return Speaker(isReady = isReady, speak = speak)
 }
 
 @Composable
@@ -381,7 +390,7 @@ private fun ReviewScreen(navController: NavHostController, viewModel: ReviewView
 private fun WordDetailScreen(navController: NavHostController, viewModel: WordDetailViewModel = hiltViewModel()) {
     val word by viewModel.word.collectAsState()
     val relations by viewModel.relations.collectAsState()
-    val speak = rememberSpeaker()
+    val speaker = rememberSpeaker()
     BlueScaffold(title = "単語詳細", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
@@ -394,7 +403,7 @@ private fun WordDetailScreen(navController: NavHostController, viewModel: WordDe
                         Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(it.english, fontSize = 34.sp, fontWeight = FontWeight.Black, color = DeepBlue, modifier = Modifier.weight(1f))
-                                IconButton(onClick = { speak(it.english) }) { Icon(Icons.Default.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
+                                IconButton(onClick = { speaker.speak(it.english) }) { Icon(Icons.Default.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
                             }
                             Text(it.phonetic, color = TextMuted, fontSize = 18.sp)
                             Text("${it.partOfSpeech}  ${it.meaning}", color = TextDark, fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -604,7 +613,12 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
 @Composable
 private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -> Unit) {
     val question = state.currentQuestion ?: return
-    val speak = rememberSpeaker()
+    val speaker = rememberSpeaker()
+    LaunchedEffect(question.word.id, speaker.isReady) {
+        if (speaker.isReady) {
+            speaker.speak(question.word.english)
+        }
+    }
     Box(modifier.fillMaxSize().background(SoftBlue)) {
         Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("${state.currentIndex + 1} / ${state.questions.size}", color = TextDark, fontWeight = FontWeight.Bold)
@@ -616,7 +630,7 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("残り ${state.remainingMillis / 1000}秒", color = TextMuted, modifier = Modifier.weight(1f))
-                IconButton(onClick = { speak(question.word.english) }) { Icon(Icons.Default.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
+                IconButton(onClick = { speaker.speak(question.word.english) }) { Icon(Icons.Default.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
             }
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
