@@ -1,7 +1,12 @@
 package com.example.vocabapp
 
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -96,6 +101,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 private data class Speaker(
     val isReady: Boolean,
@@ -188,22 +194,79 @@ private fun rememberSpeaker(): Speaker {
     val context = LocalContext.current
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isReady by remember { mutableStateOf(false) }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    val pendingAudioFiles = remember { ConcurrentHashMap<String, java.io.File>() }
     DisposableEffect(context) {
         val instance = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale.US
+                tts?.setSpeechRate(0.92f)
                 isReady = true
             }
         }
+        instance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) = Unit
+
+            override fun onDone(utteranceId: String?) {
+                val file = pendingAudioFiles.remove(utteranceId) ?: return
+                mainHandler.post {
+                    runCatching {
+                        MediaPlayer().apply {
+                            setAudioAttributes(
+                                AudioAttributes.Builder()
+                                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                    .build()
+                            )
+                            setDataSource(file.absolutePath)
+                            setOnCompletionListener { player ->
+                                player.release()
+                                file.delete()
+                            }
+                            setOnErrorListener { player, _, _ ->
+                                player.release()
+                                file.delete()
+                                true
+                            }
+                            prepare()
+                            start()
+                        }
+                    }.onFailure {
+                        file.delete()
+                    }
+                }
+            }
+
+            @Deprecated("Deprecated by Android SDK")
+            override fun onError(utteranceId: String?) {
+                pendingAudioFiles.remove(utteranceId)?.delete()
+            }
+
+            override fun onError(utteranceId: String?, errorCode: Int) {
+                pendingAudioFiles.remove(utteranceId)?.delete()
+            }
+        })
         tts = instance
         onDispose {
             isReady = false
+            pendingAudioFiles.values.forEach { it.delete() }
+            pendingAudioFiles.clear()
             instance.stop()
             instance.shutdown()
         }
     }
     val speak: (String) -> Unit = { text ->
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "word-${text.hashCode()}")
+        val engine = tts
+        if (engine != null && isReady) {
+            val utteranceId = "word-${System.nanoTime()}"
+            val file = java.io.File(context.cacheDir, "$utteranceId.wav")
+            pendingAudioFiles[utteranceId] = file
+            val result = engine.synthesizeToFile(text, null, file, utteranceId)
+            if (result == TextToSpeech.ERROR) {
+                pendingAudioFiles.remove(utteranceId)?.delete()
+                engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+            }
+        }
     }
     return Speaker(isReady = isReady, speak = speak)
 }
