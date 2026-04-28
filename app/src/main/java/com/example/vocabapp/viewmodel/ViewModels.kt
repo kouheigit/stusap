@@ -1,0 +1,219 @@
+package com.example.vocabapp.viewmodel
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.vocabapp.data.repository.VocabRepository
+import com.example.vocabapp.domain.model.AnswerRecord
+import com.example.vocabapp.domain.model.HomeSummary
+import com.example.vocabapp.domain.model.Lesson
+import com.example.vocabapp.domain.model.QuizResult
+import com.example.vocabapp.domain.model.QuizState
+import com.example.vocabapp.domain.model.Training
+import com.example.vocabapp.domain.model.Word
+import com.example.vocabapp.domain.model.WordRelation
+import com.example.vocabapp.domain.usecase.FinishQuizUseCase
+import com.example.vocabapp.domain.usecase.GetLessonsUseCase
+import com.example.vocabapp.domain.usecase.GetReviewWordsUseCase
+import com.example.vocabapp.domain.usecase.GetTrainingsUseCase
+import com.example.vocabapp.domain.usecase.StartQuizUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    val summary: StateFlow<HomeSummary> = repository.observeHomeSummary()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeSummary())
+
+    init {
+        viewModelScope.launch { repository.seedIfNeeded() }
+    }
+
+    fun resetProgress() {
+        viewModelScope.launch { repository.resetLearningData() }
+    }
+}
+
+@HiltViewModel
+class LessonListViewModel @Inject constructor(
+    getLessonsUseCase: GetLessonsUseCase
+) : ViewModel() {
+    val lessons: StateFlow<List<Lesson>> = getLessonsUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+}
+
+@HiltViewModel
+class TrainingListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    getTrainingsUseCase: GetTrainingsUseCase
+) : ViewModel() {
+    val lessonId: Int = checkNotNull(savedStateHandle["lessonId"])
+    val trainings: StateFlow<List<Training>> = getTrainingsUseCase(lessonId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+}
+
+@HiltViewModel
+class QuizViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val startQuizUseCase: StartQuizUseCase,
+    private val finishQuizUseCase: FinishQuizUseCase
+) : ViewModel() {
+    private val trainingId: Int? = savedStateHandle.get<Int>("trainingId")?.takeIf { it > 0 }
+    private val isReview: Boolean = savedStateHandle["isReview"] ?: false
+    private val _state = MutableStateFlow(QuizState(isReview = isReview, trainingId = trainingId))
+    val state: StateFlow<QuizState> = _state.asStateFlow()
+    private val answers = mutableListOf<AnswerRecord>()
+    private var questionStartedAt = System.currentTimeMillis()
+    private var timerJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
+            if (isReview) {
+                val questions = startQuizUseCase.review()
+                _state.value = _state.value.copy(questions = questions, startedAt = startedAt)
+            } else if (trainingId != null) {
+                val (lessonId, questions) = startQuizUseCase.training(trainingId)
+                _state.value = _state.value.copy(questions = questions, startedAt = startedAt, lessonId = lessonId)
+            }
+            questionStartedAt = System.currentTimeMillis()
+            startTimer()
+        }
+    }
+
+    fun submit(choiceId: Int?) {
+        val current = _state.value
+        if (current.isAnswered || current.isFinished) return
+        val question = current.currentQuestion ?: return
+        val correctChoice = question.choices.firstOrNull { it.isCorrect }
+        val isCorrect = choiceId != null && correctChoice?.id == choiceId
+        val now = System.currentTimeMillis()
+        answers += AnswerRecord(
+            wordId = question.word.id,
+            selectedChoiceId = choiceId,
+            isCorrect = isCorrect,
+            answeredAt = now,
+            responseMillis = (now - questionStartedAt).toInt(),
+            selectedUnknown = choiceId == null
+        )
+        _state.value = current.copy(
+            selectedChoiceId = choiceId,
+            isAnswered = true,
+            isCorrect = isCorrect,
+            correctCount = current.correctCount + if (isCorrect) 1 else 0,
+            wrongCount = current.wrongCount + if (isCorrect) 0 else 1
+        )
+        viewModelScope.launch {
+            delay(900)
+            nextOrFinish()
+        }
+    }
+
+    private suspend fun nextOrFinish() {
+        val current = _state.value
+        if (current.currentIndex >= current.questions.lastIndex) {
+            timerJob?.cancel()
+            val attemptId = finishQuizUseCase(
+                trainingId = current.trainingId,
+                lessonId = current.lessonId,
+                isReview = current.isReview,
+                startedAt = current.startedAt,
+                answers = answers.toList()
+            )
+            _state.value = current.copy(finishedAttemptId = attemptId)
+        } else {
+            questionStartedAt = System.currentTimeMillis()
+            _state.value = current.copy(
+                currentIndex = current.currentIndex + 1,
+                selectedChoiceId = null,
+                isAnswered = false,
+                isCorrect = null,
+                remainingMillis = 30000L
+            )
+        }
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                val current = _state.value
+                if (!current.isAnswered && !current.isFinished) {
+                    val next = (current.remainingMillis - 1000L).coerceAtLeast(0L)
+                    _state.value = current.copy(remainingMillis = next)
+                    if (next == 0L) submit(null)
+                }
+            }
+        }
+    }
+}
+
+@HiltViewModel
+class ResultViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val attemptId: Long = checkNotNull(savedStateHandle["attemptId"])
+    private val _result = MutableStateFlow<QuizResult?>(null)
+    val result: StateFlow<QuizResult?> = _result.asStateFlow()
+
+    init {
+        viewModelScope.launch { _result.value = repository.getResult(attemptId) }
+    }
+}
+
+@HiltViewModel
+class ReviewViewModel @Inject constructor(
+    private val repository: VocabRepository,
+    getReviewWordsUseCase: GetReviewWordsUseCase
+) : ViewModel() {
+    val words: StateFlow<List<Word>> = getReviewWordsUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun remove(wordId: Int) {
+        viewModelScope.launch { repository.removeReviewWord(wordId) }
+    }
+}
+
+@HiltViewModel
+class WordDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val wordId: Int = checkNotNull(savedStateHandle["wordId"])
+    private val _word = MutableStateFlow<Word?>(null)
+    val word: StateFlow<Word?> = _word.asStateFlow()
+    private val _relations = MutableStateFlow<List<WordRelation>>(emptyList())
+    val relations: StateFlow<List<WordRelation>> = _relations.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val detail = repository.getWordDetail(wordId)
+            _word.value = detail.first
+            _relations.value = detail.second
+        }
+    }
+
+    fun addReview() {
+        viewModelScope.launch { repository.addReviewWord(wordId) }
+    }
+}
+
+@HiltViewModel
+class StudyLogViewModel @Inject constructor(
+    repository: VocabRepository
+) : ViewModel() {
+    val logs = repository.observeStudyLogs()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+}
