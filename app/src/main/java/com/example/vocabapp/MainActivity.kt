@@ -124,7 +124,7 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
                     }
                     val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
                     val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
-                    buffer[pos++] = (shaped * Short.MAX_VALUE * 0.65 * envelope).toInt().toShort()
+                    buffer[pos++] = (shaped * Short.MAX_VALUE * 0.70 * envelope).toInt().toShort()
                 }
             }
             val audioTrack = AudioTrack(
