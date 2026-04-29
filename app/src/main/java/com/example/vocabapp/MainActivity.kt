@@ -18,7 +18,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -719,7 +718,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue)
-                .verticalScroll(rememberScrollState()).imePadding().padding(24.dp),
+                .verticalScroll(rememberScrollState()).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
