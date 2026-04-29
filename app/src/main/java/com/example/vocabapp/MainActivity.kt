@@ -732,7 +732,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         OutlinedTextField(
                             value = english,
                             onValueChange = { english = it },
-                            placeholder = { Text("例: apple") },
+                            placeholder = { Text("例: apple, beautiful") },
                             modifier = Modifier.fillMaxWidth().focusRequester(englishFocus),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next),
@@ -744,7 +744,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         OutlinedTextField(
                             value = meaning,
                             onValueChange = { meaning = it },
-                            placeholder = { Text("例: りんご") },
+                            placeholder = { Text("例: りんご、美しい") },
                             modifier = Modifier.fillMaxWidth().focusRequester(meaningFocus),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
