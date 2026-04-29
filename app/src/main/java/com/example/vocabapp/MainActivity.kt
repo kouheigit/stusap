@@ -106,6 +106,23 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
+private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean) {
+    Thread {
+        try {
+            val sampleRate = 44100
+            val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
+            val buffer = ShortArray(totalSamples)
+            var pos = 0
+            for ((freq, durationMs) in segments) {
+                val numSamples = sampleRate * durationMs / 1000
+                for (i in 0 until numSamples) {
+                    buffer[pos++] = 0
+                }
+            }
+        } catch (_: Exception) {}
+    }.start()
+}
+
 private data class Speaker(
     val isReady: Boolean,
     val speak: (String) -> Unit
