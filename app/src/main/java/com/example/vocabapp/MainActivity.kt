@@ -259,6 +259,7 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
 @Composable
 private fun rememberSpeaker(): Speaker {
     val context = LocalContext.current
+    val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
