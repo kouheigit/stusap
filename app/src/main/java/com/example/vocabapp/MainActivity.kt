@@ -738,6 +738,7 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
 private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -> Unit) {
     val question = state.currentQuestion ?: return
     val speaker = rememberSpeaker()
+    val soundPlayer = rememberSoundPlayer()
     LaunchedEffect(question.word.id, speaker.isReady) {
         if (speaker.isReady) {
             speaker.speak(question.word.english)
