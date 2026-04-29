@@ -725,7 +725,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("単語（英語）", fontWeight = FontWeight.Bold, color = TextMuted)
+                        Text("英単語", fontWeight = FontWeight.Bold, color = TextMuted)
                         OutlinedTextField(
                             value = english,
                             onValueChange = { english = it },
