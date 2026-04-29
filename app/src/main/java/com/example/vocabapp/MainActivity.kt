@@ -719,7 +719,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
-    BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
+    BlueScaffold(title = "新規単語登録", onBack = { keyboardController?.hide(); navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue)
                 .verticalScroll(rememberScrollState()).padding(24.dp),
