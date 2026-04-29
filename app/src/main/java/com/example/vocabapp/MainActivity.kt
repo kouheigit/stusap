@@ -714,7 +714,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val meaningFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) {
-        englishFocus.requestFocus()
+        runCatching { englishFocus.requestFocus() }
     }
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
@@ -736,7 +736,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             modifier = Modifier.fillMaxWidth().focusRequester(englishFocus),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next),
-                            keyboardActions = KeyboardActions(onNext = { meaningFocus.requestFocus() })
+                            keyboardActions = KeyboardActions(onNext = { runCatching { meaningFocus.requestFocus() } })
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
