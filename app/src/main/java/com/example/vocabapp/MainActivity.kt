@@ -716,7 +716,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     }
     BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue)
+                .verticalScroll(rememberScrollState()).imePadding().padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
