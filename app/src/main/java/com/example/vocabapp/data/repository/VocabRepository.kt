@@ -1,6 +1,7 @@
 package com.example.vocabapp.data.repository
 
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptEntity
 import com.example.vocabapp.data.local.entity.ReviewWordEntity
@@ -257,6 +258,16 @@ class VocabRepository @Inject constructor(
     suspend fun removeReviewWord(wordId: Int) {
         dao.deactivateReview(wordId)
     }
+
+    suspend fun addCustomWord(english: String, meaning: String) {
+        dao.insertCustomWord(CustomWordEntity(
+            english = english.trim(),
+            meaning = meaning.trim(),
+            addedAt = System.currentTimeMillis()
+        ))
+    }
+
+    fun observeCustomWords(): Flow<List<CustomWordEntity>> = dao.observeCustomWords()
 
     suspend fun resetLearningData() {
         dao.resetLearningData()
