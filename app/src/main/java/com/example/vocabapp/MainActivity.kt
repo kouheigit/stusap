@@ -259,6 +259,8 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         ) { WordDetailScreen(navController) }
         composable(Route.StudyLog) { StudyLogScreen(navController) }
         composable(Route.Settings) { SettingsScreen(navController) }
+        composable(Route.AddWord) { AddWordScreen(navController) }
+        composable(Route.CustomQuiz) { CustomWordQuizScreen(navController) }
     }
 }
 
@@ -418,6 +420,29 @@ private fun LessonListScreen(navController: NavHostController, viewModel: Lesson
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item {
+                Button(
+                    onClick = { navController.navigate(Route.AddWord) },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                    Spacer(Modifier.width(8.dp))
+                    Text("新規単語登録", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(4.dp))
+                Button(
+                    onClick = { navController.navigate(Route.CustomQuiz) },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.School, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("カスタム単語クイズ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
             val grouped = lessons.groupBy { it.scoreTarget }
             grouped.forEach { (score, items) ->
                 item { SectionTitle("目標${score}点") }
