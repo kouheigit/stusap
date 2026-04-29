@@ -235,3 +235,67 @@ class AddWordViewModel @Inject constructor(
 
     fun resetSaved() { _saved.value = false }
 }
+
+@HiltViewModel
+class CustomWordQuizViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val _state = MutableStateFlow(QuizState())
+    val state: StateFlow<QuizState> = _state.asStateFlow()
+    private val answers = mutableListOf<AnswerRecord>()
+    private var questionStartedAt = System.currentTimeMillis()
+    private var timerJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
+            val questions = repository.buildCustomWordQuiz()
+            _state.value = QuizState(questions = questions, startedAt = startedAt)
+            questionStartedAt = System.currentTimeMillis()
+            if (questions.isNotEmpty()) startTimer()
+        }
+    }
+
+    fun submit(choiceId: Int?) {
+        val current = _state.value
+        if (current.isAnswered || current.isFinished) return
+        val question = current.currentQuestion ?: return
+        val correctChoice = question.choices.firstOrNull { it.isCorrect }
+        val isCorrect = choiceId != null && correctChoice?.id == choiceId
+        val now = System.currentTimeMillis()
+        answers += AnswerRecord(question.word.id, choiceId, isCorrect, now,
+            (now - questionStartedAt).toInt(), choiceId == null)
+        _state.value = current.copy(selectedChoiceId = choiceId, isAnswered = true, isCorrect = isCorrect,
+            correctCount = current.correctCount + if (isCorrect) 1 else 0,
+            wrongCount = current.wrongCount + if (isCorrect) 0 else 1)
+        viewModelScope.launch { delay(900); nextOrFinish() }
+    }
+
+    private fun nextOrFinish() {
+        val current = _state.value
+        timerJob?.cancel()
+        if (current.currentIndex >= current.questions.lastIndex) {
+            _state.value = current.copy(finishedAttemptId = -1L)
+        } else {
+            questionStartedAt = System.currentTimeMillis()
+            _state.value = current.copy(currentIndex = current.currentIndex + 1,
+                selectedChoiceId = null, isAnswered = false, isCorrect = null, remainingMillis = 30000L)
+            startTimer()
+        }
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                val current = _state.value
+                if (!current.isAnswered && !current.isFinished) {
+                    val next = (current.remainingMillis - 1000L).coerceAtLeast(0L)
+                    _state.value = current.copy(remainingMillis = next)
+                    if (next == 0L) submit(null)
+                }
+            }
+        }
+    }
+}
