@@ -193,3 +193,11 @@ data class UserProgressEntity(
     val lastStudiedAt: Long?,
     val isMastered: Boolean
 )
+
+@Entity(tableName = "custom_words")
+data class CustomWordEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val english: String,
+    val meaning: String,
+    val addedAt: Long
+)
