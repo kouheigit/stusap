@@ -50,7 +50,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -583,7 +583,7 @@ private fun WordDetailScreen(navController: NavHostController, viewModel: WordDe
                         Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(it.english, fontSize = 34.sp, fontWeight = FontWeight.Black, color = DeepBlue, modifier = Modifier.weight(1f))
-                                IconButton(onClick = { speaker.speak(it.english) }) { Icon(Icons.Default.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
+                                IconButton(onClick = { speaker.speak(it.english) }) { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
                             }
                             Text(it.phonetic, color = TextMuted, fontSize = 18.sp)
                             Text("${it.partOfSpeech}  ${it.meaning}", color = TextDark, fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -923,7 +923,7 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("残り ${state.remainingMillis / 1000}秒", color = TextMuted, modifier = Modifier.weight(1f))
-                IconButton(onClick = { speaker.speak(question.word.english) }) { Icon(Icons.Default.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
+                IconButton(onClick = { speaker.speak(question.word.english) }) { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
             }
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
