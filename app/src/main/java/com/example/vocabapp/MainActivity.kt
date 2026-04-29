@@ -159,12 +159,12 @@ private data class SoundPlayer(
 private fun rememberSoundPlayer(): SoundPlayer = remember {
     SoundPlayer(
         playCorrect = {
-            // ピンポン: A5(880Hz) → C6(1047Hz) 二音上昇
-            playSynthSound(listOf(880f to 180, 1047f to 260), squareWave = false)
+            // ピンポン: E5(659Hz) → A5(880Hz) の二音上昇チャイム
+            playSynthSound(listOf(659f to 160, 880f to 280), squareWave = false)
         },
         playWrong = {
-            // ブッブー: 低音二連バズ with gap
-            playSynthSound(listOf(220f to 200, 0f to 60, 180f to 220), squareWave = true)
+            // ブッブー: 低音バズ×2 (200ms 間隔)
+            playSynthSound(listOf(200f to 190, 0f to 70, 160f to 230), squareWave = true)
         }
     )
 }
