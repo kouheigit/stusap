@@ -280,7 +280,7 @@ private fun rememberSpeaker(): Speaker {
                         MediaPlayer().apply {
                             setAudioAttributes(
                                 AudioAttributes.Builder()
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                                    .setUsage(AudioAttributes.USAGE_GAME)
                                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                                     .build()
                             )
