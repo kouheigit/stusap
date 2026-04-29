@@ -713,6 +713,9 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val englishFocus = remember { FocusRequester() }
     val meaningFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) {
+        englishFocus.requestFocus()
+    }
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
