@@ -2,7 +2,10 @@ package com.example.vocabapp.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptEntity
@@ -16,6 +19,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
 
 @Database(
     entities = [
+        CustomWordEntity::class,
         LessonEntity::class,
         TrainingEntity::class,
         WordEntity::class,
@@ -27,9 +31,24 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         StudyLogEntity::class,
         UserProgressEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `custom_words` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `english` TEXT NOT NULL,
+                        `meaning` TEXT NOT NULL,
+                        `addedAt` INTEGER NOT NULL
+                    )
+                """)
+            }
+        }
+    }
 }
