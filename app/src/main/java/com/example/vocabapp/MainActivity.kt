@@ -729,7 +729,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             onValueChange = { english = it },
                             placeholder = { Text("例: apple") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next)
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -739,7 +740,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             onValueChange = { meaning = it },
                             placeholder = { Text("例: りんご") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done)
                         )
                     }
                     Button(
