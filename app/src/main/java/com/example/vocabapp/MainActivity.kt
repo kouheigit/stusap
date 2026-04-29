@@ -116,7 +116,10 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
             for ((freq, durationMs) in segments) {
                 val numSamples = sampleRate * durationMs / 1000
                 for (i in 0 until numSamples) {
-                    buffer[pos++] = 0
+                    if (freq == 0f) { buffer[pos++] = 0; continue }
+                    val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
+                    val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
+                    buffer[pos++] = (shaped * Short.MAX_VALUE * 0.55).toInt().toShort()
                 }
             }
         } catch (_: Exception) {}
