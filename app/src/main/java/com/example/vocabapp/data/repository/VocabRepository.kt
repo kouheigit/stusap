@@ -269,6 +269,24 @@ class VocabRepository @Inject constructor(
 
     fun observeCustomWords(): Flow<List<CustomWordEntity>> = dao.observeCustomWords()
 
+    suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
+        val all = dao.getAllCustomWords()
+        if (all.size < 4) return emptyList()
+        return all.shuffled().take(minOf(10, all.size)).map { cw ->
+            val wrongPool = all.filter { it.id != cw.id }.shuffled().take(3)
+            val correct = WordChoice(id = cw.id * -100, wordId = cw.id, choiceText = cw.meaning, isCorrect = true, displayOrder = 0)
+            val wrongs = wrongPool.mapIndexed { i, ww ->
+                WordChoice(id = ww.id * -100 - i - 1, wordId = cw.id, choiceText = ww.meaning, isCorrect = false, displayOrder = i + 1)
+            }
+            QuizQuestion(
+                word = Word(id = cw.id, trainingId = -1, english = cw.english, meaning = cw.meaning,
+                    phonetic = "", partOfSpeech = "", exampleSentence = "", exampleTranslation = "",
+                    audioUrl = null, exampleAudioUrl = null, displayOrder = 0),
+                choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
+            )
+        }
+    }
+
     suspend fun resetLearningData() {
         dao.resetLearningData()
     }
