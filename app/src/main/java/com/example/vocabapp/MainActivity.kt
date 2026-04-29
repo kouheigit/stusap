@@ -145,6 +145,11 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
     }.start()
 }
 
+private data class SoundPlayer(
+    val playCorrect: () -> Unit,
+    val playWrong: () -> Unit
+)
+
 private data class Speaker(
     val isReady: Boolean,
     val speak: (String) -> Unit
