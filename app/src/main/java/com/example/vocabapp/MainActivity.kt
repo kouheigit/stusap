@@ -735,7 +735,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             placeholder = { Text("例: apple") },
                             modifier = Modifier.fillMaxWidth().focusRequester(englishFocus),
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next),
                             keyboardActions = KeyboardActions(onNext = { meaningFocus.requestFocus() })
                         )
                     }
