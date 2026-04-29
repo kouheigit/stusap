@@ -749,7 +749,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         )
                     }
                     Button(
-                        onClick = { viewModel.save(english, meaning) },
+                        onClick = { keyboardController?.hide(); viewModel.save(english, meaning) },
                         enabled = english.isNotBlank() && meaning.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
