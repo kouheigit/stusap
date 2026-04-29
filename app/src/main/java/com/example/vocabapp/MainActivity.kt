@@ -122,6 +122,25 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
                     buffer[pos++] = (shaped * Short.MAX_VALUE * 0.55).toInt().toShort()
                 }
             }
+            val audioTrack = AudioTrack(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build(),
+                AudioFormat.Builder()
+                    .setSampleRate(sampleRate)
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .build(),
+                buffer.size * 2,
+                AudioTrack.MODE_STATIC,
+                AudioManager.AUDIO_SESSION_ID_GENERATE
+            )
+            audioTrack.write(buffer, 0, buffer.size)
+            audioTrack.play()
+            Thread.sleep(totalSamples * 1000L / sampleRate + 150)
+            audioTrack.stop()
+            audioTrack.release()
         } catch (_: Exception) {}
     }.start()
 }
