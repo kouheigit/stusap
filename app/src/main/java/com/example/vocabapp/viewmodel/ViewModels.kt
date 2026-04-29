@@ -217,3 +217,21 @@ class StudyLogViewModel @Inject constructor(
     val logs = repository.observeStudyLogs()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 }
+
+@HiltViewModel
+class AddWordViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val _saved = MutableStateFlow(false)
+    val saved: StateFlow<Boolean> = _saved.asStateFlow()
+
+    fun save(english: String, meaning: String) {
+        if (english.isBlank() || meaning.isBlank()) return
+        viewModelScope.launch {
+            repository.addCustomWord(english.trim(), meaning.trim())
+            _saved.value = true
+        }
+    }
+
+    fun resetSaved() { _saved.value = false }
+}
