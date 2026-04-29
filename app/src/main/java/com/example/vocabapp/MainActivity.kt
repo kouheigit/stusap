@@ -744,6 +744,11 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
             speaker.speak(question.word.english)
         }
     }
+    LaunchedEffect(state.isAnswered, state.currentIndex) {
+        if (state.isAnswered) {
+            if (state.isCorrect == true) soundPlayer.playCorrect() else soundPlayer.playWrong()
+        }
+    }
     Box(modifier.fillMaxSize().background(SoftBlue)) {
         Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("${state.currentIndex + 1} / ${state.questions.size}", color = TextDark, fontWeight = FontWeight.Bold)
