@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptEntity
@@ -153,6 +154,18 @@ interface AppDao {
 
     @Query("DELETE FROM review_words")
     suspend fun deleteReviews()
+
+    @Insert
+    suspend fun insertCustomWord(item: CustomWordEntity): Long
+
+    @Query("SELECT * FROM custom_words ORDER BY addedAt DESC")
+    fun observeCustomWords(): Flow<List<CustomWordEntity>>
+
+    @Query("SELECT * FROM custom_words ORDER BY RANDOM()")
+    suspend fun getAllCustomWords(): List<CustomWordEntity>
+
+    @Query("SELECT COUNT(*) FROM custom_words")
+    suspend fun customWordCount(): Int
 
     @Transaction
     suspend fun resetLearningData() {
