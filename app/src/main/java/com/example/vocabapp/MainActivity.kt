@@ -42,7 +42,7 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
@@ -401,7 +401,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                 CardButton(
                     title = "レッスン一覧",
                     subtitle = "600 / 730 / 860 / 990点の単語を学習",
-                    icon = Icons.Default.FormatListBulleted,
+                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = { navController.navigate(Route.Lessons) }
                 )
             }
