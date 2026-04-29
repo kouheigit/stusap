@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
@@ -57,6 +58,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -93,6 +95,8 @@ import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
+import com.example.vocabapp.viewmodel.AddWordViewModel
+import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
 import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
@@ -193,6 +197,8 @@ private object Route {
     const val WordDetail = "word/{wordId}"
     const val StudyLog = "study-log"
     const val Settings = "settings"
+    const val AddWord = "add-word"
+    const val CustomQuiz = "custom-quiz"
 
     fun training(lessonId: Int) = "training/$lessonId"
     fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
@@ -612,6 +618,55 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                 Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
                 Spacer(Modifier.width(8.dp))
                 Text("学習進捗をリセット", color = Danger)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
+    val saved by viewModel.saved.collectAsState()
+    var english by remember { mutableStateOf("") }
+    var meaning by remember { mutableStateOf("") }
+    LaunchedEffect(saved) {
+        if (saved) { viewModel.resetSaved(); navController.popBackStack() }
+    }
+    BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("単語（英語）", fontWeight = FontWeight.Bold, color = TextMuted)
+                        OutlinedTextField(
+                            value = english,
+                            onValueChange = { english = it },
+                            placeholder = { Text("例: apple") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("日本語", fontWeight = FontWeight.Bold, color = TextMuted)
+                        OutlinedTextField(
+                            value = meaning,
+                            onValueChange = { meaning = it },
+                            placeholder = { Text("例: りんご") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                    Button(
+                        onClick = { viewModel.save(english, meaning) },
+                        enabled = english.isNotBlank() && meaning.isNotBlank(),
+                        modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
+                    ) {
+                        Text("登録する", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
