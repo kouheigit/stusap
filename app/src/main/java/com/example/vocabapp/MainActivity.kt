@@ -295,6 +295,7 @@ private fun rememberSpeaker(): Speaker {
                                 true
                             }
                             prepare()
+                            setVolume(1.0f, 1.0f)
                             start()
                         }
                     }.onFailure {
