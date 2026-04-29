@@ -624,6 +624,54 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
 }
 
 @Composable
+private fun CustomWordQuizScreen(navController: NavHostController, viewModel: CustomWordQuizViewModel = hiltViewModel()) {
+    val state by viewModel.state.collectAsState()
+    if (state.finishedAttemptId != null) {
+        val accuracy = if (state.questions.isNotEmpty()) state.correctCount * 100f / state.questions.size else 0f
+        BlueScaffold(title = "カスタム単語クイズ") { inner ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("${accuracy.toInt()}%", color = DeepBlue, fontSize = 54.sp, fontWeight = FontWeight.Black)
+                        Row {
+                            repeat(3) { i ->
+                                Icon(Icons.Default.Star, contentDescription = null, tint = if (i < when { accuracy >= 90f -> 3; accuracy >= 70f -> 2; accuracy >= 50f -> 1; else -> 0 }) Gold else Color(0xFFDDE5EC), modifier = Modifier.size(42.dp))
+                            }
+                        }
+                        Text(when { accuracy >= 90f -> "Excellent!"; accuracy >= 70f -> "Good job!"; accuracy >= 50f -> "Nice try!"; else -> "Keep going!" }, color = TextDark, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                        Text("正解 ${state.correctCount} / 不正解 ${state.wrongCount} / 全${state.questions.size}問", color = TextMuted)
+                    }
+                }
+                Button(
+                    onClick = { navController.navigate(Route.CustomQuiz) { popUpTo(Route.CustomQuiz) { inclusive = true } } },
+                    modifier = Modifier.fillMaxWidth().height(58.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+                ) {
+                    Icon(Icons.Default.Refresh, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("再チャレンジ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(onClick = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
+                    Text("ホームへ")
+                }
+            }
+        }
+    } else {
+        BlueScaffold(title = "カスタム単語クイズ", onBack = { navController.popBackStack() }) { inner ->
+            when {
+                state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                state.questions.isEmpty() -> EmptyMessage(Modifier.padding(inner).background(BrightBlue), "クイズには4つ以上の単語を登録してください", "戻る") { navController.popBackStack() }
+                else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
+            }
+        }
+    }
+}
+
+@Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
     var english by remember { mutableStateOf("") }
