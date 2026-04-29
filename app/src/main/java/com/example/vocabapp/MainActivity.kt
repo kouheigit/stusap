@@ -1,6 +1,9 @@
 package com.example.vocabapp
 
 import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
