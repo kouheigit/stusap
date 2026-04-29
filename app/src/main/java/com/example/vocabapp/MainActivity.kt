@@ -748,7 +748,10 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             modifier = Modifier.fillMaxWidth().focusRequester(meaningFocus),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                            keyboardActions = KeyboardActions(onDone = {
+                                keyboardController?.hide()
+                                if (english.isNotBlank() && meaning.isNotBlank()) viewModel.save(english, meaning)
+                            })
                         )
                     }
                     Button(
