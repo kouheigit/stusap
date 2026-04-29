@@ -150,6 +150,20 @@ private data class SoundPlayer(
     val playWrong: () -> Unit
 )
 
+@Composable
+private fun rememberSoundPlayer(): SoundPlayer = remember {
+    SoundPlayer(
+        playCorrect = {
+            // ピンポン: A5(880Hz) → C6(1047Hz) 二音上昇
+            playSynthSound(listOf(880f to 180, 1047f to 260), squareWave = false)
+        },
+        playWrong = {
+            // ブッブー: 低音二連バズ with gap
+            playSynthSound(listOf(220f to 200, 0f to 60, 180f to 220), squareWave = true)
+        }
+    )
+}
+
 private data class Speaker(
     val isReady: Boolean,
     val speak: (String) -> Unit
