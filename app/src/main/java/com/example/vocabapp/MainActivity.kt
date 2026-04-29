@@ -335,7 +335,10 @@ private fun rememberSpeaker(): Speaker {
             val result = engine.synthesizeToFile(text, null, file, utteranceId)
             if (result == TextToSpeech.ERROR) {
                 pendingAudioFiles.remove(utteranceId)?.delete()
-                engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+                val params = android.os.Bundle().apply {
+                    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
+                }
+                engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
             }
         }
     }
