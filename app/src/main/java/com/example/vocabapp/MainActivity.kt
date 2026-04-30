@@ -901,7 +901,7 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
     var english by remember { mutableStateOf(TextFieldValue("")) }
-    var meaning by remember { mutableStateOf("") }
+    var meaning by remember { mutableStateOf(TextFieldValue("")) }
     val meaningFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(saved) {
@@ -938,13 +938,13 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = {
                                 keyboardController?.hide()
-                                if (english.text.isNotBlank() && meaning.isNotBlank()) viewModel.save(english.text, meaning)
+                                if (english.text.isNotBlank() && meaning.text.isNotBlank()) viewModel.save(english.text, meaning.text)
                             })
                         )
                     }
                     Button(
-                        onClick = { keyboardController?.hide(); viewModel.save(english.text, meaning) },
-                        enabled = english.text.isNotBlank() && meaning.isNotBlank(),
+                        onClick = { keyboardController?.hide(); viewModel.save(english.text, meaning.text) },
+                        enabled = english.text.isNotBlank() && meaning.text.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
                     ) {
