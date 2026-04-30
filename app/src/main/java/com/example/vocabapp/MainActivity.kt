@@ -110,6 +110,7 @@ import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.viewmodel.AddWordViewModel
 import com.example.vocabapp.viewmodel.CustomWordListViewModel
 import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
+import com.example.vocabapp.viewmodel.FlashcardViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
 import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
@@ -214,6 +215,9 @@ private object Route {
     const val AddWord = "add-word"
     const val CustomQuiz = "custom-quiz"
     const val CustomWordList = "custom-word-list"
+    const val Flashcard = "flashcard/{trainingId}"
+
+    fun flashcard(trainingId: Int) = "flashcard/$trainingId"
 
     fun training(lessonId: Int) = "training/$lessonId"
     fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
@@ -277,6 +281,10 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.AddWord) { AddWordScreen(navController) }
         composable(Route.CustomQuiz) { CustomWordQuizScreen(navController) }
         composable(Route.CustomWordList) { CustomWordListScreen(navController) }
+        composable(
+            Route.Flashcard,
+            arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
+        ) { FlashcardScreen(navController) }
     }
 }
 
@@ -493,7 +501,8 @@ private fun TrainingListScreen(navController: NavHostController, viewModel: Trai
                 TrainingCard(
                     training = training,
                     onQuiz = { navController.navigate(Route.quiz(training.id)) },
-                    onDetail = { wordId -> navController.navigate(Route.word(wordId)) }
+                    onDetail = { wordId -> navController.navigate(Route.word(wordId)) },
+                    onFlashcard = { navController.navigate(Route.flashcard(training.id)) }
                 )
             }
         }
@@ -725,6 +734,83 @@ private fun CustomWordQuizScreen(navController: NavHostController, viewModel: Cu
 }
 
 @Composable
+private fun FlashcardScreen(navController: NavHostController, viewModel: FlashcardViewModel = hiltViewModel()) {
+    val words by viewModel.words.collectAsState()
+    val index by viewModel.index.collectAsState()
+    val revealed by viewModel.revealed.collectAsState()
+    val speaker = rememberSpeaker()
+    val word = words.getOrNull(index)
+    BlueScaffold(title = "単語帳", onBack = { navController.popBackStack() }) { inner ->
+        if (words.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("${index + 1} / ${words.size}", color = TextMuted, fontWeight = FontWeight.Bold)
+                LinearProgressIndicator(
+                    progress = { (index + 1) / words.size.toFloat() },
+                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    color = AccentBlue, trackColor = Color.White
+                )
+                word?.let { w ->
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth().weight(1f).clickable { viewModel.toggleReveal() },
+                        elevation = CardDefaults.cardElevation(6.dp)
+                    ) {
+                        Column(
+                            Modifier.fillMaxSize().padding(28.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(w.english, fontSize = 38.sp, fontWeight = FontWeight.Black, color = DeepBlue, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                                IconButton(onClick = { speaker.speak(w.english) }) {
+                                    Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "読み上げ", tint = BrightBlue)
+                                }
+                            }
+                            Text(w.phonetic, color = TextMuted, fontSize = 18.sp)
+                            if (revealed) {
+                                Spacer(Modifier.height(20.dp))
+                                Text(w.meaning, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Success, textAlign = TextAlign.Center)
+                                if (w.partOfSpeech.isNotBlank()) Text(w.partOfSpeech, color = TextMuted, fontSize = 16.sp)
+                                if (w.exampleSentence.isNotBlank()) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(w.exampleSentence, color = TextDark, fontSize = 15.sp, textAlign = TextAlign.Center)
+                                    Text(w.exampleTranslation, color = TextMuted, fontSize = 14.sp, textAlign = TextAlign.Center)
+                                }
+                            } else {
+                                Spacer(Modifier.height(24.dp))
+                                Text("タップして意味を確認", color = TextMuted, fontSize = 16.sp)
+                            }
+                        }
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = viewModel::prev,
+                        enabled = index > 0,
+                        modifier = Modifier.weight(1f).height(54.dp)
+                    ) { Text("← 前へ", fontWeight = FontWeight.Bold) }
+                    Button(
+                        onClick = viewModel::next,
+                        enabled = index < words.lastIndex,
+                        modifier = Modifier.weight(1f).height(54.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
+                    ) { Text("次へ →", fontWeight = FontWeight.Bold) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun CustomWordListScreen(navController: NavHostController, viewModel: CustomWordListViewModel = hiltViewModel()) {
     val words by viewModel.words.collectAsState()
     BlueScaffold(title = "登録単語一覧 (${words.size}語)", onBack = { navController.popBackStack() }) { inner ->
@@ -911,7 +997,7 @@ private fun LessonCard(lesson: Lesson, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int) -> Unit) {
+private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int) -> Unit, onFlashcard: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onQuiz),
         shape = RoundedCornerShape(8.dp),
@@ -942,13 +1028,22 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 }
             }
         }
-        Text(
-            "先頭単語の詳細を見る",
-            modifier = Modifier.fillMaxWidth().clickable { onDetail(training.wordStartNumber) }.padding(bottom = 14.dp),
-            textAlign = TextAlign.Center,
-            color = BrightBlue,
-            fontWeight = FontWeight.Bold
-        )
+        Row(Modifier.fillMaxWidth()) {
+            Text(
+                "単語帳で学習",
+                modifier = Modifier.weight(1f).clickable { onFlashcard() }.padding(bottom = 14.dp),
+                textAlign = TextAlign.Center,
+                color = AccentBlue,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "先頭単語の詳細を見る",
+                modifier = Modifier.weight(1f).clickable { onDetail(training.wordStartNumber) }.padding(bottom = 14.dp),
+                textAlign = TextAlign.Center,
+                color = BrightBlue,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

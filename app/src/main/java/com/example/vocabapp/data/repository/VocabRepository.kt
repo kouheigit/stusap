@@ -136,6 +136,9 @@ class VocabRepository @Inject constructor(
             )
         }.shuffled()
 
+    suspend fun getWordsForTraining(trainingId: Int): List<Word> =
+        dao.getWordsByTraining(trainingId).map { it.toDomain() }
+
     suspend fun getWordDetail(wordId: Int): Pair<Word?, List<WordRelation>> {
         val word = dao.getWord(wordId)?.toDomain()
         val relations = dao.getRelations(wordId).map {

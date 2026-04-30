@@ -238,6 +238,38 @@ class AddWordViewModel @Inject constructor(
 }
 
 @HiltViewModel
+class FlashcardViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val trainingId: Int = checkNotNull(savedStateHandle["trainingId"])
+    private val _words = MutableStateFlow<List<Word>>(emptyList())
+    val words: StateFlow<List<Word>> = _words.asStateFlow()
+    private val _index = MutableStateFlow(0)
+    val index: StateFlow<Int> = _index.asStateFlow()
+    private val _revealed = MutableStateFlow(false)
+    val revealed: StateFlow<Boolean> = _revealed.asStateFlow()
+
+    init { viewModelScope.launch { _words.value = repository.getWordsForTraining(trainingId) } }
+
+    fun next() {
+        if (_index.value < _words.value.lastIndex) {
+            _index.value++
+            _revealed.value = false
+        }
+    }
+
+    fun prev() {
+        if (_index.value > 0) {
+            _index.value--
+            _revealed.value = false
+        }
+    }
+
+    fun toggleReveal() { _revealed.value = !_revealed.value }
+}
+
+@HiltViewModel
 class CustomWordListViewModel @Inject constructor(
     private val repository: VocabRepository
 ) : ViewModel() {
