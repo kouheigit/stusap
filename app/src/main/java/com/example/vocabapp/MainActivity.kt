@@ -902,7 +902,6 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val saved by viewModel.saved.collectAsState()
     var english by remember { mutableStateOf(TextFieldValue("")) }
     var meaning by remember { mutableStateOf(TextFieldValue("")) }
-    val meaningFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
@@ -923,7 +922,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 1,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                            keyboardActions = KeyboardActions(onNext = { runCatching { meaningFocus.requestFocus() } }),
+                            keyboardActions = KeyboardActions(onNext = { /* keep focus where user moves it */ }),
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -932,7 +931,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             value = meaning,
                             onValueChange = { meaning = it },
                             placeholder = { Text("例: りんご、美しい") },
-                            modifier = Modifier.fillMaxWidth().focusRequester(meaningFocus),
+                            modifier = Modifier.fillMaxWidth(),
                             maxLines = 1,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = {
