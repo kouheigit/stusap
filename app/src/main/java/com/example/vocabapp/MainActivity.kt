@@ -895,6 +895,9 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
     }
 }
 
+private val AddWordFieldTextStyle = TextStyle(color = TextDark, fontSize = 16.sp)
+private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
+
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
@@ -915,7 +918,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(BorderStroke(1.dp, Color(0xFFB0BEC5)), RoundedCornerShape(8.dp))
+                                .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 14.dp, vertical = 14.dp)
                         ) {
                             if (english.text.isEmpty()) {
@@ -926,7 +929,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                                 onValueChange = { english = it },
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 1,
-                                textStyle = TextStyle(color = TextDark, fontSize = 16.sp),
+                                textStyle = AddWordFieldTextStyle,
                                 cursorBrush = SolidColor(BrightBlue),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                             )
@@ -937,7 +940,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(BorderStroke(1.dp, Color(0xFFB0BEC5)), RoundedCornerShape(8.dp))
+                                .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 14.dp, vertical = 14.dp)
                         ) {
                             if (meaning.text.isEmpty()) {
@@ -948,7 +951,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                                 onValueChange = { meaning = it },
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 1,
-                                textStyle = TextStyle(color = TextDark, fontSize = 16.sp),
+                                textStyle = AddWordFieldTextStyle,
                                 cursorBrush = SolidColor(BrightBlue),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
                             )
