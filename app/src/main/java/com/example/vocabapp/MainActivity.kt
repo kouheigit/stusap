@@ -934,14 +934,25 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("日本語", fontWeight = FontWeight.Bold, color = TextMuted)
-                        OutlinedTextField(
-                            value = meaning,
-                            onValueChange = { meaning = it },
-                            placeholder = { Text("例: りんご、美しい") },
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 1,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(BorderStroke(1.dp, Color(0xFFB0BEC5)), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 14.dp, vertical = 14.dp)
+                        ) {
+                            if (meaning.text.isEmpty()) {
+                                Text("例: りんご、美しい", color = TextMuted, fontSize = 16.sp)
+                            }
+                            BasicTextField(
+                                value = meaning,
+                                onValueChange = { meaning = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                maxLines = 1,
+                                textStyle = TextStyle(color = TextDark, fontSize = 16.sp),
+                                cursorBrush = SolidColor(BrightBlue),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                            )
+                        }
                     }
                     Button(
                         onClick = { viewModel.save(english.text, meaning.text) },
