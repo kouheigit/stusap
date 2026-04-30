@@ -267,6 +267,10 @@ class VocabRepository @Inject constructor(
         ))
     }
 
+    suspend fun deleteCustomWord(id: Int) { dao.deleteCustomWord(id) }
+
+    suspend fun deleteAllCustomWords() { dao.deleteAllCustomWords() }
+
     fun observeCustomWords(): Flow<List<CustomWordEntity>> = dao.observeCustomWords()
 
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {

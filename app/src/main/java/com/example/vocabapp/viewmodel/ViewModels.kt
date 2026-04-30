@@ -3,6 +3,7 @@ package com.example.vocabapp.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.repository.VocabRepository
 import com.example.vocabapp.domain.model.AnswerRecord
 import com.example.vocabapp.domain.model.HomeSummary
@@ -234,6 +235,18 @@ class AddWordViewModel @Inject constructor(
     }
 
     fun resetSaved() { _saved.value = false }
+}
+
+@HiltViewModel
+class CustomWordListViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    val words: StateFlow<List<CustomWordEntity>> = repository.observeCustomWords()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun delete(id: Int) {
+        viewModelScope.launch { repository.deleteCustomWord(id) }
+    }
 }
 
 @HiltViewModel

@@ -167,6 +167,12 @@ interface AppDao {
     @Query("SELECT COUNT(*) FROM custom_words")
     suspend fun customWordCount(): Int
 
+    @Query("DELETE FROM custom_words WHERE id = :id")
+    suspend fun deleteCustomWord(id: Int)
+
+    @Query("DELETE FROM custom_words")
+    suspend fun deleteAllCustomWords()
+
     @Transaction
     suspend fun resetLearningData() {
         deleteAttemptAnswers()

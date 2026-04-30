@@ -106,7 +106,9 @@ import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
+import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.viewmodel.AddWordViewModel
+import com.example.vocabapp.viewmodel.CustomWordListViewModel
 import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
 import com.example.vocabapp.viewmodel.MainViewModel
@@ -211,6 +213,7 @@ private object Route {
     const val Settings = "settings"
     const val AddWord = "add-word"
     const val CustomQuiz = "custom-quiz"
+    const val CustomWordList = "custom-word-list"
 
     fun training(lessonId: Int) = "training/$lessonId"
     fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
@@ -273,6 +276,7 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.Settings) { SettingsScreen(navController) }
         composable(Route.AddWord) { AddWordScreen(navController) }
         composable(Route.CustomQuiz) { CustomWordQuizScreen(navController) }
+        composable(Route.CustomWordList) { CustomWordListScreen(navController) }
     }
 }
 
@@ -433,15 +437,27 @@ private fun LessonListScreen(navController: NavHostController, viewModel: Lesson
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Button(
-                    onClick = { navController.navigate(Route.AddWord) },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
-                    Spacer(Modifier.width(8.dp))
-                    Text("新規単語登録", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { navController.navigate(Route.AddWord) },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text("単語登録", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = { navController.navigate(Route.CustomWordList) },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text("登録一覧", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
                 Spacer(Modifier.height(4.dp))
                 Button(
@@ -703,6 +719,45 @@ private fun CustomWordQuizScreen(navController: NavHostController, viewModel: Cu
                 state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 state.questions.isEmpty() -> EmptyMessage(Modifier.padding(inner).background(BrightBlue), "クイズには4つ以上の単語を登録してください", "戻る") { navController.popBackStack() }
                 else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomWordListScreen(navController: NavHostController, viewModel: CustomWordListViewModel = hiltViewModel()) {
+    val words by viewModel.words.collectAsState()
+    BlueScaffold(title = "登録単語一覧 (${words.size}語)", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (words.isEmpty()) {
+                item { EmptyCard("登録された単語はありません\n「単語登録」から追加してください") }
+            } else {
+                items(words, key = { it.id }) { word ->
+                    CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(word.english, color = DeepBlue, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                Text(word.meaning, color = TextMuted, fontSize = 15.sp)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "削除", tint = Danger)
             }
         }
     }
