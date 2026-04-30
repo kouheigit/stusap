@@ -408,6 +408,10 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     StatCard("Master", "${summary.masteredLessons}/${summary.totalLessons}", Modifier.weight(1f))
                     StatCard("復習単語", "${summary.reviewCount}", Modifier.weight(1f))
                 }
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    StatCard("連続学習", "${summary.streakDays}日", Modifier.weight(1f))
+                }
             }
             item {
                 CardButton(

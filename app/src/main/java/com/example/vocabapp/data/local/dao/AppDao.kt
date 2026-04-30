@@ -140,6 +140,9 @@ interface AppDao {
     @Query("SELECT * FROM study_logs ORDER BY studiedAt DESC")
     fun observeStudyLogs(): Flow<List<StudyLogEntity>>
 
+    @Query("SELECT DISTINCT (studiedAt / 86400000) FROM study_logs ORDER BY 1 DESC")
+    fun observeStudyDays(): Flow<List<Long>>
+
     @Query("DELETE FROM quiz_attempt_answers")
     suspend fun deleteAttemptAnswers()
 

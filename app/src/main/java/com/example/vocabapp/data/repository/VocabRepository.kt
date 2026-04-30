@@ -51,7 +51,7 @@ class VocabRepository @Inject constructor(
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
-        return combine(
+        val base = combine(
             dao.observeTotalStudySeconds(),
             dao.observeStudySecondsFrom(weekStart),
             dao.observeLessons(),
@@ -65,6 +65,9 @@ class VocabRepository @Inject constructor(
                 totalLessons = lessons.size,
                 reviewCount = reviews.count { it.isActive }
             )
+        }
+        return combine(base, dao.observeStudyDays()) { summary, days ->
+            summary.copy(streakDays = calculateStreak(days))
         }
     }
 
@@ -352,6 +355,20 @@ class VocabRepository @Inject constructor(
                 isMastered = mastered
             )
         )
+    }
+
+    private fun calculateStreak(studyDays: List<Long>): Int {
+        if (studyDays.isEmpty()) return 0
+        val todayDay = System.currentTimeMillis() / 86400000L
+        var streak = 0
+        var expected = todayDay
+        for (day in studyDays) {
+            if (day == expected || (streak == 0 && day == expected - 1)) {
+                streak++
+                expected = day - 1
+            } else break
+        }
+        return streak
     }
 
     private fun WordEntity.toDomain(): Word =

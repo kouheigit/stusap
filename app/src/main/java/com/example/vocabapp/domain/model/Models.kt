@@ -107,5 +107,6 @@ data class HomeSummary(
     val weekStudySeconds: Int = 0,
     val masteredLessons: Int = 0,
     val totalLessons: Int = 0,
-    val reviewCount: Int = 0
+    val reviewCount: Int = 0,
+    val streakDays: Int = 0
 )
