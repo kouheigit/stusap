@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -665,6 +666,43 @@ private fun StudyLogScreen(navController: NavHostController, viewModel: StudyLog
 
 @Composable
 private fun SettingsScreen(navController: NavHostController, viewModel: MainViewModel = hiltViewModel()) {
+    var showResetDialog by remember { mutableStateOf(false) }
+    var showDeleteCustomDialog by remember { mutableStateOf(false) }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = { Text("学習進捗をリセット") },
+            text = { Text("すべての学習進捗・クイズ履歴・復習リストを削除します。\nこの操作は元に戻せません。") },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.resetProgress(); showResetDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Danger)
+                ) { Text("リセット") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showResetDialog = false }) { Text("キャンセル") }
+            }
+        )
+    }
+
+    if (showDeleteCustomDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteCustomDialog = false },
+            title = { Text("カスタム単語を全削除") },
+            text = { Text("登録したすべてのカスタム単語を削除します。\nこの操作は元に戻せません。") },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.deleteAllCustomWords(); showDeleteCustomDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Danger)
+                ) { Text("削除") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteCustomDialog = false }) { Text("キャンセル") }
+            }
+        )
+    }
+
     BlueScaffold(title = "設定", onBack = { navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(20.dp),
@@ -680,8 +718,13 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                     Text("TOEIC向け英単語を、10問単位の4択クイズで学習するローカル保存型アプリです。", color = TextMuted)
                 }
             }
-            OutlinedButton(onClick = viewModel::resetProgress, modifier = Modifier.fillMaxWidth().height(54.dp)) {
+            OutlinedButton(onClick = { showDeleteCustomDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
                 Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
+                Spacer(Modifier.width(8.dp))
+                Text("カスタム単語を全削除", color = Danger)
+            }
+            OutlinedButton(onClick = { showResetDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
+                Icon(Icons.Default.Refresh, contentDescription = null, tint = Danger)
                 Spacer(Modifier.width(8.dp))
                 Text("学習進捗をリセット", color = Danger)
             }

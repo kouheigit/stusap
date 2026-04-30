@@ -43,6 +43,10 @@ class MainViewModel @Inject constructor(
     fun resetProgress() {
         viewModelScope.launch { repository.resetLearningData() }
     }
+
+    fun deleteAllCustomWords() {
+        viewModelScope.launch { repository.deleteAllCustomWords() }
+    }
 }
 
 @HiltViewModel
