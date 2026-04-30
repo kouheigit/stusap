@@ -899,6 +899,38 @@ private val AddWordFieldTextStyle = TextStyle(color = TextDark, fontSize = 16.sp
 private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
 
 @Composable
+private fun AddWordField(
+    label: String,
+    placeholder: String,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    imeAction: ImeAction,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, fontWeight = FontWeight.Bold, color = TextMuted)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
+                .padding(horizontal = 14.dp, vertical = 14.dp)
+        ) {
+            if (value.text.isEmpty()) {
+                Text(placeholder, color = TextMuted, fontSize = 16.sp)
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
+                textStyle = AddWordFieldTextStyle,
+                cursorBrush = SolidColor(BrightBlue),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction),
+            )
+        }
+    }
+}
+
+@Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
     var english by remember { mutableStateOf(TextFieldValue("")) }
@@ -913,50 +945,20 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
         ) {
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("英単語", fontWeight = FontWeight.Bold, color = TextMuted)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 14.dp, vertical = 14.dp)
-                        ) {
-                            if (english.text.isEmpty()) {
-                                Text("例: apple, beautiful", color = TextMuted, fontSize = 16.sp)
-                            }
-                            BasicTextField(
-                                value = english,
-                                onValueChange = { english = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                maxLines = 1,
-                                textStyle = AddWordFieldTextStyle,
-                                cursorBrush = SolidColor(BrightBlue),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                            )
-                        }
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("日本語", fontWeight = FontWeight.Bold, color = TextMuted)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 14.dp, vertical = 14.dp)
-                        ) {
-                            if (meaning.text.isEmpty()) {
-                                Text("例: りんご、美しい", color = TextMuted, fontSize = 16.sp)
-                            }
-                            BasicTextField(
-                                value = meaning,
-                                onValueChange = { meaning = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                maxLines = 1,
-                                textStyle = AddWordFieldTextStyle,
-                                cursorBrush = SolidColor(BrightBlue),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                            )
-                        }
-                    }
+                    AddWordField(
+                        label = "英単語",
+                        placeholder = "例: apple, beautiful",
+                        value = english,
+                        onValueChange = { english = it },
+                        imeAction = ImeAction.Next,
+                    )
+                    AddWordField(
+                        label = "日本語",
+                        placeholder = "例: りんご、美しい",
+                        value = meaning,
+                        onValueChange = { meaning = it },
+                        imeAction = ImeAction.Done,
+                    )
                     Button(
                         onClick = { viewModel.save(english.text, meaning.text) },
                         enabled = english.text.isNotBlank() && meaning.text.isNotBlank(),
