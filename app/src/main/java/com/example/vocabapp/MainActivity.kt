@@ -902,11 +902,10 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val saved by viewModel.saved.collectAsState()
     var english by remember { mutableStateOf(TextFieldValue("")) }
     var meaning by remember { mutableStateOf(TextFieldValue("")) }
-    val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
-    BlueScaffold(title = "新規単語登録", onBack = { keyboardController?.hide(); navController.popBackStack() }) { inner ->
+    BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -936,7 +935,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         )
                     }
                     Button(
-                        onClick = { keyboardController?.hide(); viewModel.save(english.text, meaning.text) },
+                        onClick = { viewModel.save(english.text, meaning.text) },
                         enabled = english.text.isNotBlank() && meaning.text.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
