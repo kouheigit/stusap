@@ -922,7 +922,6 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 1,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                            keyboardActions = KeyboardActions(onNext = { /* keep focus where user moves it */ }),
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -934,10 +933,6 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 1,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = {
-                                keyboardController?.hide()
-                                if (english.text.isNotBlank() && meaning.text.isNotBlank()) viewModel.save(english.text, meaning.text)
-                            })
                         )
                     }
                     Button(
