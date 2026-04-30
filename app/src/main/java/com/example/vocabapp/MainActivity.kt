@@ -18,7 +18,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -78,6 +77,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -940,14 +940,14 @@ private fun AddWordField(
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
-    var english by remember { mutableStateOf(TextFieldValue("")) }
-    var meaning by remember { mutableStateOf(TextFieldValue("")) }
+    var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    var meaning by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
     BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).imePadding().padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
