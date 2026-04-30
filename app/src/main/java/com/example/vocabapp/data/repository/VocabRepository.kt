@@ -217,17 +217,19 @@ class VocabRepository @Inject constructor(
     }
 
     suspend fun getResult(attemptId: Long): QuizResult? =
-        dao.getAttempt(attemptId)?.let {
+        dao.getAttempt(attemptId)?.let { attempt ->
+            val wrongWords = dao.getWrongWordsForAttempt(attemptId).map { it.toDomain() }
             QuizResult(
-                attemptId = it.id,
-                trainingId = it.trainingId,
-                isReview = it.isReview,
-                totalQuestions = it.totalQuestions,
-                correctCount = it.correctCount,
-                wrongCount = it.wrongCount,
-                accuracy = it.accuracy,
-                studySeconds = it.studySeconds,
-                starCount = it.starCount
+                attemptId = attempt.id,
+                trainingId = attempt.trainingId,
+                isReview = attempt.isReview,
+                totalQuestions = attempt.totalQuestions,
+                correctCount = attempt.correctCount,
+                wrongCount = attempt.wrongCount,
+                accuracy = attempt.accuracy,
+                studySeconds = attempt.studySeconds,
+                starCount = attempt.starCount,
+                wrongWords = wrongWords
             )
         }
 

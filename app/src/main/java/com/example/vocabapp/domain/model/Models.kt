@@ -98,7 +98,8 @@ data class QuizResult(
     val wrongCount: Int,
     val accuracy: Float,
     val studySeconds: Int,
-    val starCount: Int
+    val starCount: Int,
+    val wrongWords: List<Word> = emptyList()
 )
 
 data class HomeSummary(

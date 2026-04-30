@@ -173,6 +173,14 @@ interface AppDao {
     @Query("DELETE FROM custom_words")
     suspend fun deleteAllCustomWords()
 
+    @Query("""
+        SELECT w.* FROM words w
+        INNER JOIN quiz_attempt_answers qaa ON qaa.wordId = w.id
+        WHERE qaa.quizAttemptId = :attemptId AND qaa.isCorrect = 0
+        ORDER BY qaa.answeredAt
+    """)
+    suspend fun getWrongWordsForAttempt(attemptId: Long): List<WordEntity>
+
     @Transaction
     suspend fun resetLearningData() {
         deleteAttemptAnswers()

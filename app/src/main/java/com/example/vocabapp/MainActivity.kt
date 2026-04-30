@@ -1116,30 +1116,59 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
 
 @Composable
 private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () -> Unit, onHome: () -> Unit, onNext: () -> Unit) {
-    Column(
-        modifier = modifier.fillMaxSize().background(SoftBlue).padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+    LazyColumn(
+        modifier = modifier.fillMaxSize().background(SoftBlue),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("${result.accuracy.toInt()}%", color = DeepBlue, fontSize = 54.sp, fontWeight = FontWeight.Black)
-                Row {
-                    repeat(3) { index -> Icon(Icons.Default.Star, contentDescription = null, tint = if (index < result.starCount) Gold else Color(0xFFDDE5EC), modifier = Modifier.size(42.dp)) }
+        item {
+            Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("${result.accuracy.toInt()}%", color = DeepBlue, fontSize = 54.sp, fontWeight = FontWeight.Black)
+                    Row {
+                        repeat(3) { index -> Icon(Icons.Default.Star, contentDescription = null, tint = if (index < result.starCount) Gold else Color(0xFFDDE5EC), modifier = Modifier.size(42.dp)) }
+                    }
+                    Text(result.message(), color = TextDark, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                    Text("正解 ${result.correctCount} / 不正解 ${result.wrongCount} / 全${result.totalQuestions}問", color = TextMuted)
+                    Text("今回の学習時間 ${formatSeconds(result.studySeconds)}", color = TextMuted)
                 }
-                Text(result.message(), color = TextDark, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                Text("正解 ${result.correctCount} / 不正解 ${result.wrongCount} / 全${result.totalQuestions}問", color = TextMuted)
-                Text("今回の学習時間 ${formatSeconds(result.studySeconds)}", color = TextMuted)
             }
         }
-        Button(onClick = onRetry, modifier = Modifier.fillMaxWidth().height(58.dp), colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)) {
-            Icon(Icons.Default.Refresh, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("再チャレンジ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        item {
+            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth().height(58.dp), colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)) {
+                Icon(Icons.Default.Refresh, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("再チャレンジ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onHome, modifier = Modifier.weight(1f).height(54.dp)) { Text("ホーム") }
-            OutlinedButton(onClick = onNext, modifier = Modifier.weight(1f).height(54.dp)) { Text("次へ") }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onHome, modifier = Modifier.weight(1f).height(54.dp)) { Text("ホーム") }
+                OutlinedButton(onClick = onNext, modifier = Modifier.weight(1f).height(54.dp)) { Text("次へ") }
+            }
+        }
+        if (result.wrongWords.isNotEmpty()) {
+            item {
+                Text("間違えた単語 (${result.wrongWords.size}語)", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.fillMaxWidth())
+            }
+            items(result.wrongWords) { word ->
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth(),
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Danger.copy(alpha = 0.4f))
+                ) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Close, contentDescription = null, tint = Danger, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Column {
+                            Text(word.english, color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                            Text(word.meaning, color = TextMuted, fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
         }
     }
 }
