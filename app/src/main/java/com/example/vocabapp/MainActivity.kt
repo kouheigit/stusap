@@ -74,6 +74,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
@@ -84,6 +87,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -907,14 +912,25 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("英単語", fontWeight = FontWeight.Bold, color = TextMuted)
-                        OutlinedTextField(
-                            value = english,
-                            onValueChange = { english = it },
-                            placeholder = { Text("例: apple, beautiful") },
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 1,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(BorderStroke(1.dp, Color(0xFFB0BEC5)), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 14.dp, vertical = 14.dp)
+                        ) {
+                            if (english.text.isEmpty()) {
+                                Text("例: apple, beautiful", color = TextMuted, fontSize = 16.sp)
+                            }
+                            BasicTextField(
+                                value = english,
+                                onValueChange = { english = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                maxLines = 1,
+                                textStyle = TextStyle(color = TextDark, fontSize = 16.sp),
+                                cursorBrush = SolidColor(BrightBlue),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                            )
+                        }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("日本語", fontWeight = FontWeight.Bold, color = TextMuted)
