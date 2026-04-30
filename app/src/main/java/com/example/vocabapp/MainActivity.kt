@@ -87,6 +87,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -899,7 +900,7 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
-    var english by remember { mutableStateOf("") }
+    var english by remember { mutableStateOf(TextFieldValue("")) }
     var meaning by remember { mutableStateOf("") }
     val meaningFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -923,7 +924,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                            keyboardActions = KeyboardActions(onNext = { runCatching { meaningFocus.requestFocus() } })
+                            keyboardActions = KeyboardActions(onNext = { runCatching { meaningFocus.requestFocus() } }),
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -937,13 +938,13 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = {
                                 keyboardController?.hide()
-                                if (english.isNotBlank() && meaning.isNotBlank()) viewModel.save(english, meaning)
+                                if (english.text.isNotBlank() && meaning.isNotBlank()) viewModel.save(english.text, meaning)
                             })
                         )
                     }
                     Button(
-                        onClick = { keyboardController?.hide(); viewModel.save(english, meaning) },
-                        enabled = english.isNotBlank() && meaning.isNotBlank(),
+                        onClick = { keyboardController?.hide(); viewModel.save(english.text, meaning) },
+                        enabled = english.text.isNotBlank() && meaning.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
                     ) {
