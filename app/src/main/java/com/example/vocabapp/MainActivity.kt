@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -911,8 +912,10 @@ private fun AddWordField(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .defaultMinSize(minHeight = 56.dp)
                 .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
-                .padding(horizontal = 14.dp, vertical = 14.dp)
+                .padding(horizontal = 14.dp, vertical = 14.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
             if (value.text.isEmpty()) {
                 Text(placeholder, color = TextMuted, fontSize = 16.sp)
