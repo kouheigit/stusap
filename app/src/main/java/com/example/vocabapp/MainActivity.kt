@@ -88,6 +88,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.draw.clip
@@ -915,6 +916,7 @@ private fun AddWordField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     imeAction: ImeAction,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, fontWeight = FontWeight.Bold, color = TextMuted)
@@ -925,7 +927,7 @@ private fun AddWordField(
             placeholder = { Text(placeholder, color = TextMuted) },
             singleLine = true,
             textStyle = AddWordFieldTextStyle,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction, capitalization = capitalization),
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BrightBlue,
@@ -959,6 +961,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         value = english,
                         onValueChange = { english = it },
                         imeAction = ImeAction.Next,
+                        capitalization = KeyboardCapitalization.None,
                     )
                     AddWordField(
                         label = "日本語",
@@ -966,6 +969,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         value = meaning,
                         onValueChange = { meaning = it },
                         imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.Sentences,
                     )
                     Button(
                         onClick = { viewModel.save(english.text, meaning.text) },
