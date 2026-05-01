@@ -87,6 +87,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -222,6 +223,7 @@ private object Route {
     const val CustomQuiz = "custom-quiz"
     const val CustomWordList = "custom-word-list"
     const val Flashcard = "flashcard/{trainingId}"
+    const val Test = "test"
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
 
@@ -291,6 +293,7 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
             Route.Flashcard,
             arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
         ) { FlashcardScreen(navController) }
+        composable(Route.Test) { TestInputScreen(navController) }
     }
 }
 
@@ -439,6 +442,16 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     BottomAction("学習ログ", Icons.Default.School, Modifier.weight(1f)) { navController.navigate(Route.StudyLog) }
                     BottomAction("設定", Icons.Default.Settings, Modifier.weight(1f)) { navController.navigate(Route.Settings) }
+                }
+            }
+            item {
+                Button(
+                    onClick = { navController.navigate(Route.Test) },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("テスト", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -901,6 +914,86 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
     }
 }
 
+@Composable
+private fun TestInputScreen(navController: NavHostController) {
+    var japanese by rememberSaveable { mutableStateOf("") }
+    var english by rememberSaveable { mutableStateOf("") }
+    val japaneseFocusRequester = remember { FocusRequester() }
+    val englishFocusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) {
+        delay(300)
+        runCatching {
+            japaneseFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose { focusManager.clearFocus() }
+    }
+    BlueScaffold(title = "テスト入力", onBack = { navController.popBackStack() }) { inner ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .background(SoftBlue)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    AddWordField(
+                        label = "日本語",
+                        placeholder = "例: りんご、美しい",
+                        value = japanese,
+                        onValueChange = { japanese = it },
+                        imeAction = ImeAction.Next,
+                        focusRequester = japaneseFocusRequester,
+                        keyboardActions = KeyboardActions(onNext = {
+                            englishFocusRequester.requestFocus()
+                            keyboardController?.show()
+                        }),
+                    )
+                    AddWordField(
+                        label = "英単語",
+                        placeholder = "例: apple, beautiful",
+                        value = english,
+                        onValueChange = { english = it },
+                        imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrectEnabled = false,
+                        focusRequester = englishFocusRequester,
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                    )
+                }
+            }
+            if (japanese.isNotBlank() || english.isNotBlank()) {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("入力内容", fontWeight = FontWeight.Bold, color = TextMuted)
+                        if (japanese.isNotBlank()) Text("日本語: $japanese", color = TextDark, fontSize = 18.sp)
+                        if (english.isNotBlank()) Text("英単語: $english", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
 private val AddWordFieldTextStyle = TextStyle(color = TextDark, fontSize = 16.sp)
 private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
 private val AddWordCardPadding = 24.dp
@@ -950,9 +1043,13 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val englishFocusRequester = remember { FocusRequester() }
     val meaningFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) {
         delay(300)
-        runCatching { englishFocusRequester.requestFocus() }
+        runCatching {
+            englishFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
     }
     DisposableEffect(Unit) {
         onDispose { focusManager.clearFocus() }
@@ -976,7 +1073,10 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         capitalization = KeyboardCapitalization.None,
                         autoCorrectEnabled = false,
                         focusRequester = englishFocusRequester,
-                        keyboardActions = KeyboardActions(onNext = { meaningFocusRequester.requestFocus() }),
+                        keyboardActions = KeyboardActions(onNext = {
+                            meaningFocusRequester.requestFocus()
+                            keyboardController?.show()
+                        }),
                     )
                     AddWordField(
                         label = "日本語",
