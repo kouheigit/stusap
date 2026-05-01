@@ -973,7 +973,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         onValueChange = { english = it },
                         imeAction = ImeAction.Next,
                         capitalization = KeyboardCapitalization.None,
-                        keyboardType = KeyboardType.Ascii,
+                        keyboardType = KeyboardType.Text,
                         focusRequester = englishFocusRequester,
                         keyboardActions = KeyboardActions(onNext = { meaningFocusRequester.requestFocus() }),
                     )
