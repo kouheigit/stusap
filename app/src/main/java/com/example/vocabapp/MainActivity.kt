@@ -131,6 +131,7 @@ import com.example.vocabapp.viewmodel.TrainingListViewModel
 import com.example.vocabapp.viewmodel.WordDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
+import kotlinx.coroutines.delay
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -954,6 +955,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val meaningFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     LaunchedEffect(Unit) {
+        delay(300)
         runCatching { englishFocusRequester.requestFocus() }
     }
     LaunchedEffect(saved) {
