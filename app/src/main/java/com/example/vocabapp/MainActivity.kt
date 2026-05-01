@@ -916,7 +916,7 @@ private fun AddWordField(
     imeAction: ImeAction,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
     keyboardType: KeyboardType = KeyboardType.Text,
-    focusRequester: FocusRequester = remember { FocusRequester() },
+    focusRequester: FocusRequester,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
