@@ -953,6 +953,9 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
         delay(300)
         runCatching { englishFocusRequester.requestFocus() }
     }
+    DisposableEffect(Unit) {
+        onDispose { focusManager.clearFocus() }
+    }
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
