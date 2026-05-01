@@ -1024,7 +1024,6 @@ private fun BlueScaffold(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DeepBlue)
             )
         },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
         content = content
     )
 }
