@@ -915,6 +915,7 @@ private fun AddWordField(
     imeAction: ImeAction,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
     keyboardType: KeyboardType = KeyboardType.Text,
+    autoCorrect: Boolean = true,
     focusRequester: FocusRequester,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
@@ -927,7 +928,7 @@ private fun AddWordField(
             placeholder = { Text(placeholder, color = TextMuted) },
             singleLine = true,
             textStyle = AddWordFieldTextStyle,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction, capitalization = capitalization),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction, capitalization = capitalization, autoCorrect = autoCorrect),
             keyboardActions = keyboardActions,
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -973,7 +974,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         onValueChange = { english = it },
                         imeAction = ImeAction.Next,
                         capitalization = KeyboardCapitalization.None,
-                        keyboardType = KeyboardType.Text,
+                        autoCorrect = false,
                         focusRequester = englishFocusRequester,
                         keyboardActions = KeyboardActions(onNext = { meaningFocusRequester.requestFocus() }),
                     )
