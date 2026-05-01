@@ -63,6 +63,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
@@ -916,27 +918,23 @@ private fun AddWordField(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, fontWeight = FontWeight.Bold, color = TextMuted)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = AddWordFieldMinHeight)
-                .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
-                .padding(horizontal = AddWordFieldHorizontalPadding, vertical = AddWordFieldVerticalPadding),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            if (value.text.isEmpty()) {
-                Text(placeholder, color = TextMuted, fontSize = 16.sp)
-            }
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1,
-                textStyle = AddWordFieldTextStyle,
-                cursorBrush = SolidColor(BrightBlue),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction),
-            )
-        }
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(placeholder, color = TextMuted) },
+            singleLine = true,
+            textStyle = AddWordFieldTextStyle,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction),
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = BrightBlue,
+                unfocusedBorderColor = AddWordFieldBorderColor,
+                focusedTextColor = TextDark,
+                unfocusedTextColor = TextDark,
+                cursorColor = BrightBlue,
+            ),
+        )
     }
 }
 
