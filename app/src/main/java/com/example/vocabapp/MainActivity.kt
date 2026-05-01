@@ -11,6 +11,12 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -64,8 +70,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -77,24 +81,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -917,22 +913,9 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
 
 @Composable
 private fun TestInputScreen(navController: NavHostController) {
-    var japanese by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    val japaneseFocusRequester = remember { FocusRequester() }
-    val englishFocusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(Unit) {
-        delay(300)
-        runCatching {
-            japaneseFocusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
-    DisposableEffect(Unit) {
-        onDispose { focusManager.clearFocus() }
-    }
+    var japanese by rememberSaveable { mutableStateOf("") }
+    var english by rememberSaveable { mutableStateOf("") }
+    var englishInput by remember { mutableStateOf<EditText?>(null) }
     BlueScaffold(title = "テスト入力", onBack = { navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier
@@ -958,27 +941,22 @@ private fun TestInputScreen(navController: NavHostController) {
                         placeholder = "例: りんご、美しい",
                         value = japanese,
                         onValueChange = { japanese = it },
-                        imeAction = ImeAction.Next,
-                        focusRequester = japaneseFocusRequester,
-                        keyboardActions = KeyboardActions(onNext = {
-                            englishFocusRequester.requestFocus()
-                            keyboardController?.show()
-                        }),
+                        imeAction = EditorInfo.IME_ACTION_NEXT,
+                        autoFocus = true,
+                        onImeAction = { englishInput?.focusAndShowKeyboard() },
                     )
                     AddWordField(
                         label = "英単語",
                         placeholder = "例: apple, beautiful",
                         value = english,
                         onValueChange = { english = it },
-                        imeAction = ImeAction.Done,
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrectEnabled = false,
-                        focusRequester = englishFocusRequester,
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                        imeAction = EditorInfo.IME_ACTION_DONE,
+                        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+                        onReady = { englishInput = it },
                     )
                 }
             }
-            if (japanese.text.isNotBlank() || english.text.isNotBlank()) {
+            if (japanese.isNotBlank() || english.isNotBlank()) {
                 Card(
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -986,8 +964,8 @@ private fun TestInputScreen(navController: NavHostController) {
                 ) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("入力内容", fontWeight = FontWeight.Bold, color = TextMuted)
-                        if (japanese.text.isNotBlank()) Text("日本語: ${japanese.text}", color = TextDark, fontSize = 18.sp)
-                        if (english.text.isNotBlank()) Text("英単語: ${english.text}", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        if (japanese.isNotBlank()) Text("日本語: $japanese", color = TextDark, fontSize = 18.sp)
+                        if (english.isNotBlank()) Text("英単語: $english", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -995,8 +973,6 @@ private fun TestInputScreen(navController: NavHostController) {
     }
 }
 
-private val AddWordFieldTextStyle = TextStyle(color = TextDark, fontSize = 16.sp)
-private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
 private val AddWordCardPadding = 24.dp
 private val AddWordCardSpacing = 20.dp
 
@@ -1004,57 +980,88 @@ private val AddWordCardSpacing = 20.dp
 private fun AddWordField(
     label: String,
     placeholder: String,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    imeAction: ImeAction,
-    capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    autoCorrectEnabled: Boolean = true,
-    focusRequester: FocusRequester,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    value: String,
+    onValueChange: (String) -> Unit,
+    imeAction: Int,
+    inputType: Int = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,
+    autoFocus: Boolean = false,
+    onImeAction: () -> Unit = {},
+    onReady: (EditText) -> Unit = {},
 ) {
+    val currentOnValueChange by rememberUpdatedState(onValueChange)
+    val currentOnImeAction by rememberUpdatedState(onImeAction)
+    val currentOnReady by rememberUpdatedState(onReady)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, fontWeight = FontWeight.Bold, color = TextMuted)
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-            placeholder = { Text(placeholder, color = TextMuted) },
-            singleLine = true,
-            textStyle = AddWordFieldTextStyle,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction, capitalization = capitalization, autoCorrectEnabled = autoCorrectEnabled),
-            keyboardActions = keyboardActions,
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BrightBlue,
-                unfocusedBorderColor = AddWordFieldBorderColor,
-                focusedTextColor = TextDark,
-                unfocusedTextColor = TextDark,
-                cursorColor = BrightBlue,
-            ),
+        AndroidView(
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            factory = { context ->
+                EditText(context).apply {
+                    setSingleLine(true)
+                    hint = placeholder
+                    textSize = 16f
+                    setTextColor(TextDark.toArgb())
+                    setHintTextColor(TextMuted.toArgb())
+                    setPadding(32, 0, 32, 0)
+                    this.inputType = inputType
+                    imeOptions = imeAction
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        cornerRadius = 8.dp.value * resources.displayMetrics.density
+                        setColor(android.graphics.Color.WHITE)
+                        setStroke((1.dp.value * resources.displayMetrics.density).toInt(), Color(0xFFB0BEC5).toArgb())
+                    }
+                    addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                            currentOnValueChange(s?.toString().orEmpty())
+                        }
+                        override fun afterTextChanged(s: Editable?) = Unit
+                    })
+                    setOnEditorActionListener { _, actionId, _ ->
+                        if (actionId == imeAction) {
+                            currentOnImeAction()
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    setOnFocusChangeListener { view, hasFocus ->
+                        if (hasFocus) view.showKeyboard()
+                    }
+                    if (autoFocus) postDelayed({ focusAndShowKeyboard() }, 300)
+                    currentOnReady(this)
+                }
+            },
+            update = { editText ->
+                if (editText.text.toString() != value) {
+                    editText.setText(value)
+                    editText.setSelection(value.length)
+                }
+                if (editText.imeOptions != imeAction) editText.imeOptions = imeAction
+                if (editText.inputType != inputType) editText.inputType = inputType
+                currentOnReady(editText)
+            }
         )
     }
+}
+
+private fun android.view.View.showKeyboard() {
+    val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+}
+
+private fun EditText.focusAndShowKeyboard() {
+    requestFocus()
+    setSelection(text?.length ?: 0)
+    showKeyboard()
 }
 
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
-    var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    var meaning by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    val englishFocusRequester = remember { FocusRequester() }
-    val meaningFocusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(Unit) {
-        delay(300)
-        runCatching {
-            englishFocusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
-    DisposableEffect(Unit) {
-        onDispose { focusManager.clearFocus() }
-    }
+    var english by rememberSaveable { mutableStateOf("") }
+    var meaning by rememberSaveable { mutableStateOf("") }
+    var meaningInput by remember { mutableStateOf<EditText?>(null) }
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
@@ -1070,28 +1077,22 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         placeholder = "例: apple, beautiful",
                         value = english,
                         onValueChange = { english = it },
-                        imeAction = ImeAction.Next,
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrectEnabled = false,
-                        focusRequester = englishFocusRequester,
-                        keyboardActions = KeyboardActions(onNext = {
-                            meaningFocusRequester.requestFocus()
-                            keyboardController?.show()
-                        }),
+                        imeAction = EditorInfo.IME_ACTION_NEXT,
+                        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+                        autoFocus = true,
+                        onImeAction = { meaningInput?.focusAndShowKeyboard() },
                     )
                     AddWordField(
                         label = "日本語",
                         placeholder = "例: りんご、美しい",
                         value = meaning,
                         onValueChange = { meaning = it },
-                        imeAction = ImeAction.Done,
-                        capitalization = KeyboardCapitalization.Sentences,
-                        focusRequester = meaningFocusRequester,
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                        imeAction = EditorInfo.IME_ACTION_DONE,
+                        onReady = { meaningInput = it },
                     )
                     Button(
-                        onClick = { viewModel.save(english.text, meaning.text) },
-                        enabled = english.text.isNotBlank() && meaning.text.isNotBlank(),
+                        onClick = { viewModel.save(english, meaning) },
+                        enabled = english.isNotBlank() && meaning.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
                     ) {
