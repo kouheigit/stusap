@@ -953,7 +953,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val meaningFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     LaunchedEffect(Unit) {
-        englishFocusRequester.requestFocus()
+        runCatching { englishFocusRequester.requestFocus() }
     }
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
