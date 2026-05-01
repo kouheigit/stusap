@@ -91,6 +91,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -916,8 +917,8 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
 
 @Composable
 private fun TestInputScreen(navController: NavHostController) {
-    var japanese by rememberSaveable { mutableStateOf("") }
-    var english by rememberSaveable { mutableStateOf("") }
+    var japanese by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     val japaneseFocusRequester = remember { FocusRequester() }
     val englishFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -977,7 +978,7 @@ private fun TestInputScreen(navController: NavHostController) {
                     )
                 }
             }
-            if (japanese.isNotBlank() || english.isNotBlank()) {
+            if (japanese.text.isNotBlank() || english.text.isNotBlank()) {
                 Card(
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -985,8 +986,8 @@ private fun TestInputScreen(navController: NavHostController) {
                 ) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("入力内容", fontWeight = FontWeight.Bold, color = TextMuted)
-                        if (japanese.isNotBlank()) Text("日本語: $japanese", color = TextDark, fontSize = 18.sp)
-                        if (english.isNotBlank()) Text("英単語: $english", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        if (japanese.text.isNotBlank()) Text("日本語: ${japanese.text}", color = TextDark, fontSize = 18.sp)
+                        if (english.text.isNotBlank()) Text("英単語: ${english.text}", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -1003,8 +1004,8 @@ private val AddWordCardSpacing = 20.dp
 private fun AddWordField(
     label: String,
     placeholder: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     imeAction: ImeAction,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -1038,8 +1039,8 @@ private fun AddWordField(
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
-    var english by rememberSaveable { mutableStateOf("") }
-    var meaning by rememberSaveable { mutableStateOf("") }
+    var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    var meaning by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     val englishFocusRequester = remember { FocusRequester() }
     val meaningFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -1089,8 +1090,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                     )
                     Button(
-                        onClick = { viewModel.save(english, meaning) },
-                        enabled = english.isNotBlank() && meaning.isNotBlank(),
+                        onClick = { viewModel.save(english.text, meaning.text) },
+                        enabled = english.text.isNotBlank() && meaning.text.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
                     ) {
