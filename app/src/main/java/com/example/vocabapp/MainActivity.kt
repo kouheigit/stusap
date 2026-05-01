@@ -901,6 +901,7 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
 private val AddWordFieldTextStyle = TextStyle(color = TextDark, fontSize = 16.sp)
 private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
 private val AddWordFieldHorizontalPadding = 14.dp
+private val AddWordFieldVerticalPadding = 14.dp
 
 @Composable
 private fun AddWordField(
@@ -917,7 +918,7 @@ private fun AddWordField(
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = 56.dp)
                 .border(BorderStroke(1.dp, AddWordFieldBorderColor), RoundedCornerShape(8.dp))
-                .padding(horizontal = AddWordFieldHorizontalPadding, vertical = 14.dp),
+                .padding(horizontal = AddWordFieldHorizontalPadding, vertical = AddWordFieldVerticalPadding),
             contentAlignment = Alignment.CenterStart
         ) {
             if (value.text.isEmpty()) {
