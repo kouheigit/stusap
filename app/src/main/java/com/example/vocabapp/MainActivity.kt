@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
@@ -964,7 +965,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     }
     BlueScaffold(title = "新規単語登録", onBack = { navController.popBackStack() }) { inner ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).imePadding().padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
