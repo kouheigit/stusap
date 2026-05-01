@@ -903,6 +903,7 @@ private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
 private val AddWordFieldHorizontalPadding = 14.dp
 private val AddWordFieldVerticalPadding = 14.dp
 private val AddWordFieldMinHeight = 56.dp
+private val AddWordCardPadding = 24.dp
 
 @Composable
 private fun AddWordField(
@@ -952,7 +953,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                Column(Modifier.padding(AddWordCardPadding), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     AddWordField(
                         label = "英単語",
                         placeholder = "例: apple, beautiful",
