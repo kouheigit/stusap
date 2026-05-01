@@ -913,8 +913,8 @@ private val AddWordCardSpacing = 20.dp
 private fun AddWordField(
     label: String,
     placeholder: String,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    value: String,
+    onValueChange: (String) -> Unit,
     imeAction: ImeAction,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -947,8 +947,8 @@ private fun AddWordField(
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
     val saved by viewModel.saved.collectAsState()
-    var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    var meaning by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    var english by rememberSaveable { mutableStateOf("") }
+    var meaning by rememberSaveable { mutableStateOf("") }
     val englishFocusRequester = remember { FocusRequester() }
     val meaningFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -987,8 +987,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                     )
                     Button(
-                        onClick = { viewModel.save(english.text, meaning.text) },
-                        enabled = english.text.isNotBlank() && meaning.text.isNotBlank(),
+                        onClick = { viewModel.save(english, meaning) },
+                        enabled = english.isNotBlank() && meaning.isNotBlank(),
                         modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
                     ) {
