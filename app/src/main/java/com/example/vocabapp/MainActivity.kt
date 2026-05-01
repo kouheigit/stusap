@@ -83,12 +83,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -921,6 +923,7 @@ private fun AddWordField(
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
     keyboardType: KeyboardType = KeyboardType.Text,
     focusRequester: FocusRequester = remember { FocusRequester() },
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, fontWeight = FontWeight.Bold, color = TextMuted)
@@ -932,6 +935,7 @@ private fun AddWordField(
             singleLine = true,
             textStyle = AddWordFieldTextStyle,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction, capitalization = capitalization),
+            keyboardActions = keyboardActions,
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BrightBlue,
@@ -949,6 +953,9 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
     val saved by viewModel.saved.collectAsState()
     var english by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     var meaning by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    val englishFocusRequester = remember { FocusRequester() }
+    val meaningFocusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     LaunchedEffect(saved) {
         if (saved) { viewModel.resetSaved(); navController.popBackStack() }
     }
@@ -967,6 +974,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         imeAction = ImeAction.Next,
                         capitalization = KeyboardCapitalization.None,
                         keyboardType = KeyboardType.Ascii,
+                        focusRequester = englishFocusRequester,
+                        keyboardActions = KeyboardActions(onNext = { meaningFocusRequester.requestFocus() }),
                     )
                     AddWordField(
                         label = "日本語",
@@ -975,6 +984,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         onValueChange = { meaning = it },
                         imeAction = ImeAction.Done,
                         capitalization = KeyboardCapitalization.Sentences,
+                        focusRequester = meaningFocusRequester,
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                     )
                     Button(
                         onClick = { viewModel.save(english.text, meaning.text) },
