@@ -917,6 +917,7 @@ private fun AddWordField(
     onValueChange: (TextFieldValue) -> Unit,
     imeAction: ImeAction,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
+    keyboardType: KeyboardType = KeyboardType.Text,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, fontWeight = FontWeight.Bold, color = TextMuted)
@@ -927,7 +928,7 @@ private fun AddWordField(
             placeholder = { Text(placeholder, color = TextMuted) },
             singleLine = true,
             textStyle = AddWordFieldTextStyle,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction, capitalization = capitalization),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction, capitalization = capitalization),
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BrightBlue,
@@ -962,6 +963,7 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         onValueChange = { english = it },
                         imeAction = ImeAction.Next,
                         capitalization = KeyboardCapitalization.None,
+                        keyboardType = KeyboardType.Ascii,
                     )
                     AddWordField(
                         label = "日本語",
