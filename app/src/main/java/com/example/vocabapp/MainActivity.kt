@@ -1315,8 +1315,9 @@ private fun formatDate(millis: Long): String =
     SimpleDateFormat("yyyy/MM/dd", Locale.JAPAN).format(Date(millis))
 
 private fun formatSeconds(seconds: Int): String {
-    val minutes = seconds / 60
+    val safeSeconds = seconds.coerceAtLeast(0)
+    val minutes = safeSeconds / 60
     val hours = minutes / 60
     val remainMinutes = minutes % 60
-    return if (hours > 0) "${hours}時間${remainMinutes}分" else "${seconds.coerceAtLeast(0) / 60}分"
+    return if (hours > 0) "${hours}時間${remainMinutes}分" else "${minutes}分"
 }
