@@ -906,9 +906,6 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
 
 private val AddWordFieldTextStyle = TextStyle(color = TextDark, fontSize = 16.sp)
 private val AddWordFieldBorderColor = Color(0xFFB0BEC5)
-private val AddWordFieldHorizontalPadding = 14.dp
-private val AddWordFieldVerticalPadding = 14.dp
-private val AddWordFieldMinHeight = 56.dp
 private val AddWordCardPadding = 24.dp
 private val AddWordCardSpacing = 20.dp
 
