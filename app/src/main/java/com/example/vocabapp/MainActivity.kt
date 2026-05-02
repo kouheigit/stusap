@@ -1401,6 +1401,25 @@ private fun MasterBadge(isMaster: Boolean) {
 }
 
 @Composable
+private fun ResultSectionCard(header: String, content: @Composable () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            Box(
+                modifier = Modifier.fillMaxWidth().background(SoftBlue).padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(header, color = TextDark, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+            content()
+        }
+    }
+}
+
+@Composable
 private fun SectionTitle(text: String) {
     Text(text, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
 }
