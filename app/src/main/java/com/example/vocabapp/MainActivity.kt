@@ -782,7 +782,7 @@ private fun CustomWordQuizResultContent(
     LaunchedEffect(Unit) {
         val animDuration = 1800
         playSynthSound(
-            listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
+            listOf(Pair(330f, 120), Pair(440f, 130), Pair(523f, 140), Pair(659f, 160), Pair(784f, 200), Pair(1047f, 280)),
             false
         )
         launch {
