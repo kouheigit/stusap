@@ -1369,6 +1369,41 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
     val medalScale = remember { Animatable(0f) }
     val medalAlpha = remember { Animatable(0f) }
 
+    LaunchedEffect(Unit) {
+        val animDuration = 1500
+        if (!isPerfect) {
+            playSynthSound(
+                listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
+                false
+            )
+        }
+        launch {
+            animProgress.animateTo(
+                targetValue = (result.accuracy / 100f).coerceIn(0f, 1f),
+                animationSpec = tween(durationMillis = animDuration, easing = LinearEasing)
+            )
+        }
+        val finalAcc = result.accuracy.toInt()
+        val startTime = System.currentTimeMillis()
+        while (true) {
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed >= animDuration) { displayedAccuracy = finalAcc; break }
+            displayedAccuracy = ((elapsed.toFloat() / animDuration) * finalAcc).toInt()
+            delay(16L)
+        }
+        delay(200L)
+        medalVisible = true
+        try {
+            val mp = MediaPlayer.create(context, R.raw.medal_sound)
+            mp?.setVolume(0.6f, 0.6f)
+            mp?.setOnCompletionListener { it.release() }
+            mp?.start()
+        } catch (_: Exception) {}
+        launch { medalAlpha.animateTo(1f, animationSpec = tween(300)) }
+        medalScale.animateTo(1.1f, animationSpec = tween(250))
+        medalScale.animateTo(1f, animationSpec = tween(150))
+    }
+
     val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
     DisposableEffect(Unit) {
         if (isPerfect) {
