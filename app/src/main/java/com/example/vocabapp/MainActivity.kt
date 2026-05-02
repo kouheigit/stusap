@@ -1221,10 +1221,19 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                     Text("${training.bestAccuracy.toInt()}%", color = TextMuted)
                 }
             }
-            Button(onClick = onQuiz, colors = ButtonDefaults.buttonColors(containerColor = AccentBlue), shape = CircleShape, modifier = Modifier.size(86.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                    Text("開始", fontSize = 12.sp)
+            if (training.studyCount > 0) {
+                Image(
+                    painter = painterResource(bestMedalResId(training.bestAccuracy)),
+                    contentDescription = null,
+                    modifier = Modifier.size(86.dp).clickable { onQuiz() },
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                Button(onClick = onQuiz, colors = ButtonDefaults.buttonColors(containerColor = AccentBlue), shape = CircleShape, modifier = Modifier.size(86.dp)) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                        Text("開始", fontSize = 12.sp)
+                    }
                 }
             }
         }
