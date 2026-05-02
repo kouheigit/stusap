@@ -1363,6 +1363,12 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
     val title = medalTitle(result.correctCount, result.totalQuestions)
     val message = medalMessage(result.correctCount, result.totalQuestions)
 
+    val animProgress = remember { Animatable(0f) }
+    var displayedAccuracy by remember { mutableStateOf(0) }
+    var medalVisible by remember { mutableStateOf(false) }
+    val medalScale = remember { Animatable(0f) }
+    val medalAlpha = remember { Animatable(0f) }
+
     val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
     DisposableEffect(Unit) {
         if (isPerfect) {
