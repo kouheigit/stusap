@@ -1459,14 +1459,12 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
         }
         delay(200L)
         medalVisible = true
-        if (!isPerfect) {
-            try {
-                val mp = MediaPlayer.create(context, R.raw.medal_sound)
-                mp?.setVolume(0.6f, 0.6f)
-                mp?.setOnCompletionListener { it.release() }
-                mp?.start()
-            } catch (_: Exception) {}
-        }
+        try {
+            val mp = MediaPlayer.create(context, R.raw.medal_sound)
+            mp?.setVolume(0.6f, 0.6f)
+            mp?.setOnCompletionListener { it.release() }
+            mp?.start()
+        } catch (_: Exception) {}
         launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
         medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
         medalScale.animateTo(0.95f, animationSpec = tween(120))
