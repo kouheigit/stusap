@@ -1251,7 +1251,7 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 Image(
                     painter = painterResource(bestMedalResId(training.bestAccuracy)),
                     contentDescription = null,
-                    modifier = Modifier.size(140.dp).clickable { onQuiz() },
+                    modifier = Modifier.size(180.dp).clickable { onQuiz() },
                     contentScale = ContentScale.Fit
                 )
             } else {
