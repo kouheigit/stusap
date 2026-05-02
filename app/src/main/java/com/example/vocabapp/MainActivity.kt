@@ -802,7 +802,7 @@ private fun CustomWordQuizResultContent(
         delay(200L)
         medalVisible = true
         try {
-            val mp = MediaPlayer.create(context, R.raw.medal_sound)
+            val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
             mp?.setVolume(0.6f, 0.6f)
             mp?.setOnCompletionListener { it.release() }
             mp?.start()
@@ -1460,7 +1460,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
         delay(200L)
         medalVisible = true
         try {
-            val mp = MediaPlayer.create(context, R.raw.medal_sound)
+            val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
             mp?.setVolume(0.6f, 0.6f)
             mp?.setOnCompletionListener { it.release() }
             mp?.start()
