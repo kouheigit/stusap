@@ -1428,11 +1428,32 @@ private fun LessonStatus.label(): String = when (this) {
     LessonStatus.Master -> "Master"
 }
 
-private fun QuizResult.message(): String = when {
-    accuracy >= 90f -> "Excellent!"
-    accuracy >= 70f -> "Good job!"
-    accuracy >= 50f -> "Nice try!"
-    else -> "Keep going!"
+private fun medalResId(correctCount: Int, totalQuestions: Int): Int = when {
+    correctCount == totalQuestions -> R.drawable.medal_perfect
+    correctCount >= 8 -> R.drawable.medal_gold
+    correctCount >= 5 -> R.drawable.medal_silver
+    else -> R.drawable.medal_bronze
+}
+
+private fun bestMedalResId(bestAccuracy: Float): Int = when {
+    bestAccuracy >= 100f -> R.drawable.medal_perfect
+    bestAccuracy >= 80f -> R.drawable.medal_gold
+    bestAccuracy >= 50f -> R.drawable.medal_silver
+    else -> R.drawable.medal_bronze
+}
+
+private fun medalTitle(correctCount: Int, totalQuestions: Int): String = when {
+    correctCount == totalQuestions -> "Perfect！"
+    correctCount >= 8 -> "Excellent！"
+    correctCount >= 5 -> "Good！"
+    else -> "Keep trying！"
+}
+
+private fun medalMessage(correctCount: Int, totalQuestions: Int): String = when {
+    correctCount == totalQuestions -> "頑張りましたね！おめでとうございます。\nトレーニングをマスターしました！"
+    correctCount >= 8 -> "もう少しでパーフェクト！\nこの調子で頑張りましょう！"
+    correctCount >= 5 -> "いい調子です！\n焦らず、コツコツ続けることが大事です！努力は嘘をつかないです！"
+    else -> "諦めない事が肝心です！\nただひたすらに頑張れば、結果はおのずとついてきます！"
 }
 
 private fun formatDate(millis: Long): String =
