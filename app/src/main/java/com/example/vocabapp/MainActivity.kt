@@ -560,7 +560,9 @@ private fun QuizScreen(navController: NavHostController, viewModel: QuizViewMode
 @Composable
 private fun ResultScreen(navController: NavHostController, viewModel: ResultViewModel = hiltViewModel()) {
     val result by viewModel.result.collectAsState()
-    BlueScaffold(title = "結果", onBack = { navController.navigate(Route.Home) }) { inner ->
+    val trainingLabel by viewModel.trainingLabel.collectAsState()
+    val title = trainingLabel ?: "クイズ結果"
+    BlueScaffold(title = title, onBack = { navController.navigate(Route.Home) }) { inner ->
         result?.let {
             ResultContent(
                 result = it,
