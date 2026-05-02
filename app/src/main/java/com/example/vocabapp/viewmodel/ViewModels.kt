@@ -172,9 +172,17 @@ class ResultViewModel @Inject constructor(
     private val attemptId: Long = checkNotNull(savedStateHandle["attemptId"])
     private val _result = MutableStateFlow<QuizResult?>(null)
     val result: StateFlow<QuizResult?> = _result.asStateFlow()
+    private val _trainingLabel = MutableStateFlow<String?>(null)
+    val trainingLabel: StateFlow<String?> = _trainingLabel.asStateFlow()
 
     init {
-        viewModelScope.launch { _result.value = repository.getResult(attemptId) }
+        viewModelScope.launch {
+            val r = repository.getResult(attemptId)
+            _result.value = r
+            r?.trainingId?.let { tid ->
+                _trainingLabel.value = repository.getTrainingRange(tid)
+            }
+        }
     }
 }
 
