@@ -1388,7 +1388,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val medalSize = if (isPerfect) 110.dp else 128.dp
+                        val medalSize = if (isPerfect) 110.dp else 160.dp
                         Image(
                             painter = painterResource(resId),
                             contentDescription = if (isPerfect) "パーフェクトメダル" else null,
