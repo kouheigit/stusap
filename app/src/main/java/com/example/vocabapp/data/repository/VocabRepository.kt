@@ -139,6 +139,9 @@ class VocabRepository @Inject constructor(
             )
         }.shuffled()
 
+    suspend fun getTrainingRange(trainingId: Int): String? =
+        dao.getTraining(trainingId)?.let { "${it.wordStartNumber}〜${it.wordEndNumber}語" }
+
     suspend fun getWordsForTraining(trainingId: Int): List<Word> =
         dao.getWordsByTraining(trainingId).map { it.toDomain() }
 
