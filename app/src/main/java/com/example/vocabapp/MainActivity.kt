@@ -1436,12 +1436,18 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val medalSize = if (isPerfect) 110.dp else 160.dp
-                        Image(
-                            painter = painterResource(resId),
-                            contentDescription = if (isPerfect) "パーフェクトメダル" else null,
-                            modifier = Modifier.size(medalSize),
-                            contentScale = ContentScale.Fit
-                        )
+                        if (medalVisible) {
+                            Image(
+                                painter = painterResource(resId),
+                                contentDescription = if (isPerfect) "パーフェクトメダル" else null,
+                                modifier = Modifier.size(medalSize)
+                                    .scale(medalScale.value)
+                                    .alpha(medalAlpha.value),
+                                contentScale = ContentScale.Fit
+                            )
+                        } else {
+                            Spacer(Modifier.size(medalSize))
+                        }
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1f)) {
                             Text("${result.correctCount}/${result.totalQuestions}正解", color = TextMuted, fontSize = 16.sp)
