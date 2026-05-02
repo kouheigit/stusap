@@ -1455,7 +1455,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                         }
                     }
                     LinearProgressIndicator(
-                        progress = { result.accuracy / 100f },
+                        progress = { animProgress.value },
                         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(10.dp).clip(RoundedCornerShape(5.dp)),
                         color = Teal,
                         trackColor = Color(0xFFDDE5EC)
