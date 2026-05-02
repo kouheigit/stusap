@@ -780,7 +780,7 @@ private fun CustomWordQuizResultContent(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        val animDuration = 1500
+        val animDuration = 1800
         playSynthSound(
             listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
             false
@@ -1436,7 +1436,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
     val medalAlpha = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        val animDuration = 1500
+        val animDuration = 1800
         if (!isPerfect) {
             playSynthSound(
                 listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
