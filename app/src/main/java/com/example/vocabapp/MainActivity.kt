@@ -128,7 +128,13 @@ import com.example.vocabapp.viewmodel.TrainingListViewModel
 import com.example.vocabapp.viewmodel.WordDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -1231,7 +1237,7 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 Text(training.title, color = TextMuted, fontWeight = FontWeight.Bold)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Check, contentDescription = null, tint = DeepBlue, modifier = Modifier.size(32.dp))
-                    Text("${training.wordStartNumber}〜${training.wordEndNumber}語", color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                    Text("${training.wordStartNumber}〜${training.wordEndNumber}語", color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false)
                 }
                 Text("学習回数  ${training.studyCount}", color = TextMuted)
                 Text("学習日  ${training.lastStudiedAt?.let(::formatDate) ?: "-"}", color = TextMuted)
@@ -1251,7 +1257,7 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 Image(
                     painter = painterResource(bestMedalResId(training.bestAccuracy)),
                     contentDescription = null,
-                    modifier = Modifier.size(180.dp).clickable { onQuiz() },
+                    modifier = Modifier.size(112.dp).clickable { onQuiz() },
                     contentScale = ContentScale.Fit
                 )
             } else {
