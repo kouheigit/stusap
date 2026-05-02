@@ -1337,13 +1337,22 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
     val title = medalTitle(result.correctCount, result.totalQuestions)
     val message = medalMessage(result.correctCount, result.totalQuestions)
 
-    LaunchedEffect(Unit) {
+    val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
+    DisposableEffect(Unit) {
         if (isPerfect) {
             try {
                 val mp = MediaPlayer.create(context, R.raw.perfect_native_male)
-                mp?.setOnCompletionListener { it.release() }
+                mp?.setOnCompletionListener { it.release(); perfectPlayer.value = null }
                 mp?.start()
+                perfectPlayer.value = mp
             } catch (_: Exception) {}
+        }
+        onDispose {
+            perfectPlayer.value?.let { mp ->
+                if (mp.isPlaying) mp.stop()
+                mp.release()
+                perfectPlayer.value = null
+            }
         }
     }
 
