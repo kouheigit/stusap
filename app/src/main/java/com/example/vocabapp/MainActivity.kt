@@ -1393,12 +1393,19 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
 
             item {
                 ResultSectionCard(header = "学習状況") {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                        Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("正解 / 不正解", color = TextDark, fontWeight = FontWeight.Bold)
+                            }
+                            Text("${result.correctCount} / ${result.wrongCount}", color = DeepBlue, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                        }
+                        androidx.compose.material3.HorizontalDivider(color = SoftBlue)
+                        Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text("今回の学習時間", color = TextDark, fontWeight = FontWeight.Bold)
                             }
-                            Text(formatSeconds(result.studySeconds), color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                            Text(formatStudyTime(result.studySeconds), color = DeepBlue, fontSize = 22.sp, fontWeight = FontWeight.Black)
                         }
                     }
                 }
@@ -1557,4 +1564,9 @@ private fun formatSeconds(seconds: Int): String {
     val hours = minutes / 60
     val remainMinutes = minutes % 60
     return if (hours > 0) "${hours}時間${remainMinutes}分" else "${minutes}分"
+}
+
+private fun formatStudyTime(seconds: Int): String {
+    val safeSeconds = seconds.coerceAtLeast(0)
+    return if (safeSeconds < 60) "${safeSeconds}秒" else formatSeconds(safeSeconds)
 }
