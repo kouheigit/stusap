@@ -760,61 +760,125 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
 }
 
 @Composable
+private fun CustomWordQuizResultContent(
+    correctCount: Int,
+    total: Int,
+    onRetry: () -> Unit,
+    onHome: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accuracy = correctCount * 100f / total
+    val resId = medalResId(correctCount, total)
+    val title = medalTitle(correctCount, total)
+
+    val animProgress = remember { Animatable(0f) }
+    var displayedAccuracy by remember { mutableStateOf(0) }
+    var medalVisible by remember { mutableStateOf(false) }
+    val medalScale = remember { Animatable(0f) }
+    val medalAlpha = remember { Animatable(0f) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        val animDuration = 1500
+        playSynthSound(
+            listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
+            false
+        )
+        launch {
+            animProgress.animateTo(
+                targetValue = (accuracy / 100f).coerceIn(0f, 1f),
+                animationSpec = tween(durationMillis = animDuration, easing = LinearEasing)
+            )
+        }
+        val finalAcc = accuracy.toInt()
+        val startTime = System.currentTimeMillis()
+        while (true) {
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed >= animDuration) { displayedAccuracy = finalAcc; break }
+            displayedAccuracy = ((elapsed.toFloat() / animDuration) * finalAcc).toInt()
+            delay(16L)
+        }
+        delay(200L)
+        medalVisible = true
+        try {
+            val mp = MediaPlayer.create(context, R.raw.medal_sound)
+            mp?.setVolume(0.6f, 0.6f)
+            mp?.setOnCompletionListener { it.release() }
+            mp?.start()
+        } catch (_: Exception) {}
+        launch { medalAlpha.animateTo(1f, animationSpec = tween(300)) }
+        medalScale.animateTo(1.1f, animationSpec = tween(250))
+        medalScale.animateTo(1f, animationSpec = tween(150))
+    }
+
+    Column(
+        modifier = modifier.background(BrightBlue).padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        ResultSectionCard(header = "正解率") {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (medalVisible) {
+                    Image(
+                        painter = painterResource(resId),
+                        contentDescription = null,
+                        modifier = Modifier.size(160.dp)
+                            .scale(medalScale.value)
+                            .alpha(medalAlpha.value),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    Spacer(Modifier.size(160.dp))
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("$correctCount/${total}正解", color = TextMuted, fontSize = 16.sp)
+                    Text("$displayedAccuracy%", color = DeepBlue, fontSize = 52.sp, fontWeight = FontWeight.Black, lineHeight = 58.sp)
+                }
+            }
+            LinearProgressIndicator(
+                progress = { animProgress.value },
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(10.dp).clip(RoundedCornerShape(5.dp)),
+                color = Teal, trackColor = Color(0xFFDDE5EC)
+            )
+        }
+        Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(title, color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Button(
+            onClick = onRetry,
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+        ) {
+            Icon(Icons.Default.Refresh, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("再チャレンジ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+        OutlinedButton(onClick = onHome, modifier = Modifier.fillMaxWidth().height(54.dp)) {
+            Text("ホームへ")
+        }
+    }
+}
+
+@Composable
 private fun CustomWordQuizScreen(navController: NavHostController, viewModel: CustomWordQuizViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     if (state.finishedAttemptId != null) {
         val total = state.questions.size.coerceAtLeast(1)
-        val accuracy = state.correctCount * 100f / total
-        val customResId = medalResId(state.correctCount, total)
-        val customTitle = medalTitle(state.correctCount, total)
         BlueScaffold(title = "カスタム単語クイズ") { inner ->
-            Column(
-                modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue).padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                ResultSectionCard(header = "正解率") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(customResId),
-                            contentDescription = null,
-                            modifier = Modifier.size(160.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                        Spacer(Modifier.width(16.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("${state.correctCount}/${total}正解", color = TextMuted, fontSize = 16.sp)
-                            Text("${accuracy.toInt()}%", color = DeepBlue, fontSize = 52.sp, fontWeight = FontWeight.Black, lineHeight = 58.sp)
-                        }
-                    }
-                    LinearProgressIndicator(
-                        progress = { accuracy / 100f },
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(10.dp).clip(RoundedCornerShape(5.dp)),
-                        color = Teal, trackColor = Color(0xFFDDE5EC)
-                    )
-                }
-                Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(customTitle, color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                Button(
-                    onClick = { navController.navigate(Route.CustomQuiz) { popUpTo(Route.CustomQuiz) { inclusive = true } } },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("再チャレンジ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
-                OutlinedButton(onClick = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
-                    Text("ホームへ")
-                }
-            }
+            CustomWordQuizResultContent(
+                correctCount = state.correctCount,
+                total = total,
+                onRetry = { navController.navigate(Route.CustomQuiz) { popUpTo(Route.CustomQuiz) { inclusive = true } } },
+                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
+                modifier = Modifier.fillMaxSize().padding(inner)
+            )
         }
     } else {
         BlueScaffold(title = "カスタム単語クイズ", onBack = { navController.popBackStack() }) { inner ->
