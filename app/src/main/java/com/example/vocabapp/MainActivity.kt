@@ -129,6 +129,7 @@ import com.example.vocabapp.viewmodel.WordDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
@@ -806,9 +807,10 @@ private fun CustomWordQuizResultContent(
             mp?.setOnCompletionListener { it.release() }
             mp?.start()
         } catch (_: Exception) {}
-        launch { medalAlpha.animateTo(1f, animationSpec = tween(300)) }
-        medalScale.animateTo(1.1f, animationSpec = tween(250))
-        medalScale.animateTo(1f, animationSpec = tween(150))
+        launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
+        medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
+        medalScale.animateTo(0.95f, animationSpec = tween(120))
+        medalScale.animateTo(1f, animationSpec = tween(100))
     }
 
     Column(
@@ -1465,9 +1467,10 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                 mp?.start()
             } catch (_: Exception) {}
         }
-        launch { medalAlpha.animateTo(1f, animationSpec = tween(300)) }
-        medalScale.animateTo(1.1f, animationSpec = tween(250))
-        medalScale.animateTo(1f, animationSpec = tween(150))
+        launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
+        medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
+        medalScale.animateTo(0.95f, animationSpec = tween(120))
+        medalScale.animateTo(1f, animationSpec = tween(100))
     }
 
     val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
