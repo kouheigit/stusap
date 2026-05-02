@@ -1446,7 +1446,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                         Column(Modifier.weight(1f)) {
                             Text("${result.correctCount}/${result.totalQuestions}正解", color = TextMuted, fontSize = 16.sp)
                             Text(
-                                "${result.accuracy.toInt()}%",
+                                "$displayedAccuracy%",
                                 color = if (isPerfect) Gold else DeepBlue,
                                 fontSize = 52.sp,
                                 fontWeight = FontWeight.Black,
