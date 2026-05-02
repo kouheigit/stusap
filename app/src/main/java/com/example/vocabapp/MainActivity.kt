@@ -843,7 +843,7 @@ private fun CustomWordQuizResultContent(
             }
             LinearProgressIndicator(
                 progress = { animProgress.value },
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(10.dp).clip(RoundedCornerShape(5.dp)),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(14.dp).clip(RoundedCornerShape(7.dp)),
                 color = Teal, trackColor = Color(0xFFDDE5EC)
             )
         }
@@ -1529,7 +1529,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                     }
                     LinearProgressIndicator(
                         progress = { animProgress.value },
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(10.dp).clip(RoundedCornerShape(5.dp)),
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(14.dp).clip(RoundedCornerShape(7.dp)),
                         color = Teal,
                         trackColor = Color(0xFFDDE5EC)
                     )
