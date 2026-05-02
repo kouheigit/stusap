@@ -1213,12 +1213,16 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 }
                 Text("学習回数  ${training.studyCount}", color = TextMuted)
                 Text("学習日  ${training.lastStudiedAt?.let(::formatDate) ?: "-"}", color = TextMuted)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    repeat(3) { index ->
-                        Icon(Icons.Default.Star, contentDescription = null, tint = if (index < training.bestStarCount) Gold else Color(0xFFDDE5EC), modifier = Modifier.size(24.dp))
+                if (training.studyCount > 0) {
+                    Text("ベスト  ${training.bestAccuracy.toInt()}%", color = TextMuted)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        repeat(3) { index ->
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFDDE5EC), modifier = Modifier.size(24.dp))
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Text("未挑戦", color = TextMuted)
                     }
-                    Spacer(Modifier.width(10.dp))
-                    Text("${training.bestAccuracy.toInt()}%", color = TextMuted)
                 }
             }
             if (training.studyCount > 0) {
