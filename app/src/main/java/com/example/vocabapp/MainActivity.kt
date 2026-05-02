@@ -1368,16 +1368,23 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val medalSize = if (isPerfect) 110.dp else 96.dp
                         Image(
                             painter = painterResource(resId),
-                            contentDescription = null,
-                            modifier = Modifier.size(100.dp),
+                            contentDescription = if (isPerfect) "パーフェクトメダル" else null,
+                            modifier = Modifier.size(medalSize),
                             contentScale = ContentScale.Fit
                         )
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1f)) {
                             Text("${result.correctCount}/${result.totalQuestions}正解", color = TextMuted, fontSize = 16.sp)
-                            Text("${result.accuracy.toInt()}%", color = DeepBlue, fontSize = 52.sp, fontWeight = FontWeight.Black, lineHeight = 58.sp)
+                            Text(
+                                "${result.accuracy.toInt()}%",
+                                color = if (isPerfect) Gold else DeepBlue,
+                                fontSize = 52.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 58.sp
+                            )
                         }
                     }
                     LinearProgressIndicator(
