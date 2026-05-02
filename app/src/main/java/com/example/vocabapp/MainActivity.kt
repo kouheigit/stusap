@@ -775,7 +775,7 @@ private fun CustomWordQuizScreen(navController: NavHostController, viewModel: Cu
                         Image(
                             painter = painterResource(customResId),
                             contentDescription = null,
-                            modifier = Modifier.size(96.dp),
+                            modifier = Modifier.size(128.dp),
                             contentScale = ContentScale.Fit
                         )
                         Spacer(Modifier.width(16.dp))
