@@ -757,28 +757,48 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
 private fun CustomWordQuizScreen(navController: NavHostController, viewModel: CustomWordQuizViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     if (state.finishedAttemptId != null) {
-        val accuracy = if (state.questions.isNotEmpty()) state.correctCount * 100f / state.questions.size else 0f
+        val total = state.questions.size.coerceAtLeast(1)
+        val accuracy = state.correctCount * 100f / total
+        val customResId = medalResId(state.correctCount, total)
+        val customTitle = medalTitle(state.correctCount, total)
         BlueScaffold(title = "カスタム単語クイズ") { inner ->
             Column(
-                modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(20.dp),
+                modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue).padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("${accuracy.toInt()}%", color = DeepBlue, fontSize = 54.sp, fontWeight = FontWeight.Black)
-                        Row {
-                            repeat(3) { i ->
-                                Icon(Icons.Default.Star, contentDescription = null, tint = if (i < when { accuracy >= 90f -> 3; accuracy >= 70f -> 2; accuracy >= 50f -> 1; else -> 0 }) Gold else Color(0xFFDDE5EC), modifier = Modifier.size(42.dp))
-                            }
+                ResultSectionCard(header = "正解率") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(customResId),
+                            contentDescription = null,
+                            modifier = Modifier.size(96.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("${state.correctCount}/${total}正解", color = TextMuted, fontSize = 16.sp)
+                            Text("${accuracy.toInt()}%", color = DeepBlue, fontSize = 52.sp, fontWeight = FontWeight.Black, lineHeight = 58.sp)
                         }
-                        Text(when { accuracy >= 90f -> "Excellent!"; accuracy >= 70f -> "Good job!"; accuracy >= 50f -> "Nice try!"; else -> "Keep going!" }, color = TextDark, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                        Text("正解 ${state.correctCount} / 不正解 ${state.wrongCount} / 全${state.questions.size}問", color = TextMuted)
+                    }
+                    LinearProgressIndicator(
+                        progress = { accuracy / 100f },
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp).height(10.dp).clip(RoundedCornerShape(5.dp)),
+                        color = Teal, trackColor = Color(0xFFDDE5EC)
+                    )
+                }
+                Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(customTitle, color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
                     }
                 }
+                Spacer(Modifier.weight(1f))
                 Button(
                     onClick = { navController.navigate(Route.CustomQuiz) { popUpTo(Route.CustomQuiz) { inclusive = true } } },
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = null)
