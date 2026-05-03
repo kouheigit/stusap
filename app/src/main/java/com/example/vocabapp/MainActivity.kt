@@ -813,11 +813,11 @@ private fun CustomWordQuizResultContent(
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val isBronzeMedal = resId == R.drawable.medal_bronze
-                val medalMod = if (isBronzeMedal)
-                    Modifier.size(width = 107.dp, height = 160.dp)
-                else
-                    Modifier.size(160.dp)
+                val medalMod = when {
+                    isPerfect -> Modifier.size(110.dp)
+                    resId == R.drawable.medal_bronze -> Modifier.size(width = 107.dp, height = 160.dp)
+                    else -> Modifier.size(160.dp)
+                }
                 if (medalVisible) {
                     Image(
                         painter = painterResource(resId),
