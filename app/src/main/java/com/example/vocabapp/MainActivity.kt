@@ -450,16 +450,6 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     BottomAction("設定", Icons.Default.Settings, Modifier.weight(1f)) { navController.navigate(Route.Settings) }
                 }
             }
-            item {
-                Button(
-                    onClick = { navController.navigate(Route.Test) },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("テスト", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
-            }
         }
     }
 }
