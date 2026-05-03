@@ -1000,68 +1000,6 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
     }
 }
 
-@Composable
-private fun TestInputScreen(navController: NavHostController) {
-    var japanese by rememberSaveable { mutableStateOf("") }
-    var english by rememberSaveable { mutableStateOf("") }
-    var englishInput by remember { mutableStateOf<EditText?>(null) }
-    BlueScaffold(title = "テスト入力", onBack = { navController.popBackStack() }) { inner ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(inner)
-                .background(SoftBlue)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    AddWordField(
-                        label = "日本語",
-                        placeholder = "例: りんご、美しい",
-                        value = japanese,
-                        onValueChange = { japanese = it },
-                        imeAction = EditorInfo.IME_ACTION_NEXT,
-                        autoFocus = true,
-                        onImeAction = { englishInput?.focusAndShowKeyboard() },
-                    )
-                    AddWordField(
-                        label = "英単語",
-                        placeholder = "例: apple, beautiful",
-                        value = english,
-                        onValueChange = { english = it },
-                        imeAction = EditorInfo.IME_ACTION_DONE,
-                        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
-                        onReady = { englishInput = it },
-                    )
-                }
-            }
-            if (japanese.isNotBlank() || english.isNotBlank()) {
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("入力内容", fontWeight = FontWeight.Bold, color = TextMuted)
-                        if (japanese.isNotBlank()) Text("日本語: $japanese", color = TextDark, fontSize = 18.sp)
-                        if (english.isNotBlank()) Text("英単語: $english", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-}
-
 private val AddWordCardPadding = 24.dp
 private val AddWordCardSpacing = 20.dp
 
