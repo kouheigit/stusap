@@ -823,17 +823,20 @@ private fun CustomWordQuizResultContent(
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val isBronzeMedal = resId == R.drawable.medal_bronze
+                val medalMod = if (isBronzeMedal)
+                    Modifier.size(width = 107.dp, height = 160.dp)
+                else
+                    Modifier.size(160.dp)
                 if (medalVisible) {
                     Image(
                         painter = painterResource(resId),
                         contentDescription = null,
-                        modifier = Modifier.size(160.dp)
-                            .scale(medalScale.value)
-                            .alpha(medalAlpha.value),
+                        modifier = medalMod.scale(medalScale.value).alpha(medalAlpha.value),
                         contentScale = ContentScale.Fit
                     )
                 } else {
-                    Spacer(Modifier.size(160.dp))
+                    Spacer(medalMod)
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
@@ -1509,17 +1512,20 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val medalSize = if (isPerfect) 110.dp else 160.dp
+                        val resultMedalMod = when {
+                            isPerfect -> Modifier.size(medalSize)
+                            resId == R.drawable.medal_bronze -> Modifier.size(width = 107.dp, height = 160.dp)
+                            else -> Modifier.size(medalSize)
+                        }
                         if (medalVisible) {
                             Image(
                                 painter = painterResource(resId),
                                 contentDescription = if (isPerfect) "パーフェクトメダル" else null,
-                                modifier = Modifier.size(medalSize)
-                                    .scale(medalScale.value)
-                                    .alpha(medalAlpha.value),
+                                modifier = resultMedalMod.scale(medalScale.value).alpha(medalAlpha.value),
                                 contentScale = ContentScale.Fit
                             )
                         } else {
-                            Spacer(Modifier.size(medalSize))
+                            Spacer(resultMedalMod)
                         }
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1f)) {
