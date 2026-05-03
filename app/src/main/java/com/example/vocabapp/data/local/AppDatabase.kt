@@ -31,7 +31,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         StudyLogEntity::class,
         UserProgressEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -48,6 +48,11 @@ abstract class AppDatabase : RoomDatabase() {
                         `addedAt` INTEGER NOT NULL
                     )
                 """)
+            }
+        }
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_progress ADD COLUMN lastAccuracy REAL NOT NULL DEFAULT 0")
             }
         }
     }
