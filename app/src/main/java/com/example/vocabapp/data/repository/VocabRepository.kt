@@ -111,7 +111,7 @@ class VocabRepository @Inject constructor(
                     bestAccuracy = item?.bestAccuracy ?: 0f,
                     bestStarCount = item?.bestStarCount ?: 0,
                     lastStudiedAt = item?.lastStudiedAt,
-                    lastAccuracy = item?.lastAccuracy ?: 0f
+                    lastAccuracy = item?.let { if (it.lastAccuracy > 0f) it.lastAccuracy else it.bestAccuracy } ?: 0f
                 )
             }
         }
