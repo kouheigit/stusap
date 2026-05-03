@@ -1472,14 +1472,6 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
             mp?.setOnCompletionListener { it.release() }
             mp?.start()
         } catch (_: Exception) {}
-        launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
-        medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
-        medalScale.animateTo(0.95f, animationSpec = tween(120))
-        medalScale.animateTo(1f, animationSpec = tween(100))
-    }
-
-    val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
-    DisposableEffect(Unit) {
         if (isPerfect) {
             try {
                 val mp = MediaPlayer.create(context, R.raw.perfect_native_male)
@@ -1488,6 +1480,14 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
                 perfectPlayer.value = mp
             } catch (_: Exception) {}
         }
+        launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
+        medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
+        medalScale.animateTo(0.95f, animationSpec = tween(120))
+        medalScale.animateTo(1f, animationSpec = tween(100))
+    }
+
+    val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
+    DisposableEffect(Unit) {
         onDispose {
             perfectPlayer.value?.let { mp ->
                 if (mp.isPlaying) mp.stop()
