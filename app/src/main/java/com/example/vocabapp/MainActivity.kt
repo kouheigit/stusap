@@ -1446,12 +1446,10 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
 
     LaunchedEffect(Unit) {
         val animDuration = 1800
-        if (!isPerfect) {
-            playSynthSound(
-                listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
-                false
-            )
-        }
+        playSynthSound(
+            listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
+            false
+        )
         launch {
             animProgress.animateTo(
                 targetValue = (result.accuracy / 100f).coerceIn(0f, 1f),
