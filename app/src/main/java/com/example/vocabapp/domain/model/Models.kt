@@ -23,7 +23,8 @@ data class Training(
     val studyCount: Int,
     val bestAccuracy: Float,
     val bestStarCount: Int,
-    val lastStudiedAt: Long?
+    val lastStudiedAt: Long?,
+    val lastAccuracy: Float = 0f
 )
 
 data class Word(
