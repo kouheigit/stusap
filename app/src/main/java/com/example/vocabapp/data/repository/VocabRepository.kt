@@ -357,7 +357,8 @@ class VocabRepository @Inject constructor(
                 bestAccuracy = current?.bestAccuracy ?: 0f,
                 bestStarCount = if (mastered) 3 else current?.bestStarCount ?: 0,
                 lastStudiedAt = studiedAt,
-                isMastered = mastered
+                isMastered = mastered,
+                lastAccuracy = current?.lastAccuracy ?: 0f
             )
         )
     }
