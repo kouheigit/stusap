@@ -300,7 +300,6 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
             Route.Flashcard,
             arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
         ) { FlashcardScreen(navController) }
-        composable(Route.Test) { TestInputScreen(navController) }
     }
 }
 
