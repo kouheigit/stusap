@@ -231,7 +231,6 @@ private object Route {
     const val CustomQuiz = "custom-quiz"
     const val CustomWordList = "custom-word-list"
     const val Flashcard = "flashcard/{trainingId}"
-    const val Test = "test"
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
 
