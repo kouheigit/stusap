@@ -1632,11 +1632,15 @@ private fun LessonStatus.label(): String = when (this) {
     LessonStatus.Master -> "Master"
 }
 
-private fun medalResId(correctCount: Int, totalQuestions: Int): Int = when {
-    correctCount == totalQuestions -> R.drawable.medal_perfect
-    correctCount >= 8 -> R.drawable.medal_gold
-    correctCount >= 5 -> R.drawable.medal_silver
-    else -> R.drawable.medal_bronze
+private fun medalResId(correctCount: Int, totalQuestions: Int): Int {
+    if (totalQuestions == 0) return R.drawable.medal_bronze
+    val accuracy = correctCount * 100f / totalQuestions
+    return when {
+        correctCount == totalQuestions -> R.drawable.medal_perfect
+        accuracy >= 80f -> R.drawable.medal_gold
+        accuracy >= 50f -> R.drawable.medal_silver
+        else -> R.drawable.medal_bronze
+    }
 }
 
 private fun lastMedalResId(lastAccuracy: Float): Int = when {
