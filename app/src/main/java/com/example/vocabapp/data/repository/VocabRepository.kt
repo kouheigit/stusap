@@ -110,7 +110,8 @@ class VocabRepository @Inject constructor(
                     studyCount = item?.studyCount ?: 0,
                     bestAccuracy = item?.bestAccuracy ?: 0f,
                     bestStarCount = item?.bestStarCount ?: 0,
-                    lastStudiedAt = item?.lastStudiedAt
+                    lastStudiedAt = item?.lastStudiedAt,
+                    lastAccuracy = item?.lastAccuracy ?: 0f
                 )
             }
         }
