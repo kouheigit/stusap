@@ -1256,7 +1256,8 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 }
             }
             if (training.studyCount > 0) {
-                val currentMedalResId = lastMedalResId(training.lastAccuracy)
+                val effectiveAccuracy = if (training.lastAccuracy > 0f) training.lastAccuracy else training.bestAccuracy
+                val currentMedalResId = lastMedalResId(effectiveAccuracy)
                 val isBronze = currentMedalResId == R.drawable.medal_bronze
                 val medalMod = if (isBronze)
                     Modifier.size(width = 112.dp, height = 170.dp).clickable { onQuiz() }
