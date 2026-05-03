@@ -191,7 +191,8 @@ data class UserProgressEntity(
     val bestAccuracy: Float,
     val bestStarCount: Int,
     val lastStudiedAt: Long?,
-    val isMastered: Boolean
+    val isMastered: Boolean,
+    @androidx.room.ColumnInfo(defaultValue = "0") val lastAccuracy: Float = 0f
 )
 
 @Entity(tableName = "custom_words")
