@@ -1369,6 +1369,7 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
     var medalVisible by remember { mutableStateOf(false) }
     val medalScale = remember { Animatable(0f) }
     val medalAlpha = remember { Animatable(0f) }
+    val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
 
     LaunchedEffect(Unit) {
         val animDuration = 1800
@@ -1412,7 +1413,6 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
         medalScale.animateTo(1f, animationSpec = tween(100))
     }
 
-    val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
     DisposableEffect(Unit) {
         onDispose {
             perfectPlayer.value?.let { mp ->
