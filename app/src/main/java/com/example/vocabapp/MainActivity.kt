@@ -1632,13 +1632,6 @@ private fun medalResId(correctCount: Int, totalQuestions: Int): Int = when {
     else -> R.drawable.medal_bronze
 }
 
-private fun bestMedalResId(bestAccuracy: Float): Int = when {
-    bestAccuracy >= 100f -> R.drawable.medal_perfect
-    bestAccuracy >= 80f -> R.drawable.medal_gold
-    bestAccuracy >= 50f -> R.drawable.medal_silver
-    else -> R.drawable.medal_bronze
-}
-
 private fun lastMedalResId(lastAccuracy: Float): Int = when {
     lastAccuracy >= 100f -> R.drawable.medal_perfect
     lastAccuracy >= 80f -> R.drawable.medal_gold
