@@ -1320,10 +1320,16 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 }
             }
             if (training.studyCount > 0) {
+                val currentMedalResId = lastMedalResId(training.lastAccuracy)
+                val isBronze = currentMedalResId == R.drawable.medal_bronze
+                val medalMod = if (isBronze)
+                    Modifier.size(width = 112.dp, height = 170.dp).clickable { onQuiz() }
+                else
+                    Modifier.size(112.dp).clickable { onQuiz() }
                 Image(
-                    painter = painterResource(bestMedalResId(training.bestAccuracy)),
+                    painter = painterResource(currentMedalResId),
                     contentDescription = null,
-                    modifier = Modifier.size(112.dp).clickable { onQuiz() },
+                    modifier = medalMod,
                     contentScale = ContentScale.Fit
                 )
             } else {
