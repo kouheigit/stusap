@@ -757,8 +757,10 @@ private fun CustomWordQuizResultContent(
     modifier: Modifier = Modifier
 ) {
     val accuracy = correctCount * 100f / total
+    val isPerfect = correctCount == total
     val resId = medalResId(correctCount, total)
     val title = medalTitle(correctCount, total)
+    val message = medalMessage(correctCount, total)
 
     val animProgress = remember { Animatable(0f) }
     var displayedAccuracy by remember { mutableStateOf(0) }
@@ -829,7 +831,7 @@ private fun CustomWordQuizResultContent(
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text("$correctCount/${total}正解", color = TextMuted, fontSize = 16.sp)
-                    Text("$displayedAccuracy%", color = DeepBlue, fontSize = 52.sp, fontWeight = FontWeight.Black, lineHeight = 58.sp)
+                    Text("$displayedAccuracy%", color = if (isPerfect) Gold else DeepBlue, fontSize = 52.sp, fontWeight = FontWeight.Black, lineHeight = 58.sp)
                 }
             }
             LinearProgressIndicator(
@@ -839,8 +841,13 @@ private fun CustomWordQuizResultContent(
             )
         }
         Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Text(title, color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                Text(message, color = TextMuted, textAlign = TextAlign.Center, fontSize = 16.sp)
             }
         }
         Spacer(Modifier.weight(1f))
