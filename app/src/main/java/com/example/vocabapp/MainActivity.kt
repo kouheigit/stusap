@@ -539,12 +539,16 @@ private fun IdiomLessonListScreen(navController: NavHostController, viewModel: I
 @Composable
 private fun TrainingListScreen(navController: NavHostController, viewModel: TrainingListViewModel = hiltViewModel()) {
     val trainings by viewModel.trainings.collectAsState()
-    BlueScaffold(title = "トレーニング一覧", onBack = { navController.popBackStack() }) { inner ->
+    val isIdiom = viewModel.lessonId >= 100
+    val screenTitle = if (isIdiom) "英熟語 トレーニング" else "トレーニング一覧"
+    val sectionTitle = if (isIdiom) "英熟語 トレーニング一覧" else "トレーニング一覧"
+    BlueScaffold(title = screenTitle, onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item { SectionTitle(sectionTitle) }
             items(trainings) { training ->
                 TrainingCard(
                     training = training,
