@@ -433,7 +433,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
             }
             item {
                 CardButton(
-                    title = "レッスン一覧",
+                    title = "英単語",
                     subtitle = "600 / 730 / 860 / 990点の単語を学習",
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = { navController.navigate(Route.Lessons) }
