@@ -468,7 +468,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
 @Composable
 private fun LessonListScreen(navController: NavHostController, viewModel: LessonListViewModel = hiltViewModel()) {
     val lessons by viewModel.lessons.collectAsState()
-    BlueScaffold(title = "レッスン一覧", onBack = { navController.popBackStack() }) { inner ->
+    BlueScaffold(title = "英単語", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
