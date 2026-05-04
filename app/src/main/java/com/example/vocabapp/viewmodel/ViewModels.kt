@@ -14,6 +14,7 @@ import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.domain.model.WordRelation
 import com.example.vocabapp.domain.usecase.FinishQuizUseCase
+import com.example.vocabapp.domain.usecase.GetIdiomLessonsUseCase
 import com.example.vocabapp.domain.usecase.GetLessonsUseCase
 import com.example.vocabapp.domain.usecase.GetReviewWordsUseCase
 import com.example.vocabapp.domain.usecase.GetTrainingsUseCase
@@ -37,7 +38,10 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeSummary())
 
     init {
-        viewModelScope.launch { repository.seedIfNeeded() }
+        viewModelScope.launch {
+            repository.seedIfNeeded()
+            repository.seedIdiomsIfNeeded()
+        }
     }
 
     fun resetProgress() {
@@ -54,6 +58,14 @@ class LessonListViewModel @Inject constructor(
     getLessonsUseCase: GetLessonsUseCase
 ) : ViewModel() {
     val lessons: StateFlow<List<Lesson>> = getLessonsUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+}
+
+@HiltViewModel
+class IdiomLessonListViewModel @Inject constructor(
+    getIdiomLessonsUseCase: GetIdiomLessonsUseCase
+) : ViewModel() {
+    val lessons: StateFlow<List<Lesson>> = getIdiomLessonsUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 }
 
