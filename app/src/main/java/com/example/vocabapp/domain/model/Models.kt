@@ -24,7 +24,8 @@ data class Training(
     val bestAccuracy: Float,
     val bestStarCount: Int,
     val lastStudiedAt: Long?,
-    val lastAccuracy: Float = 0f
+    val lastAccuracy: Float = 0f,
+    val firstWordId: Int = wordStartNumber
 )
 
 data class Word(
