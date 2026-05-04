@@ -69,11 +69,12 @@ class VocabRepository @Inject constructor(
             dao.observeProgress(),
             dao.observeActiveReviews()
         ) { totalSeconds, weekSeconds, lessons, progress, reviews ->
+            val vocabLessons = lessons.filter { it.id < 100 }
             HomeSummary(
                 totalStudySeconds = totalSeconds,
                 weekStudySeconds = weekSeconds,
-                masteredLessons = progress.count { it.trainingId == null && it.isMastered },
-                totalLessons = lessons.size,
+                masteredLessons = progress.count { it.trainingId == null && it.isMastered && it.lessonId < 100 },
+                totalLessons = vocabLessons.size,
                 reviewCount = reviews.count { it.isActive }
             )
         }
