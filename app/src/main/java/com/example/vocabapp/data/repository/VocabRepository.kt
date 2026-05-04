@@ -9,6 +9,7 @@ import com.example.vocabapp.data.local.entity.StudyLogEntity
 import com.example.vocabapp.data.local.entity.UserProgressEntity
 import com.example.vocabapp.data.local.entity.WordChoiceEntity
 import com.example.vocabapp.data.local.entity.WordEntity
+import com.example.vocabapp.data.seed.IdiomSeedData
 import com.example.vocabapp.data.seed.SeedData
 import com.example.vocabapp.domain.model.AnswerRecord
 import com.example.vocabapp.domain.model.HomeSummary
@@ -40,6 +41,16 @@ class VocabRepository @Inject constructor(
             SeedData.words,
             SeedData.choices,
             SeedData.relations
+        )
+    }
+
+    suspend fun seedIdiomsIfNeeded() {
+        dao.seedIdiomsIfNeeded(
+            IdiomSeedData.lessons,
+            IdiomSeedData.trainings,
+            IdiomSeedData.words,
+            IdiomSeedData.choices,
+            IdiomSeedData.relations
         )
     }
 
