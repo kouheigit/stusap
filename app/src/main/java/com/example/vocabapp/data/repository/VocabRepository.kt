@@ -82,15 +82,20 @@ class VocabRepository @Inject constructor(
         }
     }
 
-    fun observeLessons(): Flow<List<Lesson>> =
+    fun observeLessons(): Flow<List<Lesson>> = observeLessonsFiltered { it.id < 100 }
+
+    fun observeIdiomLessons(): Flow<List<Lesson>> = observeLessonsFiltered { it.id >= 100 }
+
+    private fun observeLessonsFiltered(predicate: (com.example.vocabapp.data.local.entity.LessonEntity) -> Boolean): Flow<List<Lesson>> =
         combine(dao.observeLessons(), dao.observeProgress()) { lessons, progress ->
-            lessons.map { lesson ->
+            lessons.filter(predicate).map { lesson ->
+                val trainingCount = if (lesson.id >= 100) 3 else 10
                 val lessonProgress = progress.filter { it.lessonId == lesson.id && it.trainingId != null }
                 val masteredTrainings = lessonProgress.count { it.bestStarCount >= 3 }
                 val completedTrainings = lessonProgress.count { it.studyCount > 0 }
                 val status = when {
-                    masteredTrainings == 10 -> LessonStatus.Master
-                    completedTrainings == 10 -> LessonStatus.Complete
+                    masteredTrainings >= trainingCount -> LessonStatus.Master
+                    completedTrainings >= trainingCount -> LessonStatus.Complete
                     completedTrainings > 0 -> LessonStatus.InProgress
                     else -> LessonStatus.NotStarted
                 }
@@ -100,7 +105,7 @@ class VocabRepository @Inject constructor(
                     title = lesson.title,
                     wordStartNumber = lesson.wordStartNumber,
                     wordEndNumber = lesson.wordEndNumber,
-                    progressRate = masteredTrainings / 10f,
+                    progressRate = masteredTrainings / trainingCount.toFloat(),
                     status = status,
                     masteredTrainings = masteredTrainings,
                     lastStudiedAt = lessonProgress.mapNotNull { it.lastStudiedAt }.maxOrNull()
