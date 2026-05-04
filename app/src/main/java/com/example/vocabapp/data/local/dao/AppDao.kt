@@ -16,6 +16,7 @@ import com.example.vocabapp.data.local.entity.TrainingEntity
 import com.example.vocabapp.data.local.entity.UserProgressEntity
 import com.example.vocabapp.data.local.entity.WordChoiceEntity
 import com.example.vocabapp.data.local.entity.WordEntity
+import com.example.vocabapp.data.local.entity.TrainingFirstWordRow
 import com.example.vocabapp.data.local.entity.WordRelationEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -90,6 +91,9 @@ interface AppDao {
 
     @Query("SELECT * FROM trainings WHERE lessonId = :lessonId AND displayOrder > :displayOrder ORDER BY displayOrder LIMIT 1")
     suspend fun getNextTraining(lessonId: Int, displayOrder: Int): TrainingEntity?
+
+    @Query("SELECT trainingId, MIN(id) AS firstId FROM words GROUP BY trainingId")
+    fun observeFirstWordIds(): Flow<List<TrainingFirstWordRow>>
 
     @Query("SELECT * FROM words WHERE trainingId = :trainingId ORDER BY displayOrder")
     suspend fun getWordsByTraining(trainingId: Int): List<WordEntity>
