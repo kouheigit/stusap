@@ -115,7 +115,9 @@ class VocabRepository @Inject constructor(
         }
 
     fun observeTrainings(lessonId: Int): Flow<List<Training>> =
-        combine(dao.observeTrainings(lessonId), dao.observeProgress()) { trainings, progress ->
+        combine(dao.observeTrainings(lessonId), dao.observeProgress(), dao.observeFirstWordIds()) {
+            trainings, progress, firstWords ->
+            val firstWordMap = firstWords.associate { it.trainingId to it.firstId }
             trainings.map { training ->
                 val item = progress.firstOrNull { it.trainingId == training.id }
                 Training(
@@ -128,7 +130,8 @@ class VocabRepository @Inject constructor(
                     bestAccuracy = item?.bestAccuracy ?: 0f,
                     bestStarCount = item?.bestStarCount ?: 0,
                     lastStudiedAt = item?.lastStudiedAt,
-                    lastAccuracy = item?.let { if (it.lastAccuracy > 0f) it.lastAccuracy else it.bestAccuracy } ?: 0f
+                    lastAccuracy = item?.let { if (it.lastAccuracy > 0f) it.lastAccuracy else it.bestAccuracy } ?: 0f,
+                    firstWordId = firstWordMap[training.id] ?: training.wordStartNumber
                 )
             }
         }
