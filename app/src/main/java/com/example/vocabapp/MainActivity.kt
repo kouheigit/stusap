@@ -524,14 +524,20 @@ private fun IdiomLessonListScreen(navController: NavHostController, viewModel: I
     val lessons by viewModel.lessons.collectAsState()
     val totalWords = lessons.sumOf { it.wordEndNumber - it.wordStartNumber + 1 }
     BlueScaffold(title = "英熟語", onBack = { navController.popBackStack() }) { inner ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            item { SectionTitle("英熟語レッスン（全${totalWords}語）") }
-            items(lessons) { lesson ->
-                LessonCard(lesson) { navController.navigate(Route.training(lesson.id)) }
+        if (lessons.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(inner), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                Text("読み込み中…", color = Color.White, fontSize = 16.sp)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                item { SectionTitle("英熟語レッスン（全${totalWords}語）") }
+                items(lessons) { lesson ->
+                    LessonCard(lesson) { navController.navigate(Route.training(lesson.id)) }
+                }
             }
         }
     }
