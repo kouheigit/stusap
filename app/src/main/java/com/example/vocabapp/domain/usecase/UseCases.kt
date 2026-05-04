@@ -10,6 +10,12 @@ class GetLessonsUseCase @Inject constructor(
     operator fun invoke() = repository.observeLessons()
 }
 
+class GetIdiomLessonsUseCase @Inject constructor(
+    private val repository: VocabRepository
+) {
+    operator fun invoke() = repository.observeIdiomLessons()
+}
+
 class GetTrainingsUseCase @Inject constructor(
     private val repository: VocabRepository
 ) {
