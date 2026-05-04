@@ -118,6 +118,7 @@ import com.example.vocabapp.viewmodel.AddWordViewModel
 import com.example.vocabapp.viewmodel.CustomWordListViewModel
 import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
+import com.example.vocabapp.viewmodel.IdiomLessonListViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
 import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
@@ -1260,7 +1261,7 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
                 val currentMedalResId = lastMedalResId(effectiveAccuracy)
                 val isBronze = currentMedalResId == R.drawable.medal_bronze
                 val medalMod = if (isBronze)
-                    Modifier.size(width = 112.dp, height = 170.dp).clickable { onQuiz() }
+                    Modifier.size(width = 112.dp, height = 150.dp).clickable { onQuiz() }
                 else
                     Modifier.size(112.dp).clickable { onQuiz() }
                 Image(
