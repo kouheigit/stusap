@@ -221,6 +221,7 @@ class MainActivity : ComponentActivity() {
 private object Route {
     const val Home = "home"
     const val Lessons = "lessons"
+    const val IdiomLessons = "idiom-lessons"
     const val Training = "training/{lessonId}"
     const val Quiz = "quiz?trainingId={trainingId}&isReview={isReview}"
     const val Result = "result/{attemptId}"
