@@ -56,6 +56,23 @@ interface AppDao {
         }
     }
 
+    @Transaction
+    suspend fun seedIdiomsIfNeeded(
+        lessons: List<LessonEntity>,
+        trainings: List<TrainingEntity>,
+        words: List<WordEntity>,
+        choices: List<WordChoiceEntity>,
+        relations: List<WordRelationEntity>
+    ) {
+        if (getLesson(100) == null) {
+            insertLessons(lessons)
+            insertTrainings(trainings)
+            insertWords(words)
+            insertChoices(choices)
+            insertRelations(relations)
+        }
+    }
+
     @Query("SELECT * FROM lessons ORDER BY scoreTarget, displayOrder")
     fun observeLessons(): Flow<List<LessonEntity>>
 
