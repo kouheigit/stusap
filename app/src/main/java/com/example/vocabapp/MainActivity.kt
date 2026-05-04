@@ -423,13 +423,13 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatCard("Master", "${summary.masteredLessons}/${summary.totalLessons}", Modifier.weight(1f))
-                    StatCard("復習単語", "${summary.reviewCount}", Modifier.weight(1f))
+                    StatCard("英単語Master", "${summary.masteredLessons}/${summary.totalLessons}", Modifier.weight(1f))
+                    StatCard("熟語Master", "${summary.idiomMasteredLessons}/${summary.idiomTotalLessons}", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    StatCard("復習単語", "${summary.reviewCount}", Modifier.weight(1f))
                     StatCard("連続学習", "${summary.streakDays}日", Modifier.weight(1f))
-                    StatCard("熟語Master", "${summary.idiomMasteredLessons}/${summary.idiomTotalLessons}", Modifier.weight(1f))
                 }
             }
             item {
