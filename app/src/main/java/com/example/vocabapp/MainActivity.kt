@@ -273,6 +273,7 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Route.Home) {
         composable(Route.Home) { HomeScreen(navController) }
         composable(Route.Lessons) { LessonListScreen(navController) }
+        composable(Route.IdiomLessons) { IdiomLessonListScreen(navController) }
         composable(
             Route.Training,
             arguments = listOf(navArgument("lessonId") { type = NavType.IntType })
