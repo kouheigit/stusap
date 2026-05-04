@@ -266,7 +266,7 @@ class FlashcardViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: VocabRepository
 ) : ViewModel() {
-    private val trainingId: Int = checkNotNull(savedStateHandle["trainingId"])
+    val trainingId: Int = checkNotNull(savedStateHandle["trainingId"])
     private val _words = MutableStateFlow<List<Word>>(emptyList())
     val words: StateFlow<List<Word>> = _words.asStateFlow()
     private val _index = MutableStateFlow(0)

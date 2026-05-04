@@ -940,7 +940,8 @@ private fun FlashcardScreen(navController: NavHostController, viewModel: Flashca
     val revealed by viewModel.revealed.collectAsState()
     val speaker = rememberSpeaker()
     val word = words.getOrNull(index)
-    BlueScaffold(title = "単語帳", onBack = { navController.popBackStack() }) { inner ->
+    val title = if (viewModel.trainingId >= 100) "英熟語帳" else "単語帳"
+    BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
         if (words.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
