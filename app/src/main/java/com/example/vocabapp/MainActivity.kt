@@ -441,6 +441,14 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
             }
             item {
                 CardButton(
+                    title = "英熟語",
+                    subtitle = "TOEICに頻出の英熟語を30語学習",
+                    icon = Icons.Default.School,
+                    onClick = { navController.navigate(Route.IdiomLessons) }
+                )
+            }
+            item {
+                CardButton(
                     title = "復習トレーニング",
                     subtitle = "間違えた単語とチェックした単語を10問で復習",
                     icon = Icons.Default.Refresh,
