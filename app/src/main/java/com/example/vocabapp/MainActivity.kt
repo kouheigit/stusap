@@ -1316,7 +1316,7 @@ private fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int)
             )
             Text(
                 "先頭単語の詳細を見る",
-                modifier = Modifier.weight(1f).clickable { onDetail(training.wordStartNumber) }.padding(bottom = 14.dp),
+                modifier = Modifier.weight(1f).clickable { onDetail(training.firstWordId) }.padding(bottom = 14.dp),
                 textAlign = TextAlign.Center,
                 color = BrightBlue,
                 fontWeight = FontWeight.Bold
