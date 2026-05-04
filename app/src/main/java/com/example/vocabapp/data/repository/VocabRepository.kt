@@ -90,10 +90,12 @@ class VocabRepository @Inject constructor(
 
     fun observeIdiomLessons(): Flow<List<Lesson>> = observeLessonsFiltered { it.id >= 100 }
 
+    private fun trainingCountForLesson(lessonId: Int) = if (lessonId >= 100) 3 else 10
+
     private fun observeLessonsFiltered(predicate: (com.example.vocabapp.data.local.entity.LessonEntity) -> Boolean): Flow<List<Lesson>> =
         combine(dao.observeLessons(), dao.observeProgress()) { lessons, progress ->
             lessons.filter(predicate).map { lesson ->
-                val trainingCount = if (lesson.id >= 100) 3 else 10
+                val trainingCount = trainingCountForLesson(lesson.id)
                 val lessonProgress = progress.filter { it.lessonId == lesson.id && it.trainingId != null }
                 val masteredTrainings = lessonProgress.count { it.bestStarCount >= 3 }
                 val completedTrainings = lessonProgress.count { it.studyCount > 0 }
