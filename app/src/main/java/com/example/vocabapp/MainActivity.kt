@@ -519,6 +519,23 @@ private fun LessonListScreen(navController: NavHostController, viewModel: Lesson
 }
 
 @Composable
+private fun IdiomLessonListScreen(navController: NavHostController, viewModel: IdiomLessonListViewModel = hiltViewModel()) {
+    val lessons by viewModel.lessons.collectAsState()
+    BlueScaffold(title = "英熟語", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item { SectionTitle("英熟語レッスン") }
+            items(lessons) { lesson ->
+                LessonCard(lesson) { navController.navigate(Route.training(lesson.id)) }
+            }
+        }
+    }
+}
+
+@Composable
 private fun TrainingListScreen(navController: NavHostController, viewModel: TrainingListViewModel = hiltViewModel()) {
     val trainings by viewModel.trainings.collectAsState()
     BlueScaffold(title = "トレーニング一覧", onBack = { navController.popBackStack() }) { inner ->
