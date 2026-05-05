@@ -270,7 +270,7 @@ private fun VocabTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun AppNav(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Route.Home) {
+    NavHost(navController = navController, startDestination = Route.AddWord) {
         composable(Route.Home) { HomeScreen(navController) }
         composable(Route.Lessons) { LessonListScreen(navController) }
         composable(Route.IdiomLessons) { IdiomLessonListScreen(navController) }
