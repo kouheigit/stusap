@@ -114,3 +114,35 @@ data class HomeSummary(
     val idiomMasteredLessons: Int = 0,
     val idiomTotalLessons: Int = 0
 )
+
+data class ImportedWord(
+    val english: String,
+    val meaning: String,
+    val exampleSentence: String = "",
+    val exampleTranslation: String = "",
+    val type: String
+)
+
+data class ImportErrorRow(
+    val rowNumber: Int,
+    val reason: String,
+    val rawValues: List<String>
+)
+
+data class WordImportPreview(
+    val totalRows: Int = 0,
+    val newWords: List<ImportedWord> = emptyList(),
+    val duplicateWords: List<ImportedWord> = emptyList(),
+    val errors: List<ImportErrorRow> = emptyList()
+) {
+    val newCount: Int get() = newWords.size
+    val duplicateCount: Int get() = duplicateWords.size
+    val errorCount: Int get() = errors.size
+}
+
+data class WordImportResult(
+    val totalRows: Int = 0,
+    val insertedCount: Int = 0,
+    val duplicateCount: Int = 0,
+    val errorCount: Int = 0
+)

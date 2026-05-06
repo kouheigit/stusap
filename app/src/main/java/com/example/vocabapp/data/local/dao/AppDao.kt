@@ -182,6 +182,15 @@ interface AppDao {
     @Insert
     suspend fun insertCustomWord(item: CustomWordEntity): Long
 
+    @Insert
+    suspend fun insertCustomWords(items: List<CustomWordEntity>): List<Long>
+
+    @Query("SELECT lower(trim(english)) FROM custom_words")
+    suspend fun getNormalizedCustomEnglish(): List<String>
+
+    @Query("SELECT lower(trim(english)) FROM words")
+    suspend fun getNormalizedSeedEnglish(): List<String>
+
     @Query("SELECT * FROM custom_words ORDER BY addedAt DESC")
     fun observeCustomWords(): Flow<List<CustomWordEntity>>
 

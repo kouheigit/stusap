@@ -13,6 +13,8 @@ import com.example.vocabapp.data.seed.IdiomSeedData
 import com.example.vocabapp.data.seed.SeedData
 import com.example.vocabapp.domain.model.AnswerRecord
 import com.example.vocabapp.domain.model.HomeSummary
+import com.example.vocabapp.domain.model.ImportErrorRow
+import com.example.vocabapp.domain.model.ImportedWord
 import com.example.vocabapp.domain.model.Lesson
 import com.example.vocabapp.domain.model.LessonStatus
 import com.example.vocabapp.domain.model.QuizQuestion
@@ -20,6 +22,8 @@ import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.domain.model.WordChoice
+import com.example.vocabapp.domain.model.WordImportPreview
+import com.example.vocabapp.domain.model.WordImportResult
 import com.example.vocabapp.domain.model.WordRelation
 import java.time.DayOfWeek
 import java.time.Instant
@@ -304,6 +308,109 @@ class VocabRepository @Inject constructor(
         ))
     }
 
+    suspend fun previewCustomWordCsv(csvText: String): WordImportPreview {
+        val rows = parseCsvRows(csvText)
+        if (rows.isEmpty()) {
+            return WordImportPreview(
+                errors = listOf(ImportErrorRow(1, "CSVが空です", emptyList()))
+            )
+        }
+
+        val header = rows.first().map { it.trim().lowercase() }
+        val englishIndex = header.indexOf("english")
+        val meaningIndex = header.indexOf("meaning")
+        if (englishIndex == -1 || meaningIndex == -1) {
+            return WordImportPreview(
+                totalRows = rows.drop(1).size,
+                errors = listOf(ImportErrorRow(1, "english と meaning のヘッダーが必要です", rows.first()))
+            )
+        }
+
+        val exampleIndex = header.indexOf("example")
+        val exampleTranslationIndex = header.indexOf("example_translation")
+        val typeIndex = header.indexOf("type")
+        val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish()).toMutableSet()
+        val seenInCsv = mutableSetOf<String>()
+        val newWords = mutableListOf<ImportedWord>()
+        val duplicateWords = mutableListOf<ImportedWord>()
+        val errors = mutableListOf<ImportErrorRow>()
+        val dataRows = rows.drop(1)
+
+        dataRows.forEachIndexed { index, row ->
+            val rowNumber = index + 2
+            val english = row.getOrEmpty(englishIndex).trim()
+            val meaning = row.getOrEmpty(meaningIndex).trim()
+            val example = row.getOrEmpty(exampleIndex).trim()
+            val exampleTranslation = row.getOrEmpty(exampleTranslationIndex).trim()
+            val rawType = row.getOrEmpty(typeIndex).trim().lowercase()
+
+            if (english.isBlank() || meaning.isBlank()) {
+                errors += ImportErrorRow(rowNumber, "english と meaning は必須です", row)
+                return@forEachIndexed
+            }
+
+            val wordType = when {
+                rawType.isBlank() -> if (english.contains(Regex("\\s"))) "phrase" else "word"
+                rawType == "word" || rawType == "phrase" -> rawType
+                else -> {
+                    errors += ImportErrorRow(rowNumber, "type は word または phrase のみ指定できます", row)
+                    return@forEachIndexed
+                }
+            }
+
+            val imported = ImportedWord(
+                english = english,
+                meaning = meaning,
+                exampleSentence = example,
+                exampleTranslation = exampleTranslation,
+                type = wordType
+            )
+            val normalized = english.normalizeEnglish()
+            if (normalized in existing || normalized in seenInCsv) {
+                duplicateWords += imported
+            } else {
+                seenInCsv += normalized
+                newWords += imported
+            }
+        }
+
+        return WordImportPreview(
+            totalRows = dataRows.size,
+            newWords = newWords,
+            duplicateWords = duplicateWords,
+            errors = errors
+        )
+    }
+
+    suspend fun importCustomWords(preview: WordImportPreview): WordImportResult {
+        val now = System.currentTimeMillis()
+        val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish()).toSet()
+        val seen = mutableSetOf<String>()
+        val insertItems = preview.newWords.filter { word ->
+            val normalized = word.english.normalizeEnglish()
+            normalized !in existing && seen.add(normalized)
+        }.map { word ->
+            CustomWordEntity(
+                english = word.english,
+                meaning = word.meaning,
+                addedAt = now,
+                exampleSentence = word.exampleSentence,
+                exampleTranslation = word.exampleTranslation,
+                wordType = word.type
+            )
+        }
+        if (insertItems.isNotEmpty()) {
+            dao.insertCustomWords(insertItems)
+        }
+        val lateDuplicates = preview.newWords.size - insertItems.size
+        return WordImportResult(
+            totalRows = preview.totalRows,
+            insertedCount = insertItems.size,
+            duplicateCount = preview.duplicateCount + lateDuplicates,
+            errorCount = preview.errorCount
+        )
+    }
+
     suspend fun deleteCustomWord(id: Int) { dao.deleteCustomWord(id) }
 
     suspend fun deleteAllCustomWords() { dao.deleteAllCustomWords() }
@@ -321,7 +428,8 @@ class VocabRepository @Inject constructor(
             }
             QuizQuestion(
                 word = Word(id = cw.id, trainingId = -1, english = cw.english, meaning = cw.meaning,
-                    phonetic = "", partOfSpeech = "", exampleSentence = "", exampleTranslation = "",
+                    phonetic = "", partOfSpeech = if (cw.wordType == "phrase") "熟語" else "単語",
+                    exampleSentence = cw.exampleSentence, exampleTranslation = cw.exampleTranslation,
                     audioUrl = null, exampleAudioUrl = null, displayOrder = 0),
                 choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
             )
@@ -425,4 +533,49 @@ class VocabRepository @Inject constructor(
             isCorrect = isCorrect,
             displayOrder = displayOrder
         )
+
+    private fun List<String>.getOrEmpty(index: Int): String =
+        if (index >= 0 && index < size) this[index] else ""
+
+    private fun String.normalizeEnglish(): String =
+        trim().lowercase()
+
+    private fun parseCsvRows(input: String): List<List<String>> {
+        if (input.isEmpty()) return emptyList()
+        val rows = mutableListOf<List<String>>()
+        val currentRow = mutableListOf<String>()
+        val currentCell = StringBuilder()
+        var inQuotes = false
+        var index = 0
+
+        while (index < input.length) {
+            val char = input[index]
+            when {
+                char == '"' && inQuotes && index + 1 < input.length && input[index + 1] == '"' -> {
+                    currentCell.append('"')
+                    index++
+                }
+                char == '"' -> inQuotes = !inQuotes
+                char == ',' && !inQuotes -> {
+                    currentRow += currentCell.toString()
+                    currentCell.clear()
+                }
+                (char == '\n' || char == '\r') && !inQuotes -> {
+                    currentRow += currentCell.toString()
+                    currentCell.clear()
+                    if (currentRow.any { it.isNotBlank() }) rows += currentRow.toList()
+                    currentRow.clear()
+                    if (char == '\r' && index + 1 < input.length && input[index + 1] == '\n') {
+                        index++
+                    }
+                }
+                else -> currentCell.append(char)
+            }
+            index++
+        }
+
+        currentRow += currentCell.toString()
+        if (currentRow.any { it.isNotBlank() }) rows += currentRow.toList()
+        return rows
+    }
 }

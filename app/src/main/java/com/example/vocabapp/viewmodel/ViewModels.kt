@@ -12,6 +12,8 @@ import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
+import com.example.vocabapp.domain.model.WordImportPreview
+import com.example.vocabapp.domain.model.WordImportResult
 import com.example.vocabapp.domain.model.WordRelation
 import com.example.vocabapp.domain.usecase.FinishQuizUseCase
 import com.example.vocabapp.domain.usecase.GetIdiomLessonsUseCase
@@ -259,6 +261,57 @@ class AddWordViewModel @Inject constructor(
     }
 
     fun resetSaved() { _saved.value = false }
+}
+
+@HiltViewModel
+class WordImportViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val _preview = MutableStateFlow<WordImportPreview?>(null)
+    val preview: StateFlow<WordImportPreview?> = _preview.asStateFlow()
+    private val _result = MutableStateFlow<WordImportResult?>(null)
+    val result: StateFlow<WordImportResult?> = _result.asStateFlow()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message.asStateFlow()
+
+    fun loadCsv(csvText: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _message.value = null
+            _result.value = null
+            runCatching {
+                repository.previewCustomWordCsv(csvText)
+            }.onSuccess { loadedPreview ->
+                _preview.value = loadedPreview
+            }.onFailure { error ->
+                _preview.value = null
+                _message.value = error.message ?: "CSVの読み込みに失敗しました"
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun registerPreview() {
+        val currentPreview = _preview.value ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            _message.value = null
+            runCatching {
+                repository.importCustomWords(currentPreview)
+            }.onSuccess { importResult ->
+                _result.value = importResult
+            }.onFailure { error ->
+                _message.value = error.message ?: "登録に失敗しました"
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun showMessage(message: String) {
+        _message.value = message
+    }
 }
 
 @HiltViewModel

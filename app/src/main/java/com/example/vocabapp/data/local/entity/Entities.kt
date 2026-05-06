@@ -206,5 +206,8 @@ data class CustomWordEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val english: String,
     val meaning: String,
-    val addedAt: Long
+    val addedAt: Long,
+    @androidx.room.ColumnInfo(defaultValue = "") val exampleSentence: String = "",
+    @androidx.room.ColumnInfo(defaultValue = "") val exampleTranslation: String = "",
+    @androidx.room.ColumnInfo(defaultValue = "word") val wordType: String = "word"
 )

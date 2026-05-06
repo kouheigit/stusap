@@ -6,6 +6,7 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,8 +18,10 @@ import android.text.TextWatcher
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
@@ -127,7 +130,9 @@ import com.example.vocabapp.viewmodel.ReviewViewModel
 import com.example.vocabapp.viewmodel.StudyLogViewModel
 import com.example.vocabapp.viewmodel.TrainingListViewModel
 import com.example.vocabapp.viewmodel.WordDetailViewModel
+import com.example.vocabapp.viewmodel.WordImportViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -230,6 +235,7 @@ private object Route {
     const val StudyLog = "study-log"
     const val Settings = "settings"
     const val AddWord = "add-word"
+    const val WordImport = "word-import"
     const val CustomQuiz = "custom-quiz"
     const val CustomWordList = "custom-word-list"
     const val Flashcard = "flashcard/{trainingId}"
@@ -297,6 +303,7 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.StudyLog) { StudyLogScreen(navController) }
         composable(Route.Settings) { SettingsScreen(navController) }
         composable(Route.AddWord) { AddWordScreen(navController) }
+        composable(Route.WordImport) { WordImportScreen(navController) }
         composable(Route.CustomQuiz) { CustomWordQuizScreen(navController) }
         composable(Route.CustomWordList) { CustomWordListScreen(navController) }
         composable(
@@ -438,6 +445,14 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     subtitle = "覚えたい英単語と日本語訳を追加",
                     icon = Icons.Default.Add,
                     onClick = { navController.navigate(Route.AddWord) }
+                )
+            }
+            item {
+                CardButton(
+                    title = "単語インポート",
+                    subtitle = "Excelから保存したCSVを一括登録",
+                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                    onClick = { navController.navigate(Route.WordImport) }
                 )
             }
             item {
@@ -1139,6 +1154,152 @@ private fun EditText.focusAndShowKeyboard() {
     requestFocus()
     setSelection(text?.length ?: 0)
     showKeyboard()
+}
+
+private fun Context.readUtf8Text(uri: Uri): String =
+    contentResolver.openInputStream(uri)?.use { stream ->
+        InputStreamReader(stream, Charsets.UTF_8).use { it.readText() }
+    } ?: error("ファイルを開けませんでした")
+
+@Composable
+private fun WordImportScreen(navController: NavHostController, viewModel: WordImportViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val preview by viewModel.preview.collectAsState()
+    val result by viewModel.result.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val message by viewModel.message.collectAsState()
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            runCatching { context.readUtf8Text(uri) }
+                .onSuccess { viewModel.loadCsv(it) }
+                .onFailure { viewModel.showMessage(it.message ?: "CSVファイルを開けませんでした") }
+        }
+    }
+
+    BlueScaffold(title = "単語インポート", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                Button(
+                    onClick = { picker.launch(arrayOf("text/*", "text/csv", "application/csv", "application/vnd.ms-excel")) },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = BrightBlue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("CSVファイルを選択", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (isLoading) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(color = BrightBlue)
+                        Spacer(Modifier.width(12.dp))
+                        Text("処理中...", color = TextDark, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            message?.let { text ->
+                item { Text(text, color = Danger, fontWeight = FontWeight.Bold) }
+            }
+            preview?.let { currentPreview ->
+                item {
+                    ImportSummaryCard(
+                        title = if (result == null) "読み込み結果" else "登録結果",
+                        totalRows = result?.totalRows ?: currentPreview.totalRows,
+                        newCount = result?.insertedCount ?: currentPreview.newCount,
+                        duplicateCount = result?.duplicateCount ?: currentPreview.duplicateCount,
+                        errorCount = result?.errorCount ?: currentPreview.errorCount
+                    )
+                }
+                if (result == null) {
+                    item {
+                        Button(
+                            onClick = { viewModel.registerPreview() },
+                            enabled = currentPreview.newCount > 0 && !isLoading,
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Success),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.Check, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("登録する", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                if (currentPreview.newWords.isNotEmpty()) {
+                    item { SectionTitle("登録予定 (${currentPreview.newCount}件)") }
+                    items(currentPreview.newWords) { word ->
+                        ImportWordRow(word.english, word.meaning, word.type)
+                    }
+                }
+                if (currentPreview.duplicateWords.isNotEmpty()) {
+                    item { SectionTitle("重複スキップ (${currentPreview.duplicateCount}件)") }
+                    items(currentPreview.duplicateWords.take(20)) { word ->
+                        ImportWordRow(word.english, word.meaning, word.type)
+                    }
+                }
+                if (currentPreview.errors.isNotEmpty()) {
+                    item { SectionTitle("エラー (${currentPreview.errorCount}件)") }
+                    items(currentPreview.errors.take(20)) { error ->
+                        Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("${error.rowNumber}行目", color = Danger, fontWeight = FontWeight.Bold)
+                                Text(error.reason, color = TextDark)
+                                Text(error.rawValues.joinToString(", "), color = TextMuted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImportSummaryCard(title: String, totalRows: Int, newCount: Int, duplicateCount: Int, errorCount: Int) {
+    Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(title, color = DeepBlue, fontSize = 22.sp, fontWeight = FontWeight.Black)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                SummaryChip("読み込み", "${totalRows}件", Modifier.weight(1f))
+                SummaryChip("登録", "${newCount}件", Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                SummaryChip("重複", "${duplicateCount}件", Modifier.weight(1f))
+                SummaryChip("エラー", "${errorCount}件", Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SummaryChip(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier.background(SoftBlue, RoundedCornerShape(8.dp)).padding(12.dp)) {
+        Text(label, color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(value, color = TextDark, fontSize = 18.sp, fontWeight = FontWeight.Black)
+    }
+}
+
+@Composable
+private fun ImportWordRow(english: String, meaning: String, type: String) {
+    Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(english, color = DeepBlue, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                Text(meaning, color = TextDark, fontSize = 15.sp)
+            }
+            Text(if (type == "phrase") "熟語" else "単語", color = BrightBlue, fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
 @Composable
