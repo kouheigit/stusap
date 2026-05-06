@@ -270,7 +270,7 @@ private fun VocabTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun AppNav(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Route.AddWord) {
+    NavHost(navController = navController, startDestination = Route.Home) {
         composable(Route.Home) { HomeScreen(navController) }
         composable(Route.Lessons) { LessonListScreen(navController) }
         composable(Route.IdiomLessons) { IdiomLessonListScreen(navController) }
@@ -431,6 +431,14 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     StatCard("復習単語", "${summary.reviewCount}", Modifier.weight(1f))
                     StatCard("連続学習", "${summary.streakDays}日", Modifier.weight(1f))
                 }
+            }
+            item {
+                CardButton(
+                    title = "新規単語登録",
+                    subtitle = "覚えたい英単語と日本語訳を追加",
+                    icon = Icons.Default.Add,
+                    onClick = { navController.navigate(Route.AddWord) }
+                )
             }
             item {
                 CardButton(
