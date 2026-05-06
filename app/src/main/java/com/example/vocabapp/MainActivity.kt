@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.OpenableColumns
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.text.Editable
@@ -132,7 +133,12 @@ import com.example.vocabapp.viewmodel.TrainingListViewModel
 import com.example.vocabapp.viewmodel.WordDetailViewModel
 import com.example.vocabapp.viewmodel.WordImportViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -145,6 +151,9 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipInputStream
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 
 private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean) {
     Thread {
@@ -1156,10 +1165,179 @@ private fun EditText.focusAndShowKeyboard() {
     showKeyboard()
 }
 
-private fun Context.readUtf8Text(uri: Uri): String =
-    contentResolver.openInputStream(uri)?.use { stream ->
-        InputStreamReader(stream, Charsets.UTF_8).use { it.readText() }
-    } ?: error("ファイルを開けませんでした")
+private fun Context.readImportFileAsCsv(uri: Uri): String {
+    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        ?: error("ファイルを開けませんでした")
+    if (bytes.isEmpty()) error("ファイルが空です")
+
+    val fileName = queryDisplayName(uri).lowercase(Locale.ROOT)
+    val mimeType = contentResolver.getType(uri).orEmpty().lowercase(Locale.ROOT)
+    val isXlsx = fileName.endsWith(".xlsx") ||
+        mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))
+    val isOldXls = fileName.endsWith(".xls") ||
+        mimeType == "application/vnd.ms-excel" && !isXlsx ||
+        bytes.startsWith(byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte()))
+
+    if (isOldXls) {
+        error("古い .xls 形式は未対応です。Excelで .xlsx または CSV として保存してから選択してください")
+    }
+
+    return if (isXlsx) {
+        parseXlsxRows(bytes).toCsvText()
+    } else {
+        decodeCsvBytes(bytes)
+    }
+}
+
+private fun Context.queryDisplayName(uri: Uri): String {
+    contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) {
+            val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (index >= 0) return cursor.getString(index).orEmpty()
+        }
+    }
+    return uri.lastPathSegment.orEmpty()
+}
+
+private fun decodeCsvBytes(bytes: ByteArray): String {
+    val withoutBom = if (bytes.startsWith(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()))) {
+        bytes.copyOfRange(3, bytes.size)
+    } else {
+        bytes
+    }
+    return runCatching { strictDecode(withoutBom, StandardCharsets.UTF_8) }
+        .getOrElse { strictDecode(withoutBom, Charset.forName("MS932")) }
+}
+
+private fun strictDecode(bytes: ByteArray, charset: Charset): String =
+    charset.newDecoder()
+        .onMalformedInput(CodingErrorAction.REPORT)
+        .onUnmappableCharacter(CodingErrorAction.REPORT)
+        .decode(ByteBuffer.wrap(bytes))
+        .toString()
+
+private fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
+    val entries = mutableMapOf<String, ByteArray>()
+    ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+        var entry = zip.nextEntry
+        while (entry != null) {
+            val name = entry.name
+            if (!entry.isDirectory && (name == "xl/sharedStrings.xml" || name == "xl/worksheets/sheet1.xml")) {
+                entries[name] = zip.readBytes()
+            }
+            zip.closeEntry()
+            entry = zip.nextEntry
+        }
+    }
+
+    val sheet = entries["xl/worksheets/sheet1.xml"]
+        ?: error("Excelファイルの1枚目のシートを読み込めませんでした")
+    val sharedStrings = entries["xl/sharedStrings.xml"]?.let(::parseSharedStrings).orEmpty()
+    return parseWorksheetRows(sheet, sharedStrings)
+}
+
+private fun parseSharedStrings(bytes: ByteArray): List<String> {
+    val parser = newXmlParser(bytes)
+    val values = mutableListOf<String>()
+    var insideSi = false
+    var current = StringBuilder()
+
+    while (parser.next() != XmlPullParser.END_DOCUMENT) {
+        when (parser.eventType) {
+            XmlPullParser.START_TAG -> {
+                if (parser.name == "si") {
+                    insideSi = true
+                    current = StringBuilder()
+                }
+            }
+            XmlPullParser.TEXT -> if (insideSi) current.append(parser.text)
+            XmlPullParser.END_TAG -> {
+                if (parser.name == "si") {
+                    values += current.toString()
+                    insideSi = false
+                }
+            }
+        }
+    }
+    return values
+}
+
+private fun parseWorksheetRows(bytes: ByteArray, sharedStrings: List<String>): List<List<String>> {
+    val parser = newXmlParser(bytes)
+    val rows = mutableListOf<List<String>>()
+    var currentRow: MutableList<String>? = null
+    var cellReference = ""
+    var cellType = ""
+    var cellValue = StringBuilder()
+    var readingValue = false
+    var readingInlineText = false
+
+    while (parser.next() != XmlPullParser.END_DOCUMENT) {
+        when (parser.eventType) {
+            XmlPullParser.START_TAG -> when (parser.name) {
+                "row" -> currentRow = mutableListOf()
+                "c" -> {
+                    cellReference = parser.getAttributeValue(null, "r").orEmpty()
+                    cellType = parser.getAttributeValue(null, "t").orEmpty()
+                    cellValue = StringBuilder()
+                }
+                "v" -> readingValue = true
+                "t" -> if (cellType == "inlineStr") readingInlineText = true
+            }
+            XmlPullParser.TEXT -> {
+                if (readingValue || readingInlineText) cellValue.append(parser.text)
+            }
+            XmlPullParser.END_TAG -> when (parser.name) {
+                "v" -> readingValue = false
+                "t" -> readingInlineText = false
+                "c" -> {
+                    currentRow?.let { row ->
+                        val columnIndex = xlsxColumnIndex(cellReference)
+                        while (row.size < columnIndex) row += ""
+                        row += resolveXlsxCellValue(cellValue.toString(), cellType, sharedStrings)
+                    }
+                }
+                "row" -> {
+                    currentRow?.dropLastWhile { it.isBlank() }?.takeIf { row -> row.any { it.isNotBlank() } }?.let(rows::add)
+                    currentRow = null
+                }
+            }
+        }
+    }
+    return rows
+}
+
+private fun newXmlParser(bytes: ByteArray): XmlPullParser =
+    XmlPullParserFactory.newInstance().newPullParser().apply {
+        setInput(InputStreamReader(ByteArrayInputStream(bytes), StandardCharsets.UTF_8))
+    }
+
+private fun resolveXlsxCellValue(rawValue: String, type: String, sharedStrings: List<String>): String =
+    when (type) {
+        "s" -> rawValue.toIntOrNull()?.let(sharedStrings::getOrNull).orEmpty()
+        "b" -> if (rawValue == "1") "TRUE" else "FALSE"
+        else -> rawValue
+    }.trim()
+
+private fun xlsxColumnIndex(reference: String): Int {
+    var result = 0
+    reference.takeWhile { it.isLetter() }.uppercase(Locale.ROOT).forEach { char ->
+        result = result * 26 + (char - 'A' + 1)
+    }
+    return maxOf(result - 1, 0)
+}
+
+private fun List<List<String>>.toCsvText(): String =
+    joinToString("\n") { row ->
+        row.joinToString(",") { cell ->
+            val escaped = cell.replace("\"", "\"\"")
+            if (escaped.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) "\"$escaped\"" else escaped
+        }
+    }
+
+private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
+    size >= prefix.size && prefix.indices.all { this[it] == prefix[it] }
 
 @Composable
 private fun WordImportScreen(navController: NavHostController, viewModel: WordImportViewModel = hiltViewModel()) {
@@ -1170,9 +1348,9 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
     val message by viewModel.message.collectAsState()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            runCatching { context.readUtf8Text(uri) }
+            runCatching { context.readImportFileAsCsv(uri) }
                 .onSuccess { viewModel.loadCsv(it) }
-                .onFailure { viewModel.showMessage(it.message ?: "CSVファイルを開けませんでした") }
+                .onFailure { viewModel.showMessage(it.message ?: "ファイルを開けませんでした") }
         }
     }
 
@@ -1184,14 +1362,26 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
         ) {
             item {
                 Button(
-                    onClick = { picker.launch(arrayOf("text/*", "text/csv", "application/csv", "application/vnd.ms-excel")) },
+                    onClick = {
+                        picker.launch(
+                            arrayOf(
+                                "text/*",
+                                "text/csv",
+                                "application/csv",
+                                "application/vnd.ms-excel",
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                "application/octet-stream",
+                                "*/*"
+                            )
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrightBlue),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("CSVファイルを選択", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Excel / CSVファイルを選択", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
             if (isLoading) {
