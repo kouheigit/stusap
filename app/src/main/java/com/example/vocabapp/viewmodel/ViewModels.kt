@@ -319,6 +319,8 @@ class WordImportViewModel @Inject constructor(
     fun showLoading() {
         _isLoading.value = true
         _message.value = null
+        _preview.value = null
+        _result.value = null
     }
 }
 
