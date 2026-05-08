@@ -325,6 +325,9 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.WordImport) { WordImportScreen(navController) }
         composable(Route.CustomQuiz) { CustomWordQuizScreen(navController) }
         composable(Route.CustomWordList) { CustomWordListScreen(navController) }
+        composable(Route.AddIdiom) { AddIdiomScreen(navController) }
+        composable(Route.CustomIdiomList) { CustomIdiomListScreen(navController) }
+        composable(Route.CustomIdiomQuiz) { CustomIdiomQuizScreen(navController) }
         composable(
             Route.Flashcard,
             arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
@@ -576,6 +579,46 @@ private fun IdiomLessonListScreen(navController: NavHostController, viewModel: I
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SectionTitle("カスタム英熟語")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { navController.navigate(Route.AddIdiom) },
+                                modifier = Modifier.weight(1f).height(56.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                                Spacer(Modifier.width(4.dp))
+                                Text("英熟語登録", color = DeepBlue, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = { navController.navigate(Route.CustomIdiomList) },
+                                modifier = Modifier.weight(1f).height(56.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
+                                Spacer(Modifier.width(4.dp))
+                                Text("登録一覧", color = DeepBlue, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Button(
+                            onClick = { navController.navigate(Route.CustomIdiomQuiz) },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.School, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("カスタム英熟語クイズ", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
                 item { SectionTitle("英熟語レッスン（全${totalWords}語）") }
                 items(lessons) { lesson ->
                     LessonCard(lesson) { navController.navigate(Route.training(lesson.id)) }
