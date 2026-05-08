@@ -1237,6 +1237,10 @@ private val XLSX_TARGET_ENTRIES = setOf(
 
 private fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
     Log.d(IMPORT_TAG, "parseXlsxRows: start, bytes=${bytes.size}")
+    if (bytes.size < 4 || !bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))) {
+        Log.e(IMPORT_TAG, "parseXlsxRows: not a valid ZIP/XLSX file (magic bytes mismatch)")
+        error("選択されたファイルは有効なExcelファイル(.xlsx)ではありません。ファイル形式を確認してください。")
+    }
     val entries = mutableMapOf<String, ByteArray>()
     try {
         ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
