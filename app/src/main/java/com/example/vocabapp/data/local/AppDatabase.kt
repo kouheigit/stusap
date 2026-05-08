@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
@@ -19,6 +20,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
 
 @Database(
     entities = [
+        CustomIdiomEntity::class,
         CustomWordEntity::class,
         LessonEntity::class,
         TrainingEntity::class,
@@ -31,7 +33,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         StudyLogEntity::class,
         UserProgressEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -65,6 +67,18 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE custom_words ADD COLUMN exampleSentence TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE custom_words ADD COLUMN exampleTranslation TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE custom_words ADD COLUMN wordType TEXT NOT NULL DEFAULT 'word'")
+            }
+        }
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `custom_idioms` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `english` TEXT NOT NULL,
+                        `meaning` TEXT NOT NULL,
+                        `addedAt` INTEGER NOT NULL
+                    )
+                """)
             }
         }
     }
