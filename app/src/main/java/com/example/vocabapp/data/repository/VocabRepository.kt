@@ -1,6 +1,7 @@
 package com.example.vocabapp.data.repository
 
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptEntity
@@ -441,6 +442,39 @@ class VocabRepository @Inject constructor(
     suspend fun deleteAllCustomWords() { dao.deleteAllCustomWords() }
 
     fun observeCustomWords(): Flow<List<CustomWordEntity>> = dao.observeCustomWords()
+
+    suspend fun addCustomIdiom(english: String, meaning: String) {
+        dao.insertCustomIdiom(CustomIdiomEntity(
+            english = english.trim(),
+            meaning = meaning.trim(),
+            addedAt = System.currentTimeMillis()
+        ))
+    }
+
+    fun observeCustomIdioms(): Flow<List<CustomIdiomEntity>> = dao.observeCustomIdioms()
+
+    suspend fun deleteCustomIdiom(id: Int) { dao.deleteCustomIdiom(id) }
+
+    suspend fun deleteAllCustomIdioms() { dao.deleteAllCustomIdioms() }
+
+    suspend fun buildCustomIdiomQuiz(): List<QuizQuestion> {
+        val all = dao.getAllCustomIdioms()
+        if (all.size < 4) return emptyList()
+        return all.shuffled().take(minOf(10, all.size)).map { ci ->
+            val wrongPool = all.filter { it.id != ci.id }.shuffled().take(3)
+            val correct = WordChoice(id = ci.id * -200, wordId = ci.id, choiceText = ci.meaning, isCorrect = true, displayOrder = 0)
+            val wrongs = wrongPool.mapIndexed { i, ww ->
+                WordChoice(id = ww.id * -200 - i - 1, wordId = ci.id, choiceText = ww.meaning, isCorrect = false, displayOrder = i + 1)
+            }
+            QuizQuestion(
+                word = Word(id = ci.id, trainingId = -1, english = ci.english, meaning = ci.meaning,
+                    phonetic = "", partOfSpeech = "英熟語",
+                    exampleSentence = "", exampleTranslation = "",
+                    audioUrl = null, exampleAudioUrl = null, displayOrder = 0),
+                choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
+            )
+        }
+    }
 
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
         val all = dao.getAllCustomWords()
