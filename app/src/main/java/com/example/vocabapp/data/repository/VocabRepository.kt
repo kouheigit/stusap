@@ -320,9 +320,18 @@ class VocabRepository @Inject constructor(
         val englishIndex = header.indexOf("english")
         val meaningIndex = header.indexOf("meaning")
         if (englishIndex == -1 || meaningIndex == -1) {
+            val missing = buildList {
+                if (englishIndex == -1) add("english")
+                if (meaningIndex == -1) add("meaning")
+            }.joinToString(", ")
+            val found = rows.first().joinToString(", ")
             return WordImportPreview(
                 totalRows = rows.drop(1).size,
-                errors = listOf(ImportErrorRow(1, "english と meaning のヘッダーが必要です", rows.first()))
+                errors = listOf(ImportErrorRow(
+                    1,
+                    "必須ヘッダーが見つかりません: $missing\n検出されたヘッダー: $found\n1行目にヘッダー行(english, meaning)が必要です。",
+                    rows.first()
+                ))
             )
         }
 
