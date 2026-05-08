@@ -329,11 +329,11 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.Settings) { SettingsScreen(navController) }
         composable(Route.AddWord) { AddWordScreen(navController) }
         composable(Route.WordImport) { WordImportScreen(navController) }
-        composable(Route.CustomQuiz) { CustomWordQuizScreen(navController) }
+        composable(Route.CustomQuiz) { CustomTrainingRedirect(navController, "word") }
         composable(Route.CustomWordList) { CustomWordListScreen(navController) }
         composable(Route.AddIdiom) { AddIdiomScreen(navController) }
         composable(Route.CustomIdiomList) { CustomIdiomListScreen(navController) }
-        composable(Route.CustomIdiomQuiz) { CustomIdiomQuizScreen(navController) }
+        composable(Route.CustomIdiomQuiz) { CustomTrainingRedirect(navController, "idiom") }
         composable(
             Route.CustomTraining,
             arguments = listOf(navArgument("type") { type = NavType.StringType })
@@ -349,6 +349,17 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
             Route.Flashcard,
             arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
         ) { FlashcardScreen(navController) }
+    }
+}
+
+@Composable
+private fun CustomTrainingRedirect(navController: NavHostController, type: String) {
+    LaunchedEffect(type) {
+        navController.navigate(Route.customTraining(type)) {
+            popUpTo(if (type == "idiom") Route.CustomIdiomQuiz else Route.CustomQuiz) {
+                inclusive = true
+            }
+        }
     }
 }
 
@@ -1281,9 +1292,9 @@ private fun CustomTrainingListScreen(navController: NavHostController, viewModel
                     }
                 }
             }
-            item { SectionTitle("10語トレーニング") }
+            item { SectionTitle("問題一覧") }
             if (trainings.isEmpty()) {
-                item { EmptyCard("登録された${if (isIdiom) "英熟語" else "単語"}はありません") }
+                item { EmptyCard("登録済みの問題がありません") }
             } else {
                 items(trainings) { training ->
                     val setNumber = ((training.wordStartNumber - 1) / 10) + 1
