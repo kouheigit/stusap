@@ -1369,6 +1369,7 @@ private fun parseSharedStrings(bytes: ByteArray): List<String> {
 }
 
 private fun parseWorksheetRows(bytes: ByteArray, sharedStrings: List<String>): List<List<String>> {
+    Log.d(IMPORT_TAG, "parseWorksheetRows: parsing ${bytes.size} bytes, sharedStrings=${sharedStrings.size}")
     val parser = newXmlParser(bytes)
     val rows = mutableListOf<List<String>>()
     var currentRow: MutableList<String>? = null
@@ -1378,38 +1379,51 @@ private fun parseWorksheetRows(bytes: ByteArray, sharedStrings: List<String>): L
     var readingValue = false
     var readingInlineText = false
 
-    while (parser.next() != XmlPullParser.END_DOCUMENT) {
-        when (parser.eventType) {
-            XmlPullParser.START_TAG -> when (parser.name) {
-                "row" -> currentRow = mutableListOf()
-                "c" -> {
-                    cellReference = parser.getAttributeValue(null, "r").orEmpty()
-                    cellType = parser.getAttributeValue(null, "t").orEmpty()
-                    cellValue = StringBuilder()
-                }
-                "v" -> readingValue = true
-                "t" -> if (cellType == "inlineStr") readingInlineText = true
-            }
-            XmlPullParser.TEXT -> {
-                if (readingValue || readingInlineText) cellValue.append(parser.text)
-            }
-            XmlPullParser.END_TAG -> when (parser.name) {
-                "v" -> readingValue = false
-                "t" -> readingInlineText = false
-                "c" -> {
-                    currentRow?.let { row ->
-                        val columnIndex = xlsxColumnIndex(cellReference)
-                        while (row.size < columnIndex) row += ""
-                        row += resolveXlsxCellValue(cellValue.toString(), cellType, sharedStrings)
+    try {
+        while (parser.next() != XmlPullParser.END_DOCUMENT) {
+            when (parser.eventType) {
+                XmlPullParser.START_TAG -> {
+                    val tag = parser.name.substringAfterLast(':')
+                    when (tag) {
+                        "row" -> currentRow = mutableListOf()
+                        "c" -> {
+                            cellReference = parser.getAttributeValue(null, "r").orEmpty()
+                            cellType = parser.getAttributeValue(null, "t").orEmpty()
+                            cellValue = StringBuilder()
+                        }
+                        "v" -> readingValue = true
+                        "t" -> if (cellType == "inlineStr") readingInlineText = true
                     }
                 }
-                "row" -> {
-                    currentRow?.dropLastWhile { it.isBlank() }?.takeIf { row -> row.any { it.isNotBlank() } }?.let(rows::add)
-                    currentRow = null
+                XmlPullParser.TEXT -> {
+                    if (readingValue || readingInlineText) cellValue.append(parser.text)
+                }
+                XmlPullParser.END_TAG -> {
+                    val tag = parser.name.substringAfterLast(':')
+                    when (tag) {
+                        "v" -> readingValue = false
+                        "t" -> readingInlineText = false
+                        "c" -> {
+                            currentRow?.let { row ->
+                                val columnIndex = xlsxColumnIndex(cellReference)
+                                while (row.size < columnIndex) row += ""
+                                row += resolveXlsxCellValue(cellValue.toString(), cellType, sharedStrings)
+                            }
+                        }
+                        "row" -> {
+                            currentRow?.dropLastWhile { it.isBlank() }
+                                ?.takeIf { row -> row.any { it.isNotBlank() } }
+                                ?.let(rows::add)
+                            currentRow = null
+                        }
+                    }
                 }
             }
         }
+    } catch (e: Exception) {
+        Log.e(IMPORT_TAG, "parseWorksheetRows: parse error after ${rows.size} rows: ${e.javaClass.simpleName}: ${e.message}")
     }
+    Log.d(IMPORT_TAG, "parseWorksheetRows: parsed ${rows.size} rows")
     return rows
 }
 
