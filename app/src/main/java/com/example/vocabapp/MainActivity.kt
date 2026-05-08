@@ -1470,11 +1470,22 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
     val result by viewModel.result.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val message by viewModel.message.collectAsState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            runCatching { context.readImportFileAsCsv(uri) }
-                .onSuccess { viewModel.loadCsv(it) }
-                .onFailure { viewModel.showMessage(it.message ?: "ファイルを開けませんでした") }
+            viewModel.showLoading()
+            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                val result = runCatching { context.readImportFileAsCsv(uri) }
+                result.onSuccess { csvText ->
+                    viewModel.loadCsv(csvText)
+                }.onFailure { error ->
+                    Log.e(IMPORT_TAG, "File read error: ${error.javaClass.simpleName}: ${error.message}", error)
+                    viewModel.showMessage(
+                        error.message?.let { "${error.javaClass.simpleName}: $it" }
+                            ?: "ファイルを開けませんでした"
+                    )
+                }
+            }
         }
     }
 
