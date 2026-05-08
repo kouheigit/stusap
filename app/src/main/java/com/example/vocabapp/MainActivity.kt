@@ -1264,6 +1264,40 @@ private fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
     return parseWorksheetRows(sheet, sharedStrings)
 }
 
+private fun parseWorkbookSheetPath(relsBytes: ByteArray?): String? {
+    if (relsBytes == null) {
+        Log.d(IMPORT_TAG, "parseWorkbookSheetPath: no workbook.xml.rels found, using default")
+        return null
+    }
+    return try {
+        val parser = newXmlParser(relsBytes)
+        while (parser.next() != XmlPullParser.END_DOCUMENT) {
+            if (parser.eventType == XmlPullParser.START_TAG) {
+                val localName = parser.name.substringAfterLast(':')
+                if (localName == "Relationship") {
+                    val type = parser.getAttributeValue(null, "Type").orEmpty()
+                    val target = parser.getAttributeValue(null, "Target").orEmpty()
+                    Log.d(IMPORT_TAG, "parseWorkbookSheetPath: Relationship type=$type target=$target")
+                    if (type.endsWith("/worksheet") && target.isNotBlank()) {
+                        val resolved = if (target.startsWith("/")) {
+                            target.trimStart('/')
+                        } else {
+                            "xl/$target"
+                        }
+                        Log.d(IMPORT_TAG, "parseWorkbookSheetPath: resolved sheet path=$resolved")
+                        return resolved
+                    }
+                }
+            }
+        }
+        Log.w(IMPORT_TAG, "parseWorkbookSheetPath: no worksheet relationship found in workbook.xml.rels")
+        null
+    } catch (e: Exception) {
+        Log.w(IMPORT_TAG, "parseWorkbookSheetPath: failed to parse workbook relationships: ${e.javaClass.simpleName}: ${e.message}")
+        null
+    }
+}
+
 private fun parseSharedStrings(bytes: ByteArray): List<String> {
     val parser = newXmlParser(bytes)
     val values = mutableListOf<String>()
