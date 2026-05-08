@@ -311,6 +311,12 @@ class WordImportViewModel @Inject constructor(
 
     fun showMessage(message: String) {
         _message.value = message
+        _isLoading.value = false
+    }
+
+    fun showLoading() {
+        _isLoading.value = true
+        _message.value = null
     }
 }
 
