@@ -1272,6 +1272,27 @@ private fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
         ?: "xl/worksheets/sheet1.xml"
     Log.d(IMPORT_TAG, "parseXlsxRows: resolved sheetPath=$sheetPath")
 
+    if (!entries.containsKey(sheetPath) && sheetPath != "xl/worksheets/sheet1.xml") {
+        Log.d(IMPORT_TAG, "parseXlsxRows: sheet at $sheetPath not captured, re-scanning ZIP")
+        try {
+            ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+                var entry = zip.nextEntry
+                while (entry != null && !entries.containsKey(sheetPath)) {
+                    if (!entry.isDirectory && entry.name == sheetPath) {
+                        entries[sheetPath] = zip.readBytes()
+                        Log.d(IMPORT_TAG, "parseXlsxRows: re-scan captured $sheetPath")
+                    }
+                    try { zip.closeEntry() } catch (e: java.util.zip.ZipException) {
+                        Log.w(IMPORT_TAG, "parseXlsxRows: re-scan closeEntry error: ${e.message}")
+                    }
+                    entry = try { zip.nextEntry } catch (e: java.util.zip.ZipException) { break }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(IMPORT_TAG, "parseXlsxRows: re-scan failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
     val sheet = entries[sheetPath]
         ?: error("Excelファイルの1枚目のシートを読み込めませんでした (パス: $sheetPath, 取得済みエントリ: ${entries.keys})")
     val sharedStrings = entries["xl/sharedStrings.xml"]?.let(::parseSharedStrings).orEmpty()
