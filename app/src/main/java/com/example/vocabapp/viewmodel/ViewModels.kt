@@ -256,7 +256,12 @@ class AddWordViewModel @Inject constructor(
     fun save(english: String, meaning: String) {
         if (english.isBlank() || meaning.isBlank()) return
         viewModelScope.launch {
-            repository.addCustomWord(english.trim(), meaning.trim())
+            val trimmed = english.trim()
+            if (trimmed.contains(Regex("\\s"))) {
+                repository.addCustomIdiom(trimmed, meaning.trim())
+            } else {
+                repository.addCustomWord(trimmed, meaning.trim())
+            }
             _saved.value = true
         }
     }
