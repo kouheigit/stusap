@@ -410,12 +410,14 @@ class VocabRepository @Inject constructor(
 
     suspend fun importCustomWords(preview: WordImportPreview): WordImportResult {
         val now = System.currentTimeMillis()
-        val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish()).toSet()
+        val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish()
+            + dao.getNormalizedCustomIdiomEnglish()).toSet()
         val seen = mutableSetOf<String>()
-        val insertItems = preview.newWords.filter { word ->
+        val eligible = preview.newWords.filter { word ->
             val normalized = word.english.normalizeEnglish()
             normalized !in existing && seen.add(normalized)
-        }.map { word ->
+        }
+        val wordItems = eligible.filter { it.type != "phrase" }.map { word ->
             CustomWordEntity(
                 english = word.english,
                 meaning = word.meaning,
@@ -425,13 +427,20 @@ class VocabRepository @Inject constructor(
                 wordType = word.type
             )
         }
-        if (insertItems.isNotEmpty()) {
-            dao.insertCustomWords(insertItems)
+        val idiomItems = eligible.filter { it.type == "phrase" }.map { word ->
+            CustomIdiomEntity(
+                english = word.english,
+                meaning = word.meaning,
+                addedAt = now
+            )
         }
-        val lateDuplicates = preview.newWords.size - insertItems.size
+        if (wordItems.isNotEmpty()) dao.insertCustomWords(wordItems)
+        if (idiomItems.isNotEmpty()) dao.insertCustomIdioms(idiomItems)
+        val lateDuplicates = preview.newWords.size - eligible.size
         return WordImportResult(
             totalRows = preview.totalRows,
-            insertedCount = insertItems.size,
+            insertedCount = wordItems.size,
+            insertedIdiomCount = idiomItems.size,
             duplicateCount = preview.duplicateCount + lateDuplicates,
             errorCount = preview.errorCount
         )
