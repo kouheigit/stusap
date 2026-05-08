@@ -487,7 +487,7 @@ class VocabRepository @Inject constructor(
     }
 
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
-        val all = dao.getAllCustomWords()
+        val all = dao.getAllCustomWords().filter { it.wordType != "phrase" }
         if (all.size < 4) return emptyList()
         return all.shuffled().take(minOf(10, all.size)).map { cw ->
             val wrongPool = all.filter { it.id != cw.id }.shuffled().take(3)
@@ -497,7 +497,7 @@ class VocabRepository @Inject constructor(
             }
             QuizQuestion(
                 word = Word(id = cw.id, trainingId = -1, english = cw.english, meaning = cw.meaning,
-                    phonetic = "", partOfSpeech = if (cw.wordType == "phrase") "熟語" else "単語",
+                    phonetic = "", partOfSpeech = "単語",
                     exampleSentence = cw.exampleSentence, exampleTranslation = cw.exampleTranslation,
                     audioUrl = null, exampleAudioUrl = null, displayOrder = 0),
                 choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
