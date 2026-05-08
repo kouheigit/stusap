@@ -1840,8 +1840,8 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
             Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(AddWordCardPadding), verticalArrangement = Arrangement.spacedBy(AddWordCardSpacing)) {
                     AddWordField(
-                        label = "英単語",
-                        placeholder = "例: apple, beautiful",
+                        label = "英語",
+                        placeholder = "例: apple, give up",
                         value = english,
                         onValueChange = { english = it },
                         imeAction = EditorInfo.IME_ACTION_NEXT,
