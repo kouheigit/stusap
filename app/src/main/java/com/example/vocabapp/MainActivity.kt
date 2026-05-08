@@ -1169,26 +1169,34 @@ private fun EditText.focusAndShowKeyboard() {
 }
 
 private fun Context.readImportFileAsCsv(uri: Uri): String {
+    Log.d(IMPORT_TAG, "readImportFileAsCsv: start uri=$uri")
     val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
         ?: error("ファイルを開けませんでした")
     if (bytes.isEmpty()) error("ファイルが空です")
 
     val fileName = queryDisplayName(uri).lowercase(Locale.ROOT)
     val mimeType = contentResolver.getType(uri).orEmpty().lowercase(Locale.ROOT)
-    val isXlsx = fileName.endsWith(".xlsx") ||
-        mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-        bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))
-    val isOldXls = fileName.endsWith(".xls") ||
-        mimeType == "application/vnd.ms-excel" && !isXlsx ||
-        bytes.startsWith(byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte()))
+    Log.d(IMPORT_TAG, "readImportFileAsCsv: fileName=$fileName mimeType=$mimeType size=${bytes.size}")
 
-    if (isOldXls) {
+    val isZipMagic = bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))
+    val isOle2Magic = bytes.startsWith(byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte()))
+    val isXlsx = isZipMagic ||
+        fileName.endsWith(".xlsx") ||
+        mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    val isOldXls = isOle2Magic ||
+        (!isZipMagic && fileName.endsWith(".xls")) ||
+        (!isZipMagic && mimeType == "application/vnd.ms-excel")
+    Log.d(IMPORT_TAG, "readImportFileAsCsv: isXlsx=$isXlsx isOldXls=$isOldXls isZipMagic=$isZipMagic isOle2Magic=$isOle2Magic")
+
+    if (isOldXls && !isXlsx) {
         error("古い .xls 形式は未対応です。Excelで .xlsx または CSV として保存してから選択してください")
     }
 
     return if (isXlsx) {
+        Log.d(IMPORT_TAG, "readImportFileAsCsv: parsing as XLSX")
         parseXlsxRows(bytes).toCsvText()
     } else {
+        Log.d(IMPORT_TAG, "readImportFileAsCsv: parsing as CSV")
         decodeCsvBytes(bytes)
     }
 }
