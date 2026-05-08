@@ -1857,6 +1857,12 @@ private fun AddWordScreen(navController: NavHostController, viewModel: AddWordVi
                         imeAction = EditorInfo.IME_ACTION_DONE,
                         onReady = { meaningInput = it },
                     )
+                    Text(
+                        text = "スペースを含む場合は自動的にカスタム熟語として登録されます",
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Button(
                         onClick = { viewModel.save(english, meaning) },
                         enabled = english.isNotBlank() && meaning.isNotBlank(),
