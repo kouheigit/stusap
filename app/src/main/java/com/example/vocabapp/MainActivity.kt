@@ -951,6 +951,31 @@ private fun CustomWordQuizResultContent(
 }
 
 @Composable
+private fun CustomIdiomQuizScreen(navController: NavHostController, viewModel: CustomIdiomQuizViewModel = hiltViewModel()) {
+    val state by viewModel.state.collectAsState()
+    if (state.finishedAttemptId != null) {
+        val total = state.questions.size.coerceAtLeast(1)
+        BlueScaffold(title = "カスタム英熟語クイズ") { inner ->
+            CustomWordQuizResultContent(
+                correctCount = state.correctCount,
+                total = total,
+                onRetry = { navController.navigate(Route.CustomIdiomQuiz) { popUpTo(Route.CustomIdiomQuiz) { inclusive = true } } },
+                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
+                modifier = Modifier.fillMaxSize().padding(inner)
+            )
+        }
+    } else {
+        BlueScaffold(title = "カスタム英熟語クイズ", onBack = { navController.popBackStack() }) { inner ->
+            when {
+                state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                state.questions.isEmpty() -> EmptyMessage(Modifier.padding(inner).background(BrightBlue), "クイズには4つ以上の英熟語を登録してください", "戻る") { navController.popBackStack() }
+                else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
+            }
+        }
+    }
+}
+
+@Composable
 private fun CustomWordQuizScreen(navController: NavHostController, viewModel: CustomWordQuizViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     if (state.finishedAttemptId != null) {
