@@ -1446,12 +1446,25 @@ private fun newXmlParser(bytes: ByteArray): XmlPullParser {
     }
 }
 
-private fun resolveXlsxCellValue(rawValue: String, type: String, sharedStrings: List<String>): String =
-    when (type) {
-        "s" -> rawValue.toIntOrNull()?.let(sharedStrings::getOrNull).orEmpty()
+private fun resolveXlsxCellValue(rawValue: String, type: String, sharedStrings: List<String>): String {
+    val resolved = when (type) {
+        "s" -> {
+            val idx = rawValue.toIntOrNull()
+            if (idx == null) {
+                Log.w(IMPORT_TAG, "resolveXlsxCellValue: shared string index not an int: '$rawValue'")
+                ""
+            } else {
+                sharedStrings.getOrNull(idx).also {
+                    if (it == null) Log.w(IMPORT_TAG, "resolveXlsxCellValue: shared string index $idx out of range (size=${sharedStrings.size})")
+                }.orEmpty()
+            }
+        }
         "b" -> if (rawValue == "1") "TRUE" else "FALSE"
+        "e" -> ""
         else -> rawValue
     }.trim()
+    return resolved
+}
 
 private fun xlsxColumnIndex(reference: String): Int {
     if (reference.isBlank()) {
