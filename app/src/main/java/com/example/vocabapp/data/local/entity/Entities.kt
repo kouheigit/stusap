@@ -211,3 +211,11 @@ data class CustomWordEntity(
     @androidx.room.ColumnInfo(defaultValue = "") val exampleTranslation: String = "",
     @androidx.room.ColumnInfo(defaultValue = "word") val wordType: String = "word"
 )
+
+@Entity(tableName = "custom_idioms")
+data class CustomIdiomEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val english: String,
+    val meaning: String,
+    val addedAt: Long
+)
