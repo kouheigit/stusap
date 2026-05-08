@@ -1244,17 +1244,22 @@ private fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
             while (entry != null) {
                 val name = entry.name
                 Log.d(IMPORT_TAG, "parseXlsxRows: ZIP entry name=$name isDir=${entry.isDirectory}")
+                var entryBytes: ByteArray? = null
                 try {
-                    if (!entry.isDirectory && name in XLSX_TARGET_ENTRIES) {
-                        val entryBytes = zip.readBytes()
-                        entries[name] = entryBytes
-                        Log.d(IMPORT_TAG, "parseXlsxRows: captured $name (${entryBytes.size} bytes)")
-                    }
+                    entryBytes = zip.readBytes()
+                } catch (e: Exception) {
+                    Log.w(IMPORT_TAG, "parseXlsxRows: readBytes error on '$name': ${e.javaClass.simpleName}: ${e.message}")
+                }
+                if (entryBytes != null && !entry.isDirectory && name in XLSX_TARGET_ENTRIES) {
+                    entries[name] = entryBytes
+                    Log.d(IMPORT_TAG, "parseXlsxRows: captured $name (${entryBytes.size} bytes)")
+                }
+                try {
                     zip.closeEntry()
                 } catch (e: java.util.zip.ZipException) {
-                    Log.w(IMPORT_TAG, "parseXlsxRows: ZipException on entry '$name': ${e.message} (skipping)")
+                    Log.w(IMPORT_TAG, "parseXlsxRows: closeEntry ZipException on '$name': ${e.message} (ignoring CRC issue)")
                 } catch (e: Exception) {
-                    Log.w(IMPORT_TAG, "parseXlsxRows: error on entry '$name': ${e.javaClass.simpleName}: ${e.message} (skipping)")
+                    Log.w(IMPORT_TAG, "parseXlsxRows: closeEntry error on '$name': ${e.javaClass.simpleName}: ${e.message}")
                 }
                 entry = try { zip.nextEntry } catch (e: java.util.zip.ZipException) {
                     Log.w(IMPORT_TAG, "parseXlsxRows: ZipException advancing to next entry: ${e.message}")
