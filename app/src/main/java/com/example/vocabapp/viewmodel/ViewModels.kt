@@ -287,7 +287,8 @@ class WordImportViewModel @Inject constructor(
                 _preview.value = loadedPreview
             }.onFailure { error ->
                 _preview.value = null
-                _message.value = error.message ?: "CSVの読み込みに失敗しました"
+                _message.value = error.message?.let { "${error.javaClass.simpleName}: $it" }
+                    ?: "CSVの読み込みに失敗しました"
             }
             _isLoading.value = false
         }
@@ -303,7 +304,8 @@ class WordImportViewModel @Inject constructor(
             }.onSuccess { importResult ->
                 _result.value = importResult
             }.onFailure { error ->
-                _message.value = error.message ?: "登録に失敗しました"
+                _message.value = error.message?.let { "${error.javaClass.simpleName}: $it" }
+                    ?: "登録に失敗しました"
             }
             _isLoading.value = false
         }
