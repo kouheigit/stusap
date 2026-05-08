@@ -1454,8 +1454,17 @@ private fun resolveXlsxCellValue(rawValue: String, type: String, sharedStrings: 
     }.trim()
 
 private fun xlsxColumnIndex(reference: String): Int {
+    if (reference.isBlank()) {
+        Log.w(IMPORT_TAG, "xlsxColumnIndex: empty cell reference, defaulting to column 0")
+        return 0
+    }
     var result = 0
-    reference.takeWhile { it.isLetter() }.uppercase(Locale.ROOT).forEach { char ->
+    val letters = reference.takeWhile { it.isLetter() }.uppercase(Locale.ROOT)
+    if (letters.isEmpty()) {
+        Log.w(IMPORT_TAG, "xlsxColumnIndex: no letter prefix in reference '$reference', defaulting to column 0")
+        return 0
+    }
+    letters.forEach { char ->
         result = result * 26 + (char - 'A' + 1)
     }
     return maxOf(result - 1, 0)
