@@ -1405,10 +1405,15 @@ private fun parseWorksheetRows(bytes: ByteArray, sharedStrings: List<String>): L
     return rows
 }
 
-private fun newXmlParser(bytes: ByteArray): XmlPullParser =
-    XmlPullParserFactory.newInstance().newPullParser().apply {
+private fun newXmlParser(bytes: ByteArray): XmlPullParser {
+    val factory = XmlPullParserFactory.newInstance().apply {
+        isNamespaceAware = false
+    }
+    return factory.newPullParser().apply {
+        setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
         setInput(InputStreamReader(ByteArrayInputStream(bytes), StandardCharsets.UTF_8))
     }
+}
 
 private fun resolveXlsxCellValue(rawValue: String, type: String, sharedStrings: List<String>): String =
     when (type) {
