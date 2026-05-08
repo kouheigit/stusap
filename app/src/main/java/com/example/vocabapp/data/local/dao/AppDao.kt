@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
@@ -205,6 +206,24 @@ interface AppDao {
 
     @Query("DELETE FROM custom_words")
     suspend fun deleteAllCustomWords()
+
+    @Insert
+    suspend fun insertCustomIdiom(item: CustomIdiomEntity): Long
+
+    @Query("SELECT * FROM custom_idioms ORDER BY addedAt DESC")
+    fun observeCustomIdioms(): Flow<List<CustomIdiomEntity>>
+
+    @Query("SELECT * FROM custom_idioms ORDER BY RANDOM()")
+    suspend fun getAllCustomIdioms(): List<CustomIdiomEntity>
+
+    @Query("SELECT COUNT(*) FROM custom_idioms")
+    suspend fun customIdiomCount(): Int
+
+    @Query("DELETE FROM custom_idioms WHERE id = :id")
+    suspend fun deleteCustomIdiom(id: Int)
+
+    @Query("DELETE FROM custom_idioms")
+    suspend fun deleteAllCustomIdioms()
 
     @Query("""
         SELECT w.* FROM words w
