@@ -316,28 +316,44 @@ class VocabRepository @Inject constructor(
             )
         }
 
-        val header = rows.first().map { it.trim().lowercase() }
-        val englishIndex = header.indexOf("english")
-        val meaningIndex = header.indexOf("meaning")
+        val header = rows.first().map { it.trim() }
+        val headerLower = header.map { it.lowercase() }
+
+        val englishAliases = setOf(
+            "english", "english phrase", "english word", "英語", "英文", "word", "単語", "英単語"
+        )
+        val meaningAliases = setOf(
+            "meaning", "japanese meaning", "日本語の意味", "意味", "japanese", "訳", "和訳", "日本語"
+        )
+        val exampleAliases = setOf("example", "example sentence", "例文", "例文（英語）", "english example")
+        val exampleTranslationAliases = setOf("example_translation", "例文（日本語）", "例文訳", "japanese example", "和訳例文")
+        val typeAliases = setOf("type", "種類", "タイプ")
+
+        fun findIndex(aliases: Set<String>): Int =
+            headerLower.indexOfFirst { it in aliases }
+
+        val englishIndex = findIndex(englishAliases)
+        val meaningIndex = findIndex(meaningAliases)
+
         if (englishIndex == -1 || meaningIndex == -1) {
             val missing = buildList {
-                if (englishIndex == -1) add("english")
-                if (meaningIndex == -1) add("meaning")
+                if (englishIndex == -1) add("英語(例: english, English Phrase, 英語)")
+                if (meaningIndex == -1) add("意味(例: meaning, 日本語の意味, 意味)")
             }.joinToString(", ")
             val found = rows.first().joinToString(", ")
             return WordImportPreview(
                 totalRows = rows.drop(1).size,
                 errors = listOf(ImportErrorRow(
                     1,
-                    "必須ヘッダーが見つかりません: $missing\n検出されたヘッダー: $found\n1行目にヘッダー行(english, meaning)が必要です。",
+                    "必須ヘッダーが見つかりません: $missing\n検出されたヘッダー: $found",
                     rows.first()
                 ))
             )
         }
 
-        val exampleIndex = header.indexOf("example")
-        val exampleTranslationIndex = header.indexOf("example_translation")
-        val typeIndex = header.indexOf("type")
+        val exampleIndex = findIndex(exampleAliases)
+        val exampleTranslationIndex = findIndex(exampleTranslationAliases)
+        val typeIndex = findIndex(typeAliases)
         val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish()).toMutableSet()
         val seenInCsv = mutableSetOf<String>()
         val newWords = mutableListOf<ImportedWord>()
