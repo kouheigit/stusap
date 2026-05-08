@@ -1335,28 +1335,36 @@ private fun parseWorkbookSheetPath(relsBytes: ByteArray?): String? {
 }
 
 private fun parseSharedStrings(bytes: ByteArray): List<String> {
+    Log.d(IMPORT_TAG, "parseSharedStrings: parsing ${bytes.size} bytes")
     val parser = newXmlParser(bytes)
     val values = mutableListOf<String>()
     var insideSi = false
     var current = StringBuilder()
 
-    while (parser.next() != XmlPullParser.END_DOCUMENT) {
-        when (parser.eventType) {
-            XmlPullParser.START_TAG -> {
-                if (parser.name == "si") {
-                    insideSi = true
-                    current = StringBuilder()
+    try {
+        while (parser.next() != XmlPullParser.END_DOCUMENT) {
+            when (parser.eventType) {
+                XmlPullParser.START_TAG -> {
+                    val tag = parser.name.substringAfterLast(':')
+                    if (tag == "si") {
+                        insideSi = true
+                        current = StringBuilder()
+                    }
                 }
-            }
-            XmlPullParser.TEXT -> if (insideSi) current.append(parser.text)
-            XmlPullParser.END_TAG -> {
-                if (parser.name == "si") {
-                    values += current.toString()
-                    insideSi = false
+                XmlPullParser.TEXT -> if (insideSi) current.append(parser.text)
+                XmlPullParser.END_TAG -> {
+                    val tag = parser.name.substringAfterLast(':')
+                    if (tag == "si") {
+                        values += current.toString()
+                        insideSi = false
+                    }
                 }
             }
         }
+    } catch (e: Exception) {
+        Log.e(IMPORT_TAG, "parseSharedStrings: parse error after ${values.size} entries: ${e.javaClass.simpleName}: ${e.message}")
     }
+    Log.d(IMPORT_TAG, "parseSharedStrings: parsed ${values.size} shared strings")
     return values
 }
 
