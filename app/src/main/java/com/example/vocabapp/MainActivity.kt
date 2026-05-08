@@ -117,8 +117,12 @@ import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
+import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
+import com.example.vocabapp.viewmodel.AddIdiomViewModel
 import com.example.vocabapp.viewmodel.AddWordViewModel
+import com.example.vocabapp.viewmodel.CustomIdiomListViewModel
+import com.example.vocabapp.viewmodel.CustomIdiomQuizViewModel
 import com.example.vocabapp.viewmodel.CustomWordListViewModel
 import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
@@ -1063,6 +1067,93 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
             } else {
                 items(words, key = { it.id }) { word ->
                     CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomIdiomListScreen(navController: NavHostController, viewModel: CustomIdiomListViewModel = hiltViewModel()) {
+    val idioms by viewModel.idioms.collectAsState()
+    BlueScaffold(title = "登録英熟語一覧 (${idioms.size}語)", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (idioms.isEmpty()) {
+                item { EmptyCard("登録された英熟語はありません\n「英熟語登録」から追加してください") }
+            } else {
+                items(idioms, key = { it.id }) { idiom ->
+                    CustomIdiomRow(idiom = idiom, onDelete = { viewModel.delete(idiom.id) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomIdiomRow(idiom: CustomIdiomEntity, onDelete: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(idiom.english, color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(idiom.meaning, color = TextMuted, fontSize = 15.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "削除", tint = Danger)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddIdiomScreen(navController: NavHostController, viewModel: AddIdiomViewModel = hiltViewModel()) {
+    val saved by viewModel.saved.collectAsState()
+    var english by rememberSaveable { mutableStateOf("") }
+    var meaning by rememberSaveable { mutableStateOf("") }
+    var meaningInput by remember { mutableStateOf<EditText?>(null) }
+    LaunchedEffect(saved) {
+        if (saved) { viewModel.resetSaved(); navController.popBackStack() }
+    }
+    BlueScaffold(title = "英熟語登録", onBack = { navController.popBackStack() }) { inner ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(AddWordCardPadding), verticalArrangement = Arrangement.spacedBy(AddWordCardSpacing)) {
+                    AddWordField(
+                        label = "英熟語",
+                        placeholder = "例: as soon as possible, keep in mind",
+                        value = english,
+                        onValueChange = { english = it },
+                        imeAction = EditorInfo.IME_ACTION_NEXT,
+                        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+                        autoFocus = true,
+                        onImeAction = { meaningInput?.focusAndShowKeyboard() },
+                    )
+                    AddWordField(
+                        label = "日本語の意味",
+                        placeholder = "例: できるだけ早く、心に留めておく",
+                        value = meaning,
+                        onValueChange = { meaning = it },
+                        imeAction = EditorInfo.IME_ACTION_DONE,
+                        onReady = { meaningInput = it },
+                    )
+                    Button(
+                        onClick = { viewModel.save(english, meaning) },
+                        enabled = english.isNotBlank() && meaning.isNotBlank(),
+                        modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.65f).height(54.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
+                    ) {
+                        Text("登録する", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
