@@ -1736,7 +1736,8 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
                     ImportSummaryCard(
                         title = if (result == null) "読み込み結果" else "登録結果",
                         totalRows = result?.totalRows ?: currentPreview.totalRows,
-                        newCount = result?.insertedCount ?: currentPreview.newCount,
+                        newCount = result?.insertedCount ?: currentPreview.newWords.count { it.type != "phrase" },
+                        newIdiomCount = result?.insertedIdiomCount ?: currentPreview.newWords.count { it.type == "phrase" },
                         duplicateCount = result?.duplicateCount ?: currentPreview.duplicateCount,
                         errorCount = result?.errorCount ?: currentPreview.errorCount
                     )
@@ -1786,17 +1787,21 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
 }
 
 @Composable
-private fun ImportSummaryCard(title: String, totalRows: Int, newCount: Int, duplicateCount: Int, errorCount: Int) {
+private fun ImportSummaryCard(title: String, totalRows: Int, newCount: Int, newIdiomCount: Int, duplicateCount: Int, errorCount: Int) {
     Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(title, color = DeepBlue, fontSize = 22.sp, fontWeight = FontWeight.Black)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 SummaryChip("読み込み", "${totalRows}件", Modifier.weight(1f))
-                SummaryChip("登録", "${newCount}件", Modifier.weight(1f))
+                SummaryChip("単語登録", "${newCount}件", Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                SummaryChip("熟語登録", "${newIdiomCount}件", Modifier.weight(1f))
                 SummaryChip("重複", "${duplicateCount}件", Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 SummaryChip("エラー", "${errorCount}件", Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
             }
         }
     }
