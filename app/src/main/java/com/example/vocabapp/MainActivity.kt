@@ -250,6 +250,9 @@ private object Route {
     const val WordImport = "word-import"
     const val CustomQuiz = "custom-quiz"
     const val CustomWordList = "custom-word-list"
+    const val AddIdiom = "add-idiom"
+    const val CustomIdiomList = "custom-idiom-list"
+    const val CustomIdiomQuiz = "custom-idiom-quiz"
     const val Flashcard = "flashcard/{trainingId}"
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
