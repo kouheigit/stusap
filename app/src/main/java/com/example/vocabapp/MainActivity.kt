@@ -1228,23 +1228,39 @@ private fun strictDecode(bytes: ByteArray, charset: Charset): String =
         .decode(ByteBuffer.wrap(bytes))
         .toString()
 
+private val XLSX_TARGET_ENTRIES = setOf(
+    "xl/sharedStrings.xml",
+    "xl/worksheets/sheet1.xml",
+    "xl/_rels/workbook.xml.rels",
+    "xl/workbook.xml"
+)
+
 private fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
+    Log.d(IMPORT_TAG, "parseXlsxRows: start, bytes=${bytes.size}")
     val entries = mutableMapOf<String, ByteArray>()
     ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
         var entry = zip.nextEntry
         while (entry != null) {
             val name = entry.name
-            if (!entry.isDirectory && (name == "xl/sharedStrings.xml" || name == "xl/worksheets/sheet1.xml")) {
+            Log.d(IMPORT_TAG, "parseXlsxRows: ZIP entry name=$name isDir=${entry.isDirectory}")
+            if (!entry.isDirectory && name in XLSX_TARGET_ENTRIES) {
                 entries[name] = zip.readBytes()
+                Log.d(IMPORT_TAG, "parseXlsxRows: captured $name (${entries[name]?.size} bytes)")
             }
             zip.closeEntry()
             entry = zip.nextEntry
         }
     }
+    Log.d(IMPORT_TAG, "parseXlsxRows: captured entries=${entries.keys}")
 
-    val sheet = entries["xl/worksheets/sheet1.xml"]
-        ?: error("Excelファイルの1枚目のシートを読み込めませんでした")
+    val sheetPath = parseWorkbookSheetPath(entries["xl/_rels/workbook.xml.rels"])
+        ?: "xl/worksheets/sheet1.xml"
+    Log.d(IMPORT_TAG, "parseXlsxRows: resolved sheetPath=$sheetPath")
+
+    val sheet = entries[sheetPath]
+        ?: error("Excelファイルの1枚目のシートを読み込めませんでした (パス: $sheetPath, 取得済みエントリ: ${entries.keys})")
     val sharedStrings = entries["xl/sharedStrings.xml"]?.let(::parseSharedStrings).orEmpty()
+    Log.d(IMPORT_TAG, "parseXlsxRows: sharedStrings.size=${sharedStrings.size}")
     return parseWorksheetRows(sheet, sharedStrings)
 }
 
