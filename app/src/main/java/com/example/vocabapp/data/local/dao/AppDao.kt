@@ -198,6 +198,12 @@ interface AppDao {
     @Query("SELECT * FROM custom_words ORDER BY RANDOM()")
     suspend fun getAllCustomWords(): List<CustomWordEntity>
 
+    @Query("SELECT * FROM custom_words ORDER BY addedAt ASC, id ASC")
+    fun observeCustomWordsInStudyOrder(): Flow<List<CustomWordEntity>>
+
+    @Query("SELECT * FROM custom_words ORDER BY addedAt ASC, id ASC")
+    suspend fun getCustomWordsInStudyOrder(): List<CustomWordEntity>
+
     @Query("SELECT COUNT(*) FROM custom_words")
     suspend fun customWordCount(): Int
 
@@ -221,6 +227,12 @@ interface AppDao {
 
     @Query("SELECT * FROM custom_idioms ORDER BY RANDOM()")
     suspend fun getAllCustomIdioms(): List<CustomIdiomEntity>
+
+    @Query("SELECT * FROM custom_idioms ORDER BY addedAt ASC, id ASC")
+    fun observeCustomIdiomsInStudyOrder(): Flow<List<CustomIdiomEntity>>
+
+    @Query("SELECT * FROM custom_idioms ORDER BY addedAt ASC, id ASC")
+    suspend fun getCustomIdiomsInStudyOrder(): List<CustomIdiomEntity>
 
     @Query("SELECT COUNT(*) FROM custom_idioms")
     suspend fun customIdiomCount(): Int

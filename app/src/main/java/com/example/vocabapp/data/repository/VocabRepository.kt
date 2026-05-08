@@ -79,7 +79,7 @@ class VocabRepository @Inject constructor(
             HomeSummary(
                 totalStudySeconds = totalSeconds,
                 weekStudySeconds = weekSeconds,
-                masteredLessons = progress.count { it.trainingId == null && it.isMastered && it.lessonId < 100 },
+                masteredLessons = progress.count { it.trainingId == null && it.isMastered && it.lessonId in 1..99 },
                 totalLessons = vocabLessons.size,
                 reviewCount = reviews.count { it.isActive },
                 idiomMasteredLessons = progress.count { it.trainingId == null && it.isMastered && it.lessonId >= 100 },
@@ -96,6 +96,42 @@ class VocabRepository @Inject constructor(
     fun observeIdiomLessons(): Flow<List<Lesson>> = observeLessonsFiltered { it.id >= 100 }
 
     private fun trainingCountForLesson(lessonId: Int) = if (lessonId >= 100) 3 else 10
+
+    fun observeCustomTrainings(type: String): Flow<List<Training>> {
+        val lessonId = customLessonId(type)
+        return combine(observeCustomStudyWords(type), dao.observeProgress()) { words, progress ->
+            words.chunked(10).mapIndexed { index, chunk ->
+                val setNumber = index + 1
+                val trainingId = customTrainingId(type, setNumber)
+                val item = progress.firstOrNull { it.trainingId == trainingId }
+                Training(
+                    id = trainingId,
+                    lessonId = lessonId,
+                    title = customTitle(type),
+                    wordStartNumber = index * 10 + 1,
+                    wordEndNumber = index * 10 + chunk.size,
+                    studyCount = item?.studyCount ?: 0,
+                    bestAccuracy = item?.bestAccuracy ?: 0f,
+                    bestStarCount = item?.bestStarCount ?: 0,
+                    lastStudiedAt = item?.lastStudiedAt,
+                    lastAccuracy = item?.let { if (it.lastAccuracy > 0f) it.lastAccuracy else it.bestAccuracy } ?: 0f,
+                    firstWordId = chunk.first().id
+                )
+            }
+        }
+    }
+
+    private fun observeCustomStudyWords(type: String): Flow<List<CustomStudyWord>> =
+        if (type == CUSTOM_TYPE_IDIOM) {
+            dao.observeCustomIdiomsInStudyOrder().map { items ->
+                items.map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
+            }
+        } else {
+            dao.observeCustomWordsInStudyOrder().map { items ->
+                items.filter { it.wordType != "phrase" }
+                    .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
+            }
+        }
 
     private fun observeLessonsFiltered(predicate: (com.example.vocabapp.data.local.entity.LessonEntity) -> Boolean): Flow<List<Lesson>> =
         combine(dao.observeLessons(), dao.observeProgress()) { lessons, progress ->
@@ -486,6 +522,52 @@ class VocabRepository @Inject constructor(
         }
     }
 
+    suspend fun buildCustomTrainingQuiz(type: String, setNumber: Int): List<QuizQuestion> {
+        val all = getCustomStudyWords(type)
+        if (all.size < 4) return emptyList()
+        val startIndex = (setNumber - 1).coerceAtLeast(0) * 10
+        val targets = all.drop(startIndex).take(10)
+        if (targets.isEmpty()) return emptyList()
+        val idMultiplier = if (type == CUSTOM_TYPE_IDIOM) -200 else -100
+        val partOfSpeech = if (type == CUSTOM_TYPE_IDIOM) "英熟語" else "単語"
+        return targets.mapIndexed { questionIndex, target ->
+            val wrongPool = all.filter { it.id != target.id }.shuffled().take(3)
+            val domainWordId = customWordDomainId(type, target.id)
+            val correct = WordChoice(
+                id = target.id * idMultiplier,
+                wordId = domainWordId,
+                choiceText = target.meaning,
+                isCorrect = true,
+                displayOrder = 0
+            )
+            val wrongs = wrongPool.mapIndexed { i, wrong ->
+                WordChoice(
+                    id = wrong.id * idMultiplier - i - 1,
+                    wordId = domainWordId,
+                    choiceText = wrong.meaning,
+                    isCorrect = false,
+                    displayOrder = i + 1
+                )
+            }
+            QuizQuestion(
+                word = Word(
+                    id = domainWordId,
+                    trainingId = customTrainingId(type, setNumber),
+                    english = target.english,
+                    meaning = target.meaning,
+                    phonetic = "",
+                    partOfSpeech = partOfSpeech,
+                    exampleSentence = target.exampleSentence,
+                    exampleTranslation = target.exampleTranslation,
+                    audioUrl = null,
+                    exampleAudioUrl = null,
+                    displayOrder = startIndex + questionIndex + 1
+                ),
+                choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
+            )
+        }
+    }
+
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
         val all = dao.getAllCustomWords().filter { it.wordType != "phrase" }
         if (all.size < 4) return emptyList()
@@ -503,6 +585,53 @@ class VocabRepository @Inject constructor(
                 choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
             )
         }
+    }
+
+    suspend fun finishCustomQuiz(
+        type: String,
+        setNumber: Int,
+        startedAt: Long,
+        answers: List<AnswerRecord>,
+        questions: List<QuizQuestion>
+    ): QuizResult {
+        val finishedAt = System.currentTimeMillis()
+        val total = answers.size.coerceAtLeast(1)
+        val correct = answers.count { it.isCorrect }
+        val wrong = answers.count { !it.isCorrect }
+        val accuracy = correct * 100f / total
+        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
+        val starCount = when {
+            accuracy >= 90f -> 3
+            accuracy >= 70f -> 2
+            accuracy >= 50f -> 1
+            else -> 0
+        }
+        val lessonId = customLessonId(type)
+        val trainingId = customTrainingId(type, setNumber)
+        dao.insertStudyLog(
+            StudyLogEntity(
+                studiedAt = finishedAt,
+                lessonId = lessonId,
+                trainingId = trainingId,
+                studySeconds = studySeconds,
+                correctCount = correct,
+                wrongCount = wrong
+            )
+        )
+        updateTrainingProgress(lessonId, trainingId, accuracy, starCount, finishedAt)
+        val questionMap = questions.associateBy { it.word.id }
+        return QuizResult(
+            attemptId = -System.nanoTime(),
+            trainingId = trainingId,
+            isReview = false,
+            totalQuestions = total,
+            correctCount = correct,
+            wrongCount = wrong,
+            accuracy = accuracy,
+            studySeconds = studySeconds,
+            starCount = starCount,
+            wrongWords = answers.filter { !it.isCorrect }.mapNotNull { questionMap[it.wordId]?.word }
+        )
     }
 
     suspend fun resetLearningData() {
@@ -609,6 +738,28 @@ class VocabRepository @Inject constructor(
     private fun String.normalizeEnglish(): String =
         trim().lowercase()
 
+    private suspend fun getCustomStudyWords(type: String): List<CustomStudyWord> =
+        if (type == CUSTOM_TYPE_IDIOM) {
+            dao.getCustomIdiomsInStudyOrder()
+                .map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
+        } else {
+            dao.getCustomWordsInStudyOrder()
+                .filter { it.wordType != "phrase" }
+                .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
+        }
+
+    private fun customLessonId(type: String): Int =
+        if (type == CUSTOM_TYPE_IDIOM) CUSTOM_IDIOM_LESSON_ID else CUSTOM_WORD_LESSON_ID
+
+    private fun customTrainingId(type: String, setNumber: Int): Int =
+        customLessonId(type) - setNumber
+
+    private fun customWordDomainId(type: String, sourceId: Int): Int =
+        (if (type == CUSTOM_TYPE_IDIOM) -200_000 else -100_000) - sourceId
+
+    private fun customTitle(type: String): String =
+        if (type == CUSTOM_TYPE_IDIOM) "カスタム英熟語" else "カスタム英単語"
+
     private fun parseCsvRows(input: String): List<List<String>> {
         if (input.isEmpty()) return emptyList()
         val rows = mutableListOf<List<String>>()
@@ -646,5 +797,20 @@ class VocabRepository @Inject constructor(
         currentRow += currentCell.toString()
         if (currentRow.any { it.isNotBlank() }) rows += currentRow.toList()
         return rows
+    }
+
+    private data class CustomStudyWord(
+        val id: Int,
+        val english: String,
+        val meaning: String,
+        val exampleSentence: String,
+        val exampleTranslation: String
+    )
+
+    companion object {
+        const val CUSTOM_TYPE_WORD = "word"
+        const val CUSTOM_TYPE_IDIOM = "idiom"
+        private const val CUSTOM_WORD_LESSON_ID = -10_000
+        private const val CUSTOM_IDIOM_LESSON_ID = -20_000
     }
 }

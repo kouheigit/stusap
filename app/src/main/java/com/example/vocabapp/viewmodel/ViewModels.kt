@@ -387,6 +387,16 @@ class CustomIdiomListViewModel @Inject constructor(
 }
 
 @HiltViewModel
+class CustomTrainingListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    repository: VocabRepository
+) : ViewModel() {
+    val type: String = checkNotNull(savedStateHandle["type"])
+    val trainings: StateFlow<List<Training>> = repository.observeCustomTrainings(type)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+}
+
+@HiltViewModel
 class AddIdiomViewModel @Inject constructor(
     private val repository: VocabRepository
 ) : ViewModel() {
@@ -402,6 +412,108 @@ class AddIdiomViewModel @Inject constructor(
     }
 
     fun resetSaved() { _saved.value = false }
+}
+
+@HiltViewModel
+class CustomTrainingQuizViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val repository: VocabRepository
+) : ViewModel() {
+    val type: String = checkNotNull(savedStateHandle["type"])
+    val setNumber: Int = checkNotNull(savedStateHandle["setNumber"])
+    private val _state = MutableStateFlow(
+        QuizState(trainingId = customTrainingId(type, setNumber), lessonId = customLessonId(type))
+    )
+    val state: StateFlow<QuizState> = _state.asStateFlow()
+    private val _result = MutableStateFlow<QuizResult?>(null)
+    val result: StateFlow<QuizResult?> = _result.asStateFlow()
+    private val answers = mutableListOf<AnswerRecord>()
+    private var questionStartedAt = System.currentTimeMillis()
+    private var timerJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
+            val questions = repository.buildCustomTrainingQuiz(type, setNumber)
+            _state.value = _state.value.copy(questions = questions, startedAt = startedAt)
+            questionStartedAt = System.currentTimeMillis()
+            if (questions.isNotEmpty()) startTimer()
+        }
+    }
+
+    fun submit(choiceId: Int?) {
+        val current = _state.value
+        if (current.isAnswered || current.isFinished) return
+        val question = current.currentQuestion ?: return
+        val correctChoice = question.choices.firstOrNull { it.isCorrect }
+        val isCorrect = choiceId != null && correctChoice?.id == choiceId
+        val now = System.currentTimeMillis()
+        answers += AnswerRecord(
+            wordId = question.word.id,
+            selectedChoiceId = choiceId,
+            isCorrect = isCorrect,
+            answeredAt = now,
+            responseMillis = (now - questionStartedAt).toInt(),
+            selectedUnknown = choiceId == null
+        )
+        _state.value = current.copy(
+            selectedChoiceId = choiceId,
+            isAnswered = true,
+            isCorrect = isCorrect,
+            correctCount = current.correctCount + if (isCorrect) 1 else 0,
+            wrongCount = current.wrongCount + if (isCorrect) 0 else 1
+        )
+        viewModelScope.launch {
+            delay(900)
+            nextOrFinish()
+        }
+    }
+
+    private suspend fun nextOrFinish() {
+        val current = _state.value
+        if (current.currentIndex >= current.questions.lastIndex) {
+            timerJob?.cancel()
+            val quizResult = repository.finishCustomQuiz(
+                type = type,
+                setNumber = setNumber,
+                startedAt = current.startedAt,
+                answers = answers.toList(),
+                questions = current.questions
+            )
+            _result.value = quizResult
+            _state.value = current.copy(finishedAttemptId = quizResult.attemptId)
+        } else {
+            questionStartedAt = System.currentTimeMillis()
+            _state.value = current.copy(
+                currentIndex = current.currentIndex + 1,
+                selectedChoiceId = null,
+                isAnswered = false,
+                isCorrect = null,
+                remainingMillis = 30000L
+            )
+        }
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                val current = _state.value
+                if (!current.isAnswered && !current.isFinished) {
+                    val next = (current.remainingMillis - 1000L).coerceAtLeast(0L)
+                    _state.value = current.copy(remainingMillis = next)
+                    if (next == 0L) submit(null)
+                }
+            }
+        }
+    }
+
+    private fun customLessonId(type: String): Int =
+        if (type == "idiom") -20_000 else -10_000
+
+    private fun customTrainingId(type: String, setNumber: Int): Int =
+        customLessonId(type) - setNumber
 }
 
 @HiltViewModel

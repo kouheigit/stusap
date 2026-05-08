@@ -123,6 +123,8 @@ import com.example.vocabapp.viewmodel.AddIdiomViewModel
 import com.example.vocabapp.viewmodel.AddWordViewModel
 import com.example.vocabapp.viewmodel.CustomIdiomListViewModel
 import com.example.vocabapp.viewmodel.CustomIdiomQuizViewModel
+import com.example.vocabapp.viewmodel.CustomTrainingListViewModel
+import com.example.vocabapp.viewmodel.CustomTrainingQuizViewModel
 import com.example.vocabapp.viewmodel.CustomWordListViewModel
 import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
@@ -257,9 +259,13 @@ private object Route {
     const val AddIdiom = "add-idiom"
     const val CustomIdiomList = "custom-idiom-list"
     const val CustomIdiomQuiz = "custom-idiom-quiz"
+    const val CustomTraining = "custom-training/{type}"
+    const val CustomTrainingQuiz = "custom-training-quiz/{type}/{setNumber}"
     const val Flashcard = "flashcard/{trainingId}"
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
+    fun customTraining(type: String) = "custom-training/$type"
+    fun customTrainingQuiz(type: String, setNumber: Int) = "custom-training-quiz/$type/$setNumber"
 
     fun training(lessonId: Int) = "training/$lessonId"
     fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
@@ -328,6 +334,17 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.AddIdiom) { AddIdiomScreen(navController) }
         composable(Route.CustomIdiomList) { CustomIdiomListScreen(navController) }
         composable(Route.CustomIdiomQuiz) { CustomIdiomQuizScreen(navController) }
+        composable(
+            Route.CustomTraining,
+            arguments = listOf(navArgument("type") { type = NavType.StringType })
+        ) { CustomTrainingListScreen(navController) }
+        composable(
+            Route.CustomTrainingQuiz,
+            arguments = listOf(
+                navArgument("type") { type = NavType.StringType },
+                navArgument("setNumber") { type = NavType.IntType }
+            )
+        ) { CustomTrainingQuizScreen(navController) }
         composable(
             Route.Flashcard,
             arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
@@ -545,7 +562,7 @@ private fun LessonListScreen(navController: NavHostController, viewModel: Lesson
                 }
                 Spacer(Modifier.height(4.dp))
                 Button(
-                    onClick = { navController.navigate(Route.CustomQuiz) },
+                    onClick = { navController.navigate(Route.customTraining("word")) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
                     shape = RoundedCornerShape(8.dp)
@@ -608,7 +625,7 @@ private fun IdiomLessonListScreen(navController: NavHostController, viewModel: I
                             }
                         }
                         Button(
-                            onClick = { navController.navigate(Route.CustomIdiomQuiz) },
+                            onClick = { navController.navigate(Route.customTraining("idiom")) },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
                             shape = RoundedCornerShape(8.dp)
@@ -1223,6 +1240,96 @@ private fun AddIdiomScreen(navController: NavHostController, viewModel: AddIdiom
                         Text("登録する", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomTrainingListScreen(navController: NavHostController, viewModel: CustomTrainingListViewModel = hiltViewModel()) {
+    val trainings by viewModel.trainings.collectAsState()
+    val isIdiom = viewModel.type == "idiom"
+    val title = if (isIdiom) "カスタム英熟語" else "カスタム英単語"
+    val listRoute = if (isIdiom) Route.CustomIdiomList else Route.CustomWordList
+    BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { navController.navigate(if (isIdiom) Route.AddIdiom else Route.AddWord) },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text(if (isIdiom) "英熟語登録" else "単語登録", color = DeepBlue, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = { navController.navigate(listRoute) },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text("登録一覧", color = DeepBlue, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            item { SectionTitle("10語トレーニング") }
+            if (trainings.isEmpty()) {
+                item { EmptyCard("登録された${if (isIdiom) "英熟語" else "単語"}はありません") }
+            } else {
+                items(trainings) { training ->
+                    val setNumber = ((training.wordStartNumber - 1) / 10) + 1
+                    TrainingCard(
+                        training = training,
+                        onQuiz = { navController.navigate(Route.customTrainingQuiz(viewModel.type, setNumber)) },
+                        onDetail = { navController.navigate(listRoute) },
+                        onFlashcard = { navController.navigate(listRoute) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel: CustomTrainingQuizViewModel = hiltViewModel()) {
+    val state by viewModel.state.collectAsState()
+    val result by viewModel.result.collectAsState()
+    val isIdiom = viewModel.type == "idiom"
+    val title = if (isIdiom) "カスタム英熟語 ${viewModel.setNumber}問" else "カスタム英単語 ${viewModel.setNumber}問"
+    val listRoute = Route.customTraining(viewModel.type)
+    if (state.finishedAttemptId != null && result != null) {
+        BlueScaffold(title = title) { inner ->
+            ResultContent(
+                result = result!!,
+                modifier = Modifier.padding(inner),
+                onRetry = {
+                    navController.navigate(Route.customTrainingQuiz(viewModel.type, viewModel.setNumber)) {
+                        popUpTo(Route.customTrainingQuiz(viewModel.type, viewModel.setNumber)) { inclusive = true }
+                    }
+                },
+                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
+                onNext = { navController.navigate(listRoute) { popUpTo(listRoute) { inclusive = true } } }
+            )
+        }
+    } else {
+        BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
+            when {
+                state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                state.questions.isEmpty() -> EmptyMessage(
+                    Modifier.padding(inner).background(BrightBlue),
+                    "クイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
+                    "戻る"
+                ) { navController.popBackStack() }
+                else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
             }
         }
     }
