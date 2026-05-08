@@ -210,6 +210,12 @@ interface AppDao {
     @Insert
     suspend fun insertCustomIdiom(item: CustomIdiomEntity): Long
 
+    @Insert
+    suspend fun insertCustomIdioms(items: List<CustomIdiomEntity>): List<Long>
+
+    @Query("SELECT lower(trim(english)) FROM custom_idioms")
+    suspend fun getNormalizedCustomIdiomEnglish(): List<String>
+
     @Query("SELECT * FROM custom_idioms ORDER BY addedAt DESC")
     fun observeCustomIdioms(): Flow<List<CustomIdiomEntity>>
 
