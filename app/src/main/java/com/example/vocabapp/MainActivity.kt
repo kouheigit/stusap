@@ -1461,13 +1461,16 @@ private fun xlsxColumnIndex(reference: String): Int {
     return maxOf(result - 1, 0)
 }
 
-private fun List<List<String>>.toCsvText(): String =
-    joinToString("\n") { row ->
+private fun List<List<String>>.toCsvText(): String {
+    Log.d(IMPORT_TAG, "toCsvText: converting ${size} rows to CSV")
+    return joinToString("\n") { row ->
         row.joinToString(",") { cell ->
-            val escaped = cell.replace("\"", "\"\"")
-            if (escaped.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) "\"$escaped\"" else escaped
+            val normalized = cell.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+            val escaped = normalized.replace("\"", "\"\"")
+            if (escaped.any { it == ',' || it == '"' }) "\"$escaped\"" else escaped
         }
-    }
+    }.also { Log.d(IMPORT_TAG, "toCsvText: result length=${it.length}") }
+}
 
 private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
     size >= prefix.size && prefix.indices.all { this[it] == prefix[it] }
