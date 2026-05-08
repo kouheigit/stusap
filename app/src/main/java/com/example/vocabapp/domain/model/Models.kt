@@ -143,6 +143,7 @@ data class WordImportPreview(
 data class WordImportResult(
     val totalRows: Int = 0,
     val insertedCount: Int = 0,
+    val insertedIdiomCount: Int = 0,
     val duplicateCount: Int = 0,
     val errorCount: Int = 0
 )
