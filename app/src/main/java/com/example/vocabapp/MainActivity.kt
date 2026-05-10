@@ -167,28 +167,33 @@ private const val IMPORT_TAG = "ExcelImport"
 private val activeSynthTrack = java.util.concurrent.atomic.AtomicReference<AudioTrack?>(null)
 
 private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean) {
+    val sampleRate = 44100
+    val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
+    val buffer = ShortArray(totalSamples)
+    var pos = 0
+    for ((freq, durationMs) in segments) {
+        val numSamples = sampleRate * durationMs / 1000
+        for (i in 0 until numSamples) {
+            if (freq == 0f) { buffer[pos++] = 0; continue }
+            val envelope = when {
+                i < numSamples * 0.05 -> i / (numSamples * 0.05)
+                i > numSamples * 0.75 -> (numSamples - i).toDouble() / (numSamples * 0.25)
+                else -> 1.0
+            }
+            val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
+            val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
+            buffer[pos++] = (shaped * Short.MAX_VALUE * 0.85 * envelope).toInt().toShort()
+        }
+    }
+    playSynthBuffer(buffer)
+}
+
+private fun playSynthBuffer(buffer: ShortArray) {
     Thread {
         // 前の効果音を停止してから新しい音を再生
         activeSynthTrack.getAndSet(null)?.runCatching { stop(); release() }
         try {
             val sampleRate = 44100
-            val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
-            val buffer = ShortArray(totalSamples)
-            var pos = 0
-            for ((freq, durationMs) in segments) {
-                val numSamples = sampleRate * durationMs / 1000
-                for (i in 0 until numSamples) {
-                    if (freq == 0f) { buffer[pos++] = 0; continue }
-                    val envelope = when {
-                        i < numSamples * 0.05 -> i / (numSamples * 0.05)
-                        i > numSamples * 0.75 -> (numSamples - i).toDouble() / (numSamples * 0.25)
-                        else -> 1.0
-                    }
-                    val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
-                    val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
-                    buffer[pos++] = (shaped * Short.MAX_VALUE * 0.85 * envelope).toInt().toShort()
-                }
-            }
             val minBuf = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
             val trackBuf = maxOf(buffer.size * 2, minBuf)
             val track = AudioTrack.Builder()
@@ -211,7 +216,7 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
             track.write(buffer, 0, buffer.size)
             activeSynthTrack.set(track)
             track.play()
-            Thread.sleep(totalSamples * 1000L / sampleRate + 150)
+            Thread.sleep(buffer.size * 1000L / sampleRate + 150)
             activeSynthTrack.compareAndSet(track, null)
             track.stop()
             track.release()
@@ -224,16 +229,42 @@ private data class SoundPlayer(
     val playWrong: () -> Unit
 )
 
+// 起動時に一度だけ音声バッファを計算してキャッシュする（解答時の遅延を排除）
+private val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(659f to 160, 880f to 280), squareWave = false) }
+private val wrongSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(200f to 190, 0f to 70, 160f to 230), squareWave = true) }
+
+private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boolean): ShortArray {
+    val sampleRate = 44100
+    val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
+    val buffer = ShortArray(totalSamples)
+    var pos = 0
+    for ((freq, durationMs) in segments) {
+        val numSamples = sampleRate * durationMs / 1000
+        for (i in 0 until numSamples) {
+            if (freq == 0f) { buffer[pos++] = 0; continue }
+            val envelope = when {
+                i < numSamples * 0.05 -> i / (numSamples * 0.05)
+                i > numSamples * 0.75 -> (numSamples - i).toDouble() / (numSamples * 0.25)
+                else -> 1.0
+            }
+            val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
+            val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
+            buffer[pos++] = (shaped * Short.MAX_VALUE * 0.85 * envelope).toInt().toShort()
+        }
+    }
+    return buffer
+}
+
 @Composable
 private fun rememberSoundPlayer(): SoundPlayer = remember {
     SoundPlayer(
         playCorrect = {
-            // ピンポン: E5(659Hz) → A5(880Hz) の二音上昇チャイム
-            playSynthSound(listOf(659f to 160, 880f to 280), squareWave = false)
+            // ピンポン: E5(659Hz) → A5(880Hz) の二音上昇チャイム（バッファ事前計算済み）
+            playSynthBuffer(correctSoundBuffer)
         },
         playWrong = {
-            // ブッブー: 低音バズ×2 (200ms 間隔)
-            playSynthSound(listOf(200f to 190, 0f to 70, 160f to 230), squareWave = true)
+            // ブッブー: 低音バズ×2（バッファ事前計算済み）
+            playSynthBuffer(wrongSoundBuffer)
         }
     )
 }
