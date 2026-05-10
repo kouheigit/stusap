@@ -435,8 +435,14 @@ private fun rememberSpeaker(): Speaker {
         var ttsRef: TextToSpeech? = null
         val instance = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                ttsRef?.language = Locale.US
-                ttsRef?.setSpeechRate(0.92f)
+                val t = ttsRef ?: return@TextToSpeech
+                // 英語ロケールをサポートしているか確認してから設定する
+                val langResult = t.setLanguage(Locale.US)
+                if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    // 英語データがない場合は英語圏のロケールを試みる
+                    t.language = Locale.ENGLISH
+                }
+                t.setSpeechRate(0.92f)
                 isReady = true
             }
         }
