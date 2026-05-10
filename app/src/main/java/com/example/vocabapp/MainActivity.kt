@@ -503,9 +503,16 @@ private fun rememberSpeaker(): Speaker {
             instance.shutdown()
         }
     }
+    // 直前に発話した内容と時刻を記録して、短時間の重複リクエストを防ぐ
+    val lastSpokenText = remember { java.util.concurrent.atomic.AtomicReference<String>("") }
+    val lastSpokenAt = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val speak: (String) -> Unit = { text ->
         val engine = tts
-        if (engine != null && isReady) {
+        val now = System.currentTimeMillis()
+        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
+        if (engine != null && isReady && !isSameTextRecently) {
+            lastSpokenText.set(text)
+            lastSpokenAt.set(now)
             // 進行中の合成をキャンセルし、古い未再生ファイルを削除する
             engine.stop()
             pendingAudioFiles.keys.toList().forEach { key ->
