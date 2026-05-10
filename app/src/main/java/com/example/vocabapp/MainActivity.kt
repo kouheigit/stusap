@@ -164,8 +164,12 @@ import org.xmlpull.v1.XmlPullParserFactory
 
 private const val IMPORT_TAG = "ExcelImport"
 
+private val activeSynthTrack = java.util.concurrent.atomic.AtomicReference<AudioTrack?>(null)
+
 private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean) {
     Thread {
+        // 前の効果音を停止してから新しい音を再生
+        activeSynthTrack.getAndSet(null)?.runCatching { stop(); release() }
         try {
             val sampleRate = 44100
             val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
@@ -185,25 +189,32 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
                     buffer[pos++] = (shaped * Short.MAX_VALUE * 0.85 * envelope).toInt().toShort()
                 }
             }
-            val audioTrack = AudioTrack(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-                AudioFormat.Builder()
-                    .setSampleRate(sampleRate)
-                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                    .build(),
-                buffer.size * 2,
-                AudioTrack.MODE_STATIC,
-                AudioManager.AUDIO_SESSION_ID_GENERATE
-            )
-            audioTrack.write(buffer, 0, buffer.size)
-            audioTrack.play()
+            val minBuf = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
+            val trackBuf = maxOf(buffer.size * 2, minBuf)
+            val track = AudioTrack.Builder()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setSampleRate(sampleRate)
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                        .build()
+                )
+                .setBufferSizeInBytes(trackBuf)
+                .setTransferMode(AudioTrack.MODE_STATIC)
+                .build()
+            track.write(buffer, 0, buffer.size)
+            activeSynthTrack.set(track)
+            track.play()
             Thread.sleep(totalSamples * 1000L / sampleRate + 150)
-            audioTrack.stop()
-            audioTrack.release()
+            activeSynthTrack.compareAndSet(track, null)
+            track.stop()
+            track.release()
         } catch (_: Exception) {}
     }.start()
 }
@@ -371,14 +382,21 @@ private fun rememberSpeaker(): Speaker {
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     val pendingAudioFiles = remember { ConcurrentHashMap<String, java.io.File>() }
+    // 再生中のMediaPlayerを追跡し、次の発音リクエスト時に確実に停止する
+    val activePlayerRef = remember { java.util.concurrent.atomic.AtomicReference<MediaPlayer?>(null) }
+
     DisposableEffect(context) {
+        // ttsRef はコールバックが非同期で来る前に確実に設定されるため、
+        // tts? (Composeステート) 越しに言語設定すると null になる問題を回避する
+        var ttsRef: TextToSpeech? = null
         val instance = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.US
-                tts?.setSpeechRate(0.92f)
+                ttsRef?.language = Locale.US
+                ttsRef?.setSpeechRate(0.92f)
                 isReady = true
             }
         }
+        ttsRef = instance  // コールバックが呼ばれる前に必ず代入
         instance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) = Unit
 
@@ -388,27 +406,31 @@ private fun rememberSpeaker(): Speaker {
                     val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVol, 0)
                     runCatching {
-                        MediaPlayer().apply {
-                            setAudioAttributes(
-                                AudioAttributes.Builder()
-                                    .setUsage(AudioAttributes.USAGE_GAME)
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .build()
-                            )
-                            setDataSource(file.absolutePath)
-                            setOnCompletionListener { player ->
-                                player.release()
-                                file.delete()
-                            }
-                            setOnErrorListener { player, _, _ ->
-                                player.release()
-                                file.delete()
-                                true
-                            }
-                            prepare()
-                            setVolume(1.0f, 1.0f)
-                            start()
+                        val newPlayer = MediaPlayer()
+                        newPlayer.setAudioAttributes(
+                            AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_GAME)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build()
+                        )
+                        newPlayer.setDataSource(file.absolutePath)
+                        newPlayer.setOnCompletionListener { player ->
+                            activePlayerRef.compareAndSet(player, null)
+                            player.release()
+                            file.delete()
                         }
+                        newPlayer.setOnErrorListener { player, _, _ ->
+                            activePlayerRef.compareAndSet(player, null)
+                            player.release()
+                            file.delete()
+                            true
+                        }
+                        newPlayer.prepare()
+                        newPlayer.setVolume(1.0f, 1.0f)
+                        // 旧プレーヤーを停止してから新しいプレーヤーをセット・再生
+                        val prev = activePlayerRef.getAndSet(newPlayer)
+                        prev?.runCatching { if (isPlaying) stop(); release() }
+                        newPlayer.start()
                     }.onFailure {
                         file.delete()
                     }
@@ -429,6 +451,7 @@ private fun rememberSpeaker(): Speaker {
             isReady = false
             pendingAudioFiles.values.forEach { it.delete() }
             pendingAudioFiles.clear()
+            activePlayerRef.getAndSet(null)?.runCatching { if (isPlaying) stop(); release() }
             instance.stop()
             instance.shutdown()
         }
@@ -436,6 +459,15 @@ private fun rememberSpeaker(): Speaker {
     val speak: (String) -> Unit = { text ->
         val engine = tts
         if (engine != null && isReady) {
+            // 進行中の合成をキャンセルし、古い未再生ファイルを削除する
+            engine.stop()
+            pendingAudioFiles.keys.toList().forEach { key ->
+                pendingAudioFiles.remove(key)?.delete()
+            }
+            // 再生中の旧プレーヤーをメインスレッドで停止
+            activePlayerRef.getAndSet(null)?.let { old ->
+                mainHandler.post { old.runCatching { if (isPlaying) stop(); release() } }
+            }
             val utteranceId = "word-${System.nanoTime()}"
             val file = java.io.File(context.cacheDir, "$utteranceId.wav")
             pendingAudioFiles[utteranceId] = file
