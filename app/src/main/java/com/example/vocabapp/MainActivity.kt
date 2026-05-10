@@ -384,6 +384,18 @@ private fun rememberSpeaker(): Speaker {
     val pendingAudioFiles = remember { ConcurrentHashMap<String, java.io.File>() }
     // 再生中のMediaPlayerを追跡し、次の発音リクエスト時に確実に停止する
     val activePlayerRef = remember { java.util.concurrent.atomic.AtomicReference<MediaPlayer?>(null) }
+    // TTS/MediaPlayer再生前にオーディオフォーカスを取得して確実に音が出るようにする
+    val focusRequest = remember {
+        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            .setOnAudioFocusChangeListener {}
+            .build()
+    }
 
     DisposableEffect(context) {
         // ttsRef はコールバックが非同期で来る前に確実に設定されるため、
@@ -403,6 +415,7 @@ private fun rememberSpeaker(): Speaker {
             override fun onDone(utteranceId: String?) {
                 val file = pendingAudioFiles.remove(utteranceId) ?: return
                 mainHandler.post {
+                    audioManager.requestAudioFocus(focusRequest)
                     val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVol, 0)
                     runCatching {
@@ -418,6 +431,7 @@ private fun rememberSpeaker(): Speaker {
                             activePlayerRef.compareAndSet(player, null)
                             player.release()
                             file.delete()
+                            audioManager.abandonAudioFocusRequest(focusRequest)
                         }
                         newPlayer.setOnErrorListener { player, _, _ ->
                             activePlayerRef.compareAndSet(player, null)
