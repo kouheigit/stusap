@@ -214,6 +214,7 @@ private fun playSynthBuffer(buffer: ShortArray) {
                 .setTransferMode(AudioTrack.MODE_STATIC)
                 .build()
             track.write(buffer, 0, buffer.size)
+            track.setVolume(AudioTrack.getMaxVolume()) // 必ず最大音量で再生
             activeSynthTrack.set(track)
             track.play()
             Thread.sleep(buffer.size * 1000L / sampleRate + 150)
