@@ -1033,9 +1033,14 @@ private fun CustomWordQuizResultContent(
         delay(200L)
         medalVisible = true
         try {
+            val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val req = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).build())
+                .setOnAudioFocusChangeListener {}.build()
+            am.requestAudioFocus(req)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
             mp?.setVolume(0.6f, 0.6f)
-            mp?.setOnCompletionListener { it.release() }
+            mp?.setOnCompletionListener { it.release(); am.abandonAudioFocusRequest(req) }
             mp?.start()
         } catch (_: Exception) {}
         launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
@@ -2358,12 +2363,17 @@ private fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () ->
         }
         delay(200L)
         medalVisible = true
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val medalFocusReq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).build())
+            .setOnAudioFocusChangeListener {}.build()
         try {
+            am.requestAudioFocus(medalFocusReq)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
             mp?.setVolume(0.6f, 0.6f)
-            mp?.setOnCompletionListener { it.release() }
+            mp?.setOnCompletionListener { it.release(); am.abandonAudioFocusRequest(medalFocusReq) }
             mp?.start()
-        } catch (_: Exception) {}
+        } catch (_: Exception) { am.abandonAudioFocusRequest(medalFocusReq) }
         if (isPerfect) {
             try {
                 val mp = MediaPlayer.create(context, R.raw.perfect_native_male)
