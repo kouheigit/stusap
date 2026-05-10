@@ -470,12 +470,14 @@ private fun rememberSpeaker(): Speaker {
                             file.delete()
                             true
                         }
-                        newPlayer.prepare()
-                        newPlayer.setVolume(1.0f, 1.0f)
-                        // 旧プレーヤーを停止してから新しいプレーヤーをセット・再生
-                        val prev = activePlayerRef.getAndSet(newPlayer)
-                        prev?.runCatching { if (isPlaying) stop(); release() }
-                        newPlayer.start()
+                        // prepareAsync でメインスレッドをブロックしない
+                        newPlayer.setOnPreparedListener { player ->
+                            player.setVolume(1.0f, 1.0f)
+                            val prev = activePlayerRef.getAndSet(player)
+                            prev?.runCatching { if (isPlaying) stop(); release() }
+                            player.start()
+                        }
+                        newPlayer.prepareAsync()
                     }.onFailure {
                         file.delete()
                     }
