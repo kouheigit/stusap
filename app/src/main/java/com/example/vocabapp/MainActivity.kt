@@ -1156,6 +1156,13 @@ private fun FlashcardScreen(navController: NavHostController, viewModel: Flashca
     val speaker = rememberSpeaker()
     val word = words.getOrNull(index)
     val title = if (viewModel.trainingId >= 100) "英熟語帳" else "単語帳"
+    // 単語帳でもカード切り替え時に自動読み上げ
+    LaunchedEffect(word?.id, speaker.isReady) {
+        if (speaker.isReady && word != null) {
+            delay(150L)
+            speaker.speak(word.english)
+        }
+    }
     BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
         if (words.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
