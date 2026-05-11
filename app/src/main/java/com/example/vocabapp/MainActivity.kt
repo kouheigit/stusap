@@ -414,6 +414,8 @@ private fun rememberSpeaker(): Speaker {
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     val pendingAudioFiles = remember { ConcurrentHashMap<String, java.io.File>() }
+    val pendingSpeechText = remember { java.util.concurrent.atomic.AtomicReference<String?>(null) }
+    val isTtsConfigured = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
     // 再生中のMediaPlayerを追跡し、次の発音リクエスト時に確実に停止する
     val activePlayerRef = remember { java.util.concurrent.atomic.AtomicReference<MediaPlayer?>(null) }
     // TTS/MediaPlayer再生前にオーディオフォーカスを取得して確実に音が出るようにする
@@ -428,25 +430,62 @@ private fun rememberSpeaker(): Speaker {
             .setOnAudioFocusChangeListener {}
             .build()
     }
+    // 直前に発話した内容と時刻を記録して、短時間の重複リクエストを防ぐ
+    val lastSpokenText = remember { java.util.concurrent.atomic.AtomicReference<String>("") }
+    val lastSpokenAt = remember { java.util.concurrent.atomic.AtomicLong(0L) }
+    fun speakNow(text: String, engine: TextToSpeech) {
+        val now = System.currentTimeMillis()
+        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
+        if (isSameTextRecently) return
+
+        lastSpokenText.set(text)
+        lastSpokenAt.set(now)
+        // 進行中の合成をキャンセルし、古い未再生ファイルを削除する
+        engine.stop()
+        pendingAudioFiles.keys.toList().forEach { key ->
+            pendingAudioFiles.remove(key)?.delete()
+        }
+        // 再生中の旧プレーヤーをメインスレッドで停止
+        activePlayerRef.getAndSet(null)?.let { old ->
+            mainHandler.post { old.runCatching { if (isPlaying) stop(); release() } }
+        }
+        val utteranceId = "word-${System.nanoTime()}"
+        val file = java.io.File(context.cacheDir, "$utteranceId.wav")
+        pendingAudioFiles[utteranceId] = file
+        val result = engine.synthesizeToFile(text, null, file, utteranceId)
+        if (result == TextToSpeech.ERROR) {
+            pendingAudioFiles.remove(utteranceId)?.delete()
+            val params = android.os.Bundle().apply {
+                putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
+            }
+            engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        }
+    }
+
+    fun configureTts(engine: TextToSpeech) {
+        if (!isTtsConfigured.compareAndSet(false, true)) return
+
+        val langResult = engine.setLanguage(Locale.US)
+        if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+            engine.language = Locale.ENGLISH
+        }
+        engine.setSpeechRate(0.92f)
+        isReady = true
+        pendingSpeechText.getAndSet(null)?.let { text ->
+            mainHandler.post { speakNow(text, engine) }
+        }
+    }
 
     DisposableEffect(context) {
-        // ttsRef はコールバックが非同期で来る前に確実に設定されるため、
-        // tts? (Composeステート) 越しに言語設定すると null になる問題を回避する
         var ttsRef: TextToSpeech? = null
         val instance = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                val t = ttsRef ?: return@TextToSpeech
-                // 英語ロケールをサポートしているか確認してから設定する
-                val langResult = t.setLanguage(Locale.US)
-                if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    // 英語データがない場合は英語圏のロケールを試みる
-                    t.language = Locale.ENGLISH
+                mainHandler.post {
+                    ttsRef?.let(::configureTts)
                 }
-                t.setSpeechRate(0.92f)
-                isReady = true
             }
         }
-        ttsRef = instance  // コールバックが呼ばれる前に必ず代入
+        ttsRef = instance
         instance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) = Unit
 
@@ -503,6 +542,8 @@ private fun rememberSpeaker(): Speaker {
         tts = instance
         onDispose {
             isReady = false
+            isTtsConfigured.set(false)
+            pendingSpeechText.set(null)
             pendingAudioFiles.values.forEach { it.delete() }
             pendingAudioFiles.clear()
             activePlayerRef.getAndSet(null)?.runCatching { if (isPlaying) stop(); release() }
@@ -510,36 +551,12 @@ private fun rememberSpeaker(): Speaker {
             instance.shutdown()
         }
     }
-    // 直前に発話した内容と時刻を記録して、短時間の重複リクエストを防ぐ
-    val lastSpokenText = remember { java.util.concurrent.atomic.AtomicReference<String>("") }
-    val lastSpokenAt = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val speak: (String) -> Unit = { text ->
         val engine = tts
-        val now = System.currentTimeMillis()
-        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
-        if (engine != null && isReady && !isSameTextRecently) {
-            lastSpokenText.set(text)
-            lastSpokenAt.set(now)
-            // 進行中の合成をキャンセルし、古い未再生ファイルを削除する
-            engine.stop()
-            pendingAudioFiles.keys.toList().forEach { key ->
-                pendingAudioFiles.remove(key)?.delete()
-            }
-            // 再生中の旧プレーヤーをメインスレッドで停止
-            activePlayerRef.getAndSet(null)?.let { old ->
-                mainHandler.post { old.runCatching { if (isPlaying) stop(); release() } }
-            }
-            val utteranceId = "word-${System.nanoTime()}"
-            val file = java.io.File(context.cacheDir, "$utteranceId.wav")
-            pendingAudioFiles[utteranceId] = file
-            val result = engine.synthesizeToFile(text, null, file, utteranceId)
-            if (result == TextToSpeech.ERROR) {
-                pendingAudioFiles.remove(utteranceId)?.delete()
-                val params = android.os.Bundle().apply {
-                    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
-                }
-                engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
-            }
+        if (engine != null && isReady) {
+            speakNow(text, engine)
+        } else {
+            pendingSpeechText.set(text)
         }
     }
     return Speaker(isReady = isReady, speak = speak)
@@ -1178,8 +1195,8 @@ private fun FlashcardScreen(navController: NavHostController, viewModel: Flashca
     val word = words.getOrNull(index)
     val title = if (viewModel.trainingId >= 100) "英熟語帳" else "単語帳"
     // 単語帳でもカード切り替え時に自動読み上げ
-    LaunchedEffect(word?.id, speaker.isReady) {
-        if (speaker.isReady && word != null) {
+    LaunchedEffect(word?.id) {
+        if (word != null) {
             delay(150L)
             speaker.speak(word.english)
         }
@@ -2269,11 +2286,9 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
     val question = state.currentQuestion ?: return
     val speaker = rememberSpeaker()
     val soundPlayer = rememberSoundPlayer()
-    LaunchedEffect(question.word.id, speaker.isReady) {
-        if (speaker.isReady) {
-            delay(120L) // 画面遷移アニメーション完了を待ってから読み上げ
-            speaker.speak(question.word.english)
-        }
+    LaunchedEffect(question.word.id) {
+        delay(120L) // 画面遷移アニメーション完了を待ってから読み上げ
+        speaker.speak(question.word.english)
     }
     LaunchedEffect(state.isAnswered, state.currentIndex) {
         if (state.isAnswered) {
