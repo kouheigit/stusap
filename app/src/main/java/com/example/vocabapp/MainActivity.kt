@@ -420,7 +420,7 @@ private fun rememberSpeaker(): Speaker {
     val activePlayerRef = remember { java.util.concurrent.atomic.AtomicReference<MediaPlayer?>(null) }
     // TTS/MediaPlayer再生前にオーディオフォーカスを取得して確実に音が出るようにする
     val focusRequest = remember {
-        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
