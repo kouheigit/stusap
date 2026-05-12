@@ -440,9 +440,6 @@ private fun rememberSpeaker(): Speaker {
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
         engine.stop()
-        pendingAudioFiles.keys.toList().forEach { key ->
-            pendingAudioFiles.remove(key)?.delete()
-        }
         activePlayerRef.getAndSet(null)?.let { old ->
             mainHandler.post { old.runCatching { if (isPlaying) stop(); release() } }
         }
