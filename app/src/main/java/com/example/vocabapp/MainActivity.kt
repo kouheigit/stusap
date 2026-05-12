@@ -1135,7 +1135,7 @@ private fun FlashcardScreen(navController: NavHostController, viewModel: Flashca
     // 単語帳でもカード切り替え時に自動読み上げ
     LaunchedEffect(word?.id, speaker.isReady) {
         if (word == null || !speaker.isReady) return@LaunchedEffect
-        delay(150L)
+        delay(300L)
         speaker.speak(word.english)
     }
     BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
