@@ -492,6 +492,7 @@ private fun rememberSpeaker(): Speaker {
         }
     }
     val speak: (String) -> Unit = { text ->
+        if (text.isBlank()) return@speak
         val engine = tts
         if (engine != null && isReady) {
             speakNow(text, engine)
