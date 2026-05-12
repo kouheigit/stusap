@@ -482,52 +482,13 @@ private fun rememberSpeaker(): Speaker {
             override fun onStart(utteranceId: String?) = Unit
 
             override fun onDone(utteranceId: String?) {
-                val file = pendingAudioFiles.remove(utteranceId) ?: return
-                mainHandler.post {
-                    audioManager.requestAudioFocus(focusRequest)
-                    runCatching {
-                        val newPlayer = MediaPlayer()
-                        newPlayer.setAudioAttributes(
-                            AudioAttributes.Builder()
-                                .setUsage(AudioAttributes.USAGE_GAME)
-                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                .build()
-                        )
-                        newPlayer.setDataSource(file.absolutePath)
-                        newPlayer.setOnCompletionListener { player ->
-                            activePlayerRef.compareAndSet(player, null)
-                            player.release()
-                            file.delete()
-                            audioManager.abandonAudioFocusRequest(focusRequest)
-                        }
-                        newPlayer.setOnErrorListener { player, _, _ ->
-                            activePlayerRef.compareAndSet(player, null)
-                            player.release()
-                            file.delete()
-                            true
-                        }
-                        // prepareAsync でメインスレッドをブロックしない
-                        newPlayer.setOnPreparedListener { player ->
-                            player.setVolume(1.0f, 1.0f)
-                            val prev = activePlayerRef.getAndSet(player)
-                            prev?.runCatching { if (isPlaying) stop(); release() }
-                            player.start()
-                        }
-                        newPlayer.prepareAsync()
-                    }.onFailure {
-                        file.delete()
-                    }
-                }
+                mainHandler.post { audioManager.abandonAudioFocusRequest(focusRequest) }
             }
 
             @Deprecated("Deprecated by Android SDK")
-            override fun onError(utteranceId: String?) {
-                pendingAudioFiles.remove(utteranceId)?.delete()
-            }
+            override fun onError(utteranceId: String?) = Unit
 
-            override fun onError(utteranceId: String?, errorCode: Int) {
-                pendingAudioFiles.remove(utteranceId)?.delete()
-            }
+            override fun onError(utteranceId: String?, errorCode: Int) = Unit
         })
         tts = instance
         onDispose {
