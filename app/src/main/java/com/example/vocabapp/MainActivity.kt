@@ -437,29 +437,21 @@ private fun rememberSpeaker(): Speaker {
         val now = System.currentTimeMillis()
         val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
         if (isSameTextRecently) return
-
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
-        // 進行中の合成をキャンセルし、古い未再生ファイルを削除する
         engine.stop()
         pendingAudioFiles.keys.toList().forEach { key ->
             pendingAudioFiles.remove(key)?.delete()
         }
-        // 再生中の旧プレーヤーをメインスレッドで停止
         activePlayerRef.getAndSet(null)?.let { old ->
             mainHandler.post { old.runCatching { if (isPlaying) stop(); release() } }
         }
-        val utteranceId = "word-${System.nanoTime()}"
-        val file = java.io.File(context.cacheDir, "$utteranceId.wav")
-        pendingAudioFiles[utteranceId] = file
-        val result = engine.synthesizeToFile(text, null, file, utteranceId)
-        if (result == TextToSpeech.ERROR) {
-            pendingAudioFiles.remove(utteranceId)?.delete()
-            val params = android.os.Bundle().apply {
-                putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
-            }
-            engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        audioManager.requestAudioFocus(focusRequest)
+        val utteranceId = "utt-${System.nanoTime()}"
+        val params = android.os.Bundle().apply {
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
         }
+        engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
     }
 
     fun configureTts(engine: TextToSpeech) {
