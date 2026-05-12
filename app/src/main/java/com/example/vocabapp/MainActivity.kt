@@ -618,17 +618,17 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
             item {
                 CardButton(
                     title = "英単語",
-                    subtitle = "600 / 730 / 860 / 990点の単語を学習",
+                    subtitle = "カスタム登録した英単語の問題一覧",
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
-                    onClick = { navController.navigate(Route.Lessons) }
+                    onClick = { navController.navigate(Route.customTraining("word")) }
                 )
             }
             item {
                 CardButton(
                     title = "英熟語",
-                    subtitle = "TOEICに頻出の英熟語 30語・3トレーニング",
+                    subtitle = "カスタム登録した英熟語の問題一覧",
                     icon = Icons.Default.School,
-                    onClick = { navController.navigate(Route.IdiomLessons) }
+                    onClick = { navController.navigate(Route.customTraining("idiom")) }
                 )
             }
             item {

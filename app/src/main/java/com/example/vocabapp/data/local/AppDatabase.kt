@@ -33,7 +33,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         StudyLogEntity::class,
         UserProgressEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -79,6 +79,17 @@ abstract class AppDatabase : RoomDatabase() {
                         `addedAt` INTEGER NOT NULL
                     )
                 """)
+            }
+        }
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM word_choices")
+                db.execSQL("DELETE FROM word_relations")
+                db.execSQL("DELETE FROM quiz_attempt_answers")
+                db.execSQL("DELETE FROM review_words")
+                db.execSQL("DELETE FROM words")
+                db.execSQL("DELETE FROM trainings")
+                db.execSQL("DELETE FROM lessons")
             }
         }
     }
