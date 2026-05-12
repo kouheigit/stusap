@@ -486,6 +486,7 @@ private fun rememberSpeaker(): Speaker {
             pendingSpeechText.set(null)
             instance.stop()
             instance.shutdown()
+            audioManager.abandonAudioFocusRequest(focusRequest)
         }
     }
     val speak: (String) -> Unit = { text ->
