@@ -2224,7 +2224,7 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
     val question = state.currentQuestion ?: return
     val speaker = rememberSpeaker()
     val soundPlayer = rememberSoundPlayer()
-    LaunchedEffect(question.word.id) {
+    LaunchedEffect(question.word.id, speaker.isReady) {
         delay(120L) // 画面遷移アニメーション完了を待ってから読み上げ
         speaker.speak(question.word.english)
     }
