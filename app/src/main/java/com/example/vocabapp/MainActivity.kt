@@ -413,12 +413,8 @@ private fun rememberSpeaker(): Speaker {
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
-    val pendingAudioFiles = remember { ConcurrentHashMap<String, java.io.File>() }
     val pendingSpeechText = remember { java.util.concurrent.atomic.AtomicReference<String?>(null) }
     val isTtsConfigured = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
-    // 再生中のMediaPlayerを追跡し、次の発音リクエスト時に確実に停止する
-    val activePlayerRef = remember { java.util.concurrent.atomic.AtomicReference<MediaPlayer?>(null) }
-    // TTS/MediaPlayer再生前にオーディオフォーカスを取得して確実に音が出るようにする
     val focusRequest = remember {
         android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
@@ -440,9 +436,6 @@ private fun rememberSpeaker(): Speaker {
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
         engine.stop()
-        activePlayerRef.getAndSet(null)?.let { old ->
-            mainHandler.post { old.runCatching { if (isPlaying) stop(); release() } }
-        }
         audioManager.requestAudioFocus(focusRequest)
         val utteranceId = "utt-${System.nanoTime()}"
         val params = android.os.Bundle().apply {
@@ -492,9 +485,6 @@ private fun rememberSpeaker(): Speaker {
             isReady = false
             isTtsConfigured.set(false)
             pendingSpeechText.set(null)
-            pendingAudioFiles.values.forEach { it.delete() }
-            pendingAudioFiles.clear()
-            activePlayerRef.getAndSet(null)?.runCatching { if (isPlaying) stop(); release() }
             instance.stop()
             instance.shutdown()
         }
