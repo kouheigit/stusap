@@ -450,7 +450,7 @@ private fun rememberSpeaker(): Speaker {
         if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
             engine.language = Locale.ENGLISH
         }
-        engine.setSpeechRate(0.92f)
+        engine.setSpeechRate(0.9f)
         isReady = true
         pendingSpeechText.getAndSet(null)?.let { text ->
             mainHandler.post { speakNow(text, engine) }
