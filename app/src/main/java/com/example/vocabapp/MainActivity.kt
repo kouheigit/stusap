@@ -180,8 +180,9 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
                 else -> 1.0
             }
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
+            val amplitude = if (squareWave) 0.65 else 0.85
             val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
-            buffer[pos++] = (shaped * Short.MAX_VALUE * 0.85 * envelope).toInt().toShort()
+            buffer[pos++] = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt().toShort()
         }
     }
     playSynthBuffer(buffer)
@@ -248,8 +249,9 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boole
                 else -> 1.0
             }
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
+            val amplitude = if (squareWave) 0.65 else 0.85
             val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
-            buffer[pos++] = (shaped * Short.MAX_VALUE * 0.85 * envelope).toInt().toShort()
+            buffer[pos++] = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt().toShort()
         }
     }
     return buffer
