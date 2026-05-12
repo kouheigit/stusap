@@ -493,8 +493,6 @@ private fun rememberSpeaker(): Speaker {
                 val file = pendingAudioFiles.remove(utteranceId) ?: return
                 mainHandler.post {
                     audioManager.requestAudioFocus(focusRequest)
-                    val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVol, 0)
                     runCatching {
                         val newPlayer = MediaPlayer()
                         newPlayer.setAudioAttributes(
