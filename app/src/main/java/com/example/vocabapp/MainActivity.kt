@@ -181,7 +181,7 @@ private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean
                 else -> 1.0
             }
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
-            val amplitude = if (squareWave) 0.65 else 0.85
+            val amplitude = if (squareWave) 0.60 else 0.78
             val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
             buffer[pos++] = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt().toShort()
         }
@@ -231,7 +231,7 @@ private data class SoundPlayer(
 )
 
 // 起動時に一度だけ音声バッファを計算してキャッシュする（解答時の遅延を排除）
-private val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(659f to 160, 880f to 280), squareWave = false) }
+private val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(659f to 150, 880f to 260), squareWave = false) }
 private val wrongSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(280f to 200, 0f to 50, 200f to 240), squareWave = false) }
 
 private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boolean): ShortArray {
@@ -249,7 +249,7 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boole
                 else -> 1.0
             }
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
-            val amplitude = if (squareWave) 0.65 else 0.85
+            val amplitude = if (squareWave) 0.60 else 0.78
             val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
             val sample = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt()
                 .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
