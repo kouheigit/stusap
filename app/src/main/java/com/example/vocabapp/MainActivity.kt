@@ -251,7 +251,9 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boole
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
             val amplitude = if (squareWave) 0.65 else 0.85
             val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
-            buffer[pos++] = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt().toShort()
+            val sample = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt()
+                .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
+            buffer[pos++] = sample.toShort()
         }
     }
     return buffer
