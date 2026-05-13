@@ -1227,7 +1227,8 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
                 chunks.forEachIndexed { idx, chunk ->
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
-                    val preview = chunk.take(3).joinToString(", ") { it.english }
+                    val previewWords = chunk.take(3).joinToString(", ") { it.english }
+                    val preview = if (chunk.size > 3) "$previewWords...(省略)" else previewWords
                     item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview) }
                     items(chunk, key = { it.id }) { word ->
                         CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
