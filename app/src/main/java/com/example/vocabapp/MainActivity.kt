@@ -1442,7 +1442,7 @@ private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPad
             Text(
                 "[$start~$end]",
                 color = DeepBlue,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
             if (preview.isNotEmpty()) {
