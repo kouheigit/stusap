@@ -209,7 +209,7 @@ private data class SoundPlayer(
 )
 
 // 起動時に一度だけ音声バッファを計算してキャッシュする（解答時の遅延を排除）
-private val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(659f to 150, 880f to 260)) }
+private val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(698f to 140, 880f to 260)) }
 private val wrongSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(280f to 200, 0f to 50, 200f to 240)) }
 
 private fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
