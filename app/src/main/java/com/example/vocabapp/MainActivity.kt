@@ -166,28 +166,6 @@ private const val IMPORT_TAG = "ExcelImport"
 
 private val activeSynthTrack = java.util.concurrent.atomic.AtomicReference<AudioTrack?>(null)
 
-private fun playSynthSound(segments: List<Pair<Float, Int>>, squareWave: Boolean) {
-    val sampleRate = 44100
-    val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
-    val buffer = ShortArray(totalSamples)
-    var pos = 0
-    for ((freq, durationMs) in segments) {
-        val numSamples = sampleRate * durationMs / 1000
-        for (i in 0 until numSamples) {
-            if (freq == 0f) { buffer[pos++] = 0; continue }
-            val envelope = when {
-                i < numSamples * 0.05 -> i / (numSamples * 0.05)
-                i > numSamples * 0.75 -> (numSamples - i).toDouble() / (numSamples * 0.25)
-                else -> 1.0
-            }
-            val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
-            val amplitude = if (squareWave) 0.60 else 0.78
-            val shaped = if (squareWave) (if (wave > 0) 1.0 else -1.0) else wave
-            buffer[pos++] = (shaped * Short.MAX_VALUE * amplitude * envelope).toInt().toShort()
-        }
-    }
-    playSynthBuffer(buffer)
-}
 
 private fun playSynthBuffer(buffer: ShortArray) {
     Thread {
