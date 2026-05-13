@@ -1229,7 +1229,7 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
                     val preview = buildSectionPreview(chunk.map { it.english })
-                    item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, topPadding = if (idx > 0) 8 else 0) }
+                    item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, showDivider = idx > 0) }
                     items(chunk, key = { it.id }) { word ->
                         CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
                     }
@@ -1256,7 +1256,7 @@ private fun CustomIdiomListScreen(navController: NavHostController, viewModel: C
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
                     val preview = buildSectionPreview(chunk.map { it.english })
-                    item(key = "idiom_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, topPadding = if (idx > 0) 8 else 0) }
+                    item(key = "idiom_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, showDivider = idx > 0) }
                     items(chunk, key = { it.id }) { idiom ->
                         CustomIdiomRow(idiom = idiom, onDelete = { viewModel.delete(idiom.id) })
                     }
@@ -1429,9 +1429,9 @@ private fun buildSectionPreview(items: List<String>, limit: Int = 3): String {
 }
 
 @Composable
-private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPadding: Int = 0) {
-    Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding.dp)) {
-        if (topPadding > 0) {
+private fun ListSectionHeader(start: Int, end: Int, preview: String = "", showDivider: Boolean = false) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (showDivider) {
             Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = TextMuted.copy(alpha = 0.2f), thickness = 0.5.dp)
             Spacer(Modifier.height(4.dp))
