@@ -433,7 +433,7 @@ private fun rememberSpeaker(): Speaker {
         engine.setSpeechRate(0.9f)
         isReady = true
         pendingSpeechText.getAndSet(null)?.let { text ->
-            mainHandler.post { speakNow(text, engine) }
+            speakNow(text, engine)
         }
     }
 
