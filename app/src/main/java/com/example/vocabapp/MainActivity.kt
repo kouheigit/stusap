@@ -245,7 +245,7 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boole
             if (freq == 0f) { buffer[pos++] = 0; continue }
             val envelope = when {
                 i < numSamples * 0.10 -> i / (numSamples * 0.10)
-                i > numSamples * 0.75 -> (numSamples - i).toDouble() / (numSamples * 0.25)
+                i > numSamples * 0.65 -> (numSamples - i).toDouble() / (numSamples * 0.35)
                 else -> 1.0
             }
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
