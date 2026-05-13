@@ -2273,7 +2273,6 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
     val speaker = rememberSpeaker()
     val soundPlayer = rememberSoundPlayer()
     LaunchedEffect(question.word.id, speaker.isReady) {
-        if (!speaker.isReady) return@LaunchedEffect
         delay(350L)
         speaker.speak(question.word.english)
     }
