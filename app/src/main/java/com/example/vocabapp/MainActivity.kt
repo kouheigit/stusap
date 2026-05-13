@@ -1444,7 +1444,7 @@ private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPad
             )
             if (preview.isNotEmpty()) {
                 Spacer(Modifier.width(8.dp))
-                Text(preview, color = TextMuted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text(preview, color = TextMuted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             }
         }
     }
