@@ -227,7 +227,7 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
                 else -> 1.0
             }.coerceIn(0.0, 1.0)
             val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
-            val sample = (wave * Short.MAX_VALUE * 0.78 * envelope).toInt()
+            val sample = (wave * Short.MAX_VALUE * 0.75 * envelope).toInt()
                 .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
             buffer[pos++] = sample.toShort()
         }
