@@ -1251,8 +1251,14 @@ private fun CustomIdiomListScreen(navController: NavHostController, viewModel: C
             if (idioms.isEmpty()) {
                 item { EmptyCard("登録された英熟語はありません\n「英熟語登録」から追加してください") }
             } else {
-                items(idioms, key = { it.id }) { idiom ->
-                    CustomIdiomRow(idiom = idiom, onDelete = { viewModel.delete(idiom.id) })
+                val chunks = idioms.chunked(10)
+                chunks.forEachIndexed { idx, chunk ->
+                    val start = idx * 10 + 1
+                    val end = start + chunk.size - 1
+                    item(key = "idiom_header_$idx") { ListSectionHeader(start = start, end = end, topPadding = if (idx > 0) 8 else 0) }
+                    items(chunk, key = { it.id }) { idiom ->
+                        CustomIdiomRow(idiom = idiom, onDelete = { viewModel.delete(idiom.id) })
+                    }
                 }
             }
         }
