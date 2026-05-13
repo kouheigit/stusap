@@ -170,7 +170,7 @@ private val activeSynthTrack = java.util.concurrent.atomic.AtomicReference<Audio
 private fun playSynthBuffer(buffer: ShortArray) {
     Thread {
         // 前の効果音を停止してから新しい音を再生
-        activeSynthTrack.getAndSet(null)?.runCatching { stop(); release() }
+        activeSynthTrack.getAndSet(null)?.runCatching { stop(); flush(); release() }
         try {
             val sampleRate = 44100
             val trackBuf = buffer.size * 2 // MODE_STATICはデータサイズ分のバッファで十分
