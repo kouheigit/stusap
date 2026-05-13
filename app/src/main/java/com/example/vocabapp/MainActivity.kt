@@ -433,7 +433,7 @@ private fun rememberSpeaker(): Speaker {
     val lastSpokenAt = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     fun speakNow(text: String, engine: TextToSpeech) {
         val now = System.currentTimeMillis()
-        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 600L
+        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
         if (isSameTextRecently) return
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
