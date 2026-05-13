@@ -195,8 +195,7 @@ private fun playSynthBuffer(buffer: ShortArray) {
         activeSynthTrack.getAndSet(null)?.runCatching { stop(); release() }
         try {
             val sampleRate = 44100
-            val minBuf = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
-            val trackBuf = maxOf(buffer.size * 2, minBuf)
+            val trackBuf = buffer.size * 2 // MODE_STATICはデータサイズ分のバッファで十分
             val track = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
