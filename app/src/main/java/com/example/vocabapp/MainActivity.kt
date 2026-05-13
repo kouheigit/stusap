@@ -1409,6 +1409,21 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
 }
 
 @Composable
+private fun ListSectionHeader(start: Int, end: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "$start~$end",
+            color = DeepBlue,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
 private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
     Card(
         shape = RoundedCornerShape(8.dp),
