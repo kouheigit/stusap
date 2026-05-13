@@ -232,7 +232,7 @@ private data class SoundPlayer(
 
 // 起動時に一度だけ音声バッファを計算してキャッシュする（解答時の遅延を排除）
 private val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(659f to 160, 880f to 280), squareWave = false) }
-private val wrongSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(200f to 190, 0f to 70, 160f to 230), squareWave = true) }
+private val wrongSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(280f to 200, 0f to 50, 200f to 240), squareWave = false) }
 
 private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boolean): ShortArray {
     val sampleRate = 44100
