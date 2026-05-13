@@ -64,6 +64,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -1426,19 +1427,25 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
 
 @Composable
 private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPadding: Int = 0) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(top = topPadding.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            "$start~$end",
-            color = DeepBlue,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
-        if (preview.isNotEmpty()) {
-            Spacer(Modifier.width(8.dp))
-            Text(preview, color = TextMuted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+    Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding.dp)) {
+        if (topPadding > 0) {
+            HorizontalDivider(color = TextMuted.copy(alpha = 0.3f), thickness = 1.dp)
+            Spacer(Modifier.height(4.dp))
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "$start~$end",
+                color = DeepBlue,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            if (preview.isNotEmpty()) {
+                Spacer(Modifier.width(8.dp))
+                Text(preview, color = TextMuted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            }
         }
     }
 }
