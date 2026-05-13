@@ -217,7 +217,7 @@ private fun playSynthBuffer(buffer: ShortArray) {
             track.setVolume(AudioTrack.getMaxVolume()) // 必ず最大音量で再生
             activeSynthTrack.set(track)
             track.play()
-            Thread.sleep(buffer.size * 1000L / sampleRate + 150)
+            Thread.sleep(buffer.size * 1000L / sampleRate + 80)
             activeSynthTrack.compareAndSet(track, null)
             track.stop()
             track.release()
