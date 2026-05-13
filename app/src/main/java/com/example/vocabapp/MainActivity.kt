@@ -1429,7 +1429,7 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
 private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPadding: Int = 0) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding.dp)) {
         if (topPadding > 0) {
-            HorizontalDivider(color = TextMuted.copy(alpha = 0.3f), thickness = 1.dp)
+            HorizontalDivider(color = TextMuted.copy(alpha = 0.2f), thickness = 0.5.dp)
             Spacer(Modifier.height(4.dp))
         }
         Row(
