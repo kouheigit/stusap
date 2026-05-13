@@ -1228,8 +1228,7 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
                 chunks.forEachIndexed { idx, chunk ->
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
-                    val previewWords = chunk.take(3).joinToString(", ") { it.english }
-                    val preview = if (chunk.size > 3) "$previewWords...(省略)" else previewWords
+                    val preview = buildSectionPreview(chunk.map { it.english })
                     item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, topPadding = if (idx > 0) 8 else 0) }
                     items(chunk, key = { it.id }) { word ->
                         CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
@@ -1256,8 +1255,7 @@ private fun CustomIdiomListScreen(navController: NavHostController, viewModel: C
                 chunks.forEachIndexed { idx, chunk ->
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
-                    val previewIdioms = chunk.take(3).joinToString(", ") { it.english }
-                    val preview = if (chunk.size > 3) "$previewIdioms...(省略)" else previewIdioms
+                    val preview = buildSectionPreview(chunk.map { it.english })
                     item(key = "idiom_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, topPadding = if (idx > 0) 8 else 0) }
                     items(chunk, key = { it.id }) { idiom ->
                         CustomIdiomRow(idiom = idiom, onDelete = { viewModel.delete(idiom.id) })
@@ -1423,6 +1421,11 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
             }
         }
     }
+}
+
+private fun buildSectionPreview(items: List<String>, limit: Int = 3): String {
+    val head = items.take(limit).joinToString(", ")
+    return if (items.size > limit) "$head...(省略)" else head
 }
 
 @Composable
