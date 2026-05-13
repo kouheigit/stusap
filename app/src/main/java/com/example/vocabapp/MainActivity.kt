@@ -1255,7 +1255,9 @@ private fun CustomIdiomListScreen(navController: NavHostController, viewModel: C
                 chunks.forEachIndexed { idx, chunk ->
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
-                    item(key = "idiom_header_$idx") { ListSectionHeader(start = start, end = end, topPadding = if (idx > 0) 8 else 0) }
+                    val previewIdioms = chunk.take(3).joinToString(", ") { it.english }
+                    val preview = if (chunk.size > 3) "$previewIdioms...(省略)" else previewIdioms
+                    item(key = "idiom_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, topPadding = if (idx > 0) 8 else 0) }
                     items(chunk, key = { it.id }) { idiom ->
                         CustomIdiomRow(idiom = idiom, onDelete = { viewModel.delete(idiom.id) })
                     }
