@@ -1229,7 +1229,7 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
                     val end = start + chunk.size - 1
                     val previewWords = chunk.take(3).joinToString(", ") { it.english }
                     val preview = if (chunk.size > 3) "$previewWords...(省略)" else previewWords
-                    item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview) }
+                    item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, topPadding = if (idx > 0) 8 else 0) }
                     items(chunk, key = { it.id }) { word ->
                         CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
                     }
@@ -1417,9 +1417,9 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
 }
 
 @Composable
-private fun ListSectionHeader(start: Int, end: Int, preview: String = "") {
+private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPadding: Int = 0) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = topPadding.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
