@@ -1437,7 +1437,7 @@ private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPad
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "$start~$end",
+                "[$start~$end]",
                 color = DeepBlue,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
