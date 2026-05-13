@@ -244,7 +244,7 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>, squareWave: Boole
         for (i in 0 until numSamples) {
             if (freq == 0f) { buffer[pos++] = 0; continue }
             val envelope = when {
-                i < numSamples * 0.05 -> i / (numSamples * 0.05)
+                i < numSamples * 0.10 -> i / (numSamples * 0.10)
                 i > numSamples * 0.75 -> (numSamples - i).toDouble() / (numSamples * 0.25)
                 else -> 1.0
             }
