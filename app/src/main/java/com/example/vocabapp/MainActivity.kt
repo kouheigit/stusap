@@ -1423,7 +1423,7 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
     }
 }
 
-private fun buildSectionPreview(items: List<String>, limit: Int = 3): String {
+private fun buildSectionPreview(items: List<String>, limit: Int = 2): String {
     val head = items.take(limit).joinToString(", ")
     return if (items.size > limit) "$head...(省略)" else head
 }
