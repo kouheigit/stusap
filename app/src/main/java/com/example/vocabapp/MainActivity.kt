@@ -2255,7 +2255,7 @@ private fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) -
     }
     LaunchedEffect(state.isAnswered, state.currentIndex) {
         if (state.isAnswered) {
-            delay(50L) // UIフィードバック表示直後に効果音を再生
+            delay(30L) // UIフィードバック表示直後に効果音を再生
             if (state.isCorrect == true) soundPlayer.playCorrect() else soundPlayer.playWrong()
         }
     }
