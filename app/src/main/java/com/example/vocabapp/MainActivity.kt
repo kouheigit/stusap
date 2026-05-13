@@ -1415,7 +1415,7 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
 }
 
 @Composable
-private fun ListSectionHeader(start: Int, end: Int) {
+private fun ListSectionHeader(start: Int, end: Int, preview: String = "") {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -1426,6 +1426,10 @@ private fun ListSectionHeader(start: Int, end: Int) {
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
+        if (preview.isNotEmpty()) {
+            Spacer(Modifier.width(8.dp))
+            Text(preview, color = TextMuted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
