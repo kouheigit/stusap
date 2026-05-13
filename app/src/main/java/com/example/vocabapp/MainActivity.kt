@@ -1223,8 +1223,14 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
             if (words.isEmpty()) {
                 item { EmptyCard("登録された単語はありません\n「単語登録」から追加してください") }
             } else {
-                items(words, key = { it.id }) { word ->
-                    CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
+                val chunks = words.chunked(10)
+                chunks.forEachIndexed { idx, chunk ->
+                    val start = idx * 10 + 1
+                    val end = start + chunk.size - 1
+                    item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end) }
+                    items(chunk, key = { it.id }) { word ->
+                        CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
+                    }
                 }
             }
         }
