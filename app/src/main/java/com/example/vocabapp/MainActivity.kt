@@ -1432,6 +1432,7 @@ private fun buildSectionPreview(items: List<String>, limit: Int = 3): String {
 private fun ListSectionHeader(start: Int, end: Int, preview: String = "", topPadding: Int = 0) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding.dp)) {
         if (topPadding > 0) {
+            Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = TextMuted.copy(alpha = 0.2f), thickness = 0.5.dp)
             Spacer(Modifier.height(4.dp))
         }
