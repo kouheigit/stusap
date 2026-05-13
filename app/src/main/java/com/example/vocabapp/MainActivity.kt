@@ -1437,7 +1437,7 @@ private fun ListSectionHeader(start: Int, end: Int, preview: String = "", showDi
             Spacer(Modifier.height(4.dp))
         }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
