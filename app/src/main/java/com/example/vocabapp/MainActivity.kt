@@ -203,6 +203,20 @@ private fun playSynthBuffer(buffer: ShortArray) {
     }.start()
 }
 
+private fun playSynthSound(segments: List<Pair<Float, Int>>, interrupt: Boolean = true) {
+    val buffer = buildSynthBuffer(segments)
+    if (interrupt) {
+        playSynthBuffer(buffer)
+    } else {
+        Thread {
+            try {
+                Thread.sleep(40)
+                playSynthBuffer(buffer)
+            } catch (_: Exception) {}
+        }.start()
+    }
+}
+
 private data class SoundPlayer(
     val playCorrect: () -> Unit,
     val playWrong: () -> Unit
@@ -469,7 +483,7 @@ private fun rememberSpeaker(): Speaker {
             audioManager.abandonAudioFocusRequest(focusRequest)
         }
     }
-    val speak: (String) -> Unit = { text ->
+    val speak: (String) -> Unit = speak@ { text ->
         if (text.isBlank()) return@speak
         val engine = tts
         if (engine != null && isReady) {
@@ -528,7 +542,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
             }
             item {
                 CardButton(
-                    title = "単語インポート",
+                    title = "単語・熟語インポート",
                     subtitle = "Excelから保存したCSVを一括登録",
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = { navController.navigate(Route.WordImport) }
@@ -1888,7 +1902,7 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
         }
     }
 
-    BlueScaffold(title = "単語インポート", onBack = { navController.popBackStack() }) { inner ->
+    BlueScaffold(title = "単語・熟語インポート", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
