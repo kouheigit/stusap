@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
+import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.repository.VocabRepository
 import com.example.vocabapp.domain.model.AnswerRecord
@@ -808,5 +809,35 @@ class CustomWordQuizViewModel @Inject constructor(
                 }
             }
         }
+    }
+}
+
+@HiltViewModel
+class AddSentenceViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val _saved = MutableStateFlow(false)
+    val saved: StateFlow<Boolean> = _saved.asStateFlow()
+
+    fun save(sentence: String, meaning: String) {
+        if (sentence.isBlank() || meaning.isBlank()) return
+        viewModelScope.launch {
+            repository.addCustomSentence(sentence.trim(), meaning.trim())
+            _saved.value = true
+        }
+    }
+
+    fun resetSaved() { _saved.value = false }
+}
+
+@HiltViewModel
+class CustomSentenceListViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    val sentences: StateFlow<List<CustomSentenceEntity>> = repository.observeCustomSentences()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun delete(id: Int) {
+        viewModelScope.launch { repository.deleteCustomSentence(id) }
     }
 }
