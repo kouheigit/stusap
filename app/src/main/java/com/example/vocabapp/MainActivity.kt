@@ -2875,3 +2875,101 @@ private fun SentenceMenuScreen(navController: NavHostController) {
         }
     }
 }
+
+@Composable
+private fun AddSentenceScreen(
+    navController: NavHostController,
+    viewModel: AddSentenceViewModel = hiltViewModel()
+) {
+    val saved by viewModel.saved.collectAsState()
+    var sentence by rememberSaveable { mutableStateOf("") }
+    var meaning by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(saved) {
+        if (saved) {
+            viewModel.resetSaved()
+            sentence = ""
+            meaning = ""
+        }
+    }
+
+    BlueScaffold(title = "文章登録", onBack = { navController.popBackStack() }) { inner ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .background(SoftBlue)
+                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("英文", fontWeight = FontWeight.Bold, color = TextMuted)
+                        AddWordField(
+                            label = "",
+                            placeholder = "例: I [might][stay][as][well] as join in a tour",
+                            value = sentence,
+                            onValueChange = { sentence = it },
+                            imeAction = EditorInfo.IME_ACTION_NEXT,
+                            autoFocus = true
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("日本語の意味", fontWeight = FontWeight.Bold, color = TextMuted)
+                        AddWordField(
+                            label = "",
+                            placeholder = "例: パッケージツアーに参加するよりも家にいた方がいい",
+                            value = meaning,
+                            onValueChange = { meaning = it },
+                            imeAction = EditorInfo.IME_ACTION_DONE,
+                            onImeAction = { viewModel.save(sentence, meaning) }
+                        )
+                    }
+                    Button(
+                        onClick = { viewModel.save(sentence, meaning) },
+                        enabled = sentence.isNotBlank() && meaning.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("登録する", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            if (saved) {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Success),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "登録しました",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("入力形式", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("① そのまま英文を入力 → 4語を自動で空白に変換", color = TextMuted, fontSize = 12.sp)
+                    Text("② [語句]で囲む → その語句が並べ替え対象", color = TextMuted, fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
