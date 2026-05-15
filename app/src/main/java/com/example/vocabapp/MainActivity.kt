@@ -3101,3 +3101,148 @@ private fun SentenceQuizScreen(
         }
     }
 }
+
+@Composable
+private fun SentenceQuizContent(
+    modifier: Modifier,
+    state: SentenceQuizState,
+    onSelectWord: (String) -> Unit,
+    onUndo: () -> Unit,
+    onNext: () -> Unit
+) {
+    val question = state.currentQuestion ?: return
+    val selectedSet = state.selectedWords.toSet()
+
+    Box(modifier.fillMaxSize().background(SoftBlue)) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                "${state.currentIndex + 1} / ${state.questions.size}",
+                color = TextDark,
+                fontWeight = FontWeight.Bold
+            )
+            LinearProgressIndicator(
+                progress = { (state.currentIndex + 1) / state.questions.size.toFloat() },
+                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
+                color = AccentBlue,
+                trackColor = Color.White
+            )
+            Text("並べ替えて文を完成させよう", color = TextDark, fontSize = 15.sp)
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        question.template,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepBlue,
+                        lineHeight = 28.sp
+                    )
+                    if (state.isAnswered) {
+                        val answerText = question.answers.joinToString("  ")
+                        Text(
+                            "正解: $answerText",
+                            color = if (state.isCorrect == true) Success else Danger,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(question.meaning, color = TextMuted, fontSize = 14.sp)
+                    }
+                }
+            }
+            Text("選択済み", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val markers = listOf("①", "②", "③", "④")
+                markers.forEachIndexed { i, marker ->
+                    val filledWord = state.selectedWords.getOrNull(i)
+                    val bgColor = when {
+                        filledWord == null -> Color.White.copy(alpha = 0.5f)
+                        state.isAnswered && filledWord == question.answers.getOrNull(i) -> Success.copy(alpha = 0.15f)
+                        state.isAnswered -> Danger.copy(alpha = 0.15f)
+                        else -> Color.White
+                    }
+                    Card(
+                        shape = RoundedCornerShape(6.dp),
+                        colors = CardDefaults.cardColors(containerColor = bgColor),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(
+                            Modifier.padding(8.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(marker, color = TextMuted, fontSize = 11.sp)
+                            Text(
+                                filledWord ?: "—",
+                                color = if (filledWord != null) DeepBlue else TextMuted,
+                                fontSize = 14.sp,
+                                fontWeight = if (filledWord != null) FontWeight.Bold else FontWeight.Normal,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+            Text("選択肢", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                question.shuffledChoices.forEach { word ->
+                    val isSelected = selectedSet.contains(word)
+                    Button(
+                        onClick = { if (!isSelected && !state.isAnswered) onSelectWord(word) },
+                        enabled = !isSelected && !state.isAnswered,
+                        modifier = Modifier.height(46.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else AccentBlue,
+                            disabledContainerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            word,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) TextMuted else Color.White
+                        )
+                    }
+                }
+            }
+            if (!state.isAnswered) {
+                OutlinedButton(
+                    onClick = onUndo,
+                    enabled = state.selectedWords.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().height(46.dp)
+                ) {
+                    Text("← もどす", fontWeight = FontWeight.Bold)
+                }
+            } else {
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        if (state.currentIndex >= state.questions.lastIndex) "結果を見る" else "次の問題",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
