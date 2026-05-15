@@ -3043,3 +3043,61 @@ private fun SentenceRow(sentence: CustomSentenceEntity, onDelete: () -> Unit) {
         }
     }
 }
+
+@Composable
+private fun SentenceQuizScreen(
+    navController: NavHostController,
+    viewModel: SentenceQuizViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+    val result by viewModel.result.collectAsState()
+    val soundPlayer = rememberSoundPlayer()
+
+    LaunchedEffect(state.isAnswered) {
+        if (state.isAnswered) {
+            delay(30L)
+            if (state.isCorrect == true) soundPlayer.playCorrect() else soundPlayer.playWrong()
+        }
+    }
+
+    if (state.isFinished && result != null) {
+        BlueScaffold(title = "文章問題") { inner ->
+            SentenceResultContent(
+                result = result!!,
+                modifier = Modifier.padding(inner),
+                onRetry = {
+                    navController.navigate(Route.SentenceQuiz) {
+                        popUpTo(Route.SentenceQuiz) { inclusive = true }
+                    }
+                },
+                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
+                onMenu = { navController.navigate(Route.SentenceMenu) { popUpTo(Route.SentenceMenu) { inclusive = true } } }
+            )
+        }
+        return
+    }
+
+    BlueScaffold(title = "文章問題", onBack = { navController.popBackStack() }) { inner ->
+        when {
+            state.questions.isEmpty() && state.startedAt == 0L ->
+                Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            state.questions.isEmpty() ->
+                EmptyMessage(
+                    modifier = Modifier.padding(inner).background(BrightBlue),
+                    title = "文章問題には5語以上の英文を5つ以上登録してください",
+                    button = "戻る",
+                    onClick = { navController.popBackStack() }
+                )
+            else ->
+                SentenceQuizContent(
+                    modifier = Modifier.padding(inner),
+                    state = state,
+                    onSelectWord = viewModel::selectWord,
+                    onUndo = viewModel::undoLastWord,
+                    onNext = viewModel::nextQuestion
+                )
+        }
+    }
+}
