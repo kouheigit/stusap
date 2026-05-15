@@ -3007,7 +3007,7 @@ private fun AddSentenceScreen(
             ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("入力形式", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text("① そのまま英文を入力（5語以上必要）", color = TextMuted, fontSize = 12.sp)
+                    Text("① そのまま英文を入力（6語以上必要）", color = TextMuted, fontSize = 12.sp)
                     Text("   → 4語をランダムに自動で空白に変換", color = TextMuted, fontSize = 12.sp)
                     Text("② [語句]で語句を囲む（4つ必要）", color = TextMuted, fontSize = 12.sp)
                     Text("   → その語句が並べ替え対象になる", color = TextMuted, fontSize = 12.sp)
@@ -3131,7 +3131,7 @@ private fun SentenceQuizScreen(
             state.questions.isEmpty() ->
                 EmptyMessage(
                     modifier = Modifier.padding(inner).background(BrightBlue),
-                    title = "文章問題には5語以上の英文を5つ以上登録してください",
+                    title = "文章問題には6語以上の英文を登録してください\n（[語句]形式は4語必要）",
                     button = "戻る",
                     onClick = { navController.popBackStack() }
                 )
