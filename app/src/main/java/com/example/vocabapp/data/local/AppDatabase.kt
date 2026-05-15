@@ -6,6 +6,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.vocabapp.data.local.dao.AppDao
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
+import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
@@ -21,6 +22,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
 @Database(
     entities = [
         CustomIdiomEntity::class,
+        CustomSentenceEntity::class,
         CustomWordEntity::class,
         LessonEntity::class,
         TrainingEntity::class,
@@ -33,7 +35,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         StudyLogEntity::class,
         UserProgressEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -90,6 +92,18 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("DELETE FROM words")
                 db.execSQL("DELETE FROM trainings")
                 db.execSQL("DELETE FROM lessons")
+            }
+        }
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `custom_sentences` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `sentence` TEXT NOT NULL,
+                        `meaning` TEXT NOT NULL,
+                        `addedAt` INTEGER NOT NULL
+                    )
+                """)
             }
         }
     }
