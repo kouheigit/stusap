@@ -960,7 +960,7 @@ class VocabRepository @Inject constructor(
             )
         }
         val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
-        if (rawWords.size < 5) return null
+        if (rawWords.size < 6) return null
         val maxStart = rawWords.size - 4
         val start = if (maxStart > 1) (1..maxStart).random() else 0
         val answerSlice = rawWords.subList(start, start + 4)
