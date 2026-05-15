@@ -101,7 +101,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -3112,6 +3115,23 @@ private fun SentenceQuizScreen(
     }
 }
 
+private fun buildAnnotatedSentenceTemplate(template: String) = buildAnnotatedString {
+    val markers = setOf("①", "②", "③", "④")
+    val words = template.split(" ")
+    words.forEachIndexed { i, word ->
+        if (word in markers) {
+            withStyle(SpanStyle(color = AccentBlue, fontWeight = androidx.compose.ui.text.font.FontWeight.Black)) {
+                append(word)
+            }
+        } else {
+            withStyle(SpanStyle(color = DeepBlue, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) {
+                append(word)
+            }
+        }
+        if (i < words.lastIndex) append(" ")
+    }
+}
+
 @Composable
 private fun SentenceQuizContent(
     modifier: Modifier,
@@ -3149,11 +3169,10 @@ private fun SentenceQuizContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val annotated = buildAnnotatedSentenceTemplate(question.template)
                     Text(
-                        question.template,
+                        annotated,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepBlue,
                         lineHeight = 28.sp
                     )
                     if (state.isAnswered) {
