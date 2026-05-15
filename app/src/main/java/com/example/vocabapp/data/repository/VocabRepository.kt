@@ -904,6 +904,8 @@ class VocabRepository @Inject constructor(
 
     fun observeCustomSentences(): Flow<List<CustomSentenceEntity>> = dao.observeCustomSentences()
 
+    suspend fun deleteAllCustomSentences() { dao.deleteAllCustomSentences() }
+
     suspend fun addCustomSentence(sentence: String, meaning: String) {
         dao.insertCustomSentence(
             CustomSentenceEntity(

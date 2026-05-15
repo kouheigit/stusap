@@ -57,6 +57,10 @@ class MainViewModel @Inject constructor(
     fun deleteAllCustomWords() {
         viewModelScope.launch { repository.deleteAllCustomWords() }
     }
+
+    fun deleteAllCustomSentences() {
+        viewModelScope.launch { repository.deleteAllCustomSentences() }
+    }
 }
 
 @HiltViewModel

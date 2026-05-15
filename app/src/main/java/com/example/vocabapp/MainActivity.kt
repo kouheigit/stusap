@@ -936,6 +936,7 @@ private fun StudyLogScreen(navController: NavHostController, viewModel: StudyLog
 private fun SettingsScreen(navController: NavHostController, viewModel: MainViewModel = hiltViewModel()) {
     var showResetDialog by remember { mutableStateOf(false) }
     var showDeleteCustomDialog by remember { mutableStateOf(false) }
+    var showDeleteSentenceDialog by remember { mutableStateOf(false) }
 
     if (showResetDialog) {
         AlertDialog(
@@ -971,6 +972,23 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
         )
     }
 
+    if (showDeleteSentenceDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteSentenceDialog = false },
+            title = { Text("カスタム文章を全削除") },
+            text = { Text("登録したすべての文章問題を削除します。\nこの操作は元に戻せません。") },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.deleteAllCustomSentences(); showDeleteSentenceDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Danger)
+                ) { Text("削除") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteSentenceDialog = false }) { Text("キャンセル") }
+            }
+        )
+    }
+
     BlueScaffold(title = "設定", onBack = { navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(20.dp),
@@ -992,6 +1010,11 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                 Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
                 Spacer(Modifier.width(8.dp))
                 Text("カスタム単語を全削除", color = Danger)
+            }
+            OutlinedButton(onClick = { showDeleteSentenceDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
+                Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
+                Spacer(Modifier.width(8.dp))
+                Text("カスタム文章を全削除", color = Danger)
             }
             OutlinedButton(onClick = { showResetDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
                 Icon(Icons.Default.Refresh, contentDescription = null, tint = Danger)
