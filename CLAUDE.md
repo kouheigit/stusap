@@ -131,3 +131,81 @@ app/src/main/java/com/example/teppenenglish/
 │   └── model/
 └── domain/
 ```
+
+---
+
+# Workflow Rules
+
+## Git Workflow
+
+- When the user specifies a number of commits/pushes, follow that exact number.
+- Do not reduce or consolidate commit counts unless explicitly requested.
+- Always verify before commit.
+- Never commit unverified UI changes.
+- Keep commits logically separated whenever possible.
+
+---
+
+## UI Verification Rules
+
+- After any UI/CSS/layout change, always rebuild the project.
+- Verify the UI visually before committing.
+- Do not assume UI changes are correct without checking rendering.
+- Do not modify unrelated UI components.
+- Make only the minimum necessary UI change.
+
+---
+
+## Android Workflow
+
+Before Android install/deploy:
+
+1. Run:
+   adb kill-server && adb start-server
+
+2. Build project:
+   ./gradlew assembleDebug
+
+3. Install APK:
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+4. Verify installation succeeded.
+
+5. Launch app after install.
+
+If ADB fails, retry up to 3 times before stopping.
+
+---
+
+## Bug Investigation Rules
+
+- If the same bug is not fixed after 2 attempts:
+  - stop making surface-level fixes
+  - investigate root cause
+  - list assumptions
+  - verify assumptions before editing more code
+
+- Avoid repeated trial-and-error fixes without diagnosis.
+
+---
+
+## Change Scope Rules
+
+- Do not introduce behavior changes not requested by the user.
+- Do not remove or hide UI elements unless explicitly requested.
+- Avoid unnecessary refactors during bug fixes.
+- Preserve existing behavior whenever possible.
+
+---
+
+## Verification Rules
+
+Before completing a task:
+
+- Build must succeed
+- UI must render correctly
+- Emulator/browser verification should be completed
+- Errors must be checked before commit/push
+
+Never mark work as complete before verification.
+
