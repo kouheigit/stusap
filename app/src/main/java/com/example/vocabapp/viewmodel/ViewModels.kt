@@ -8,6 +8,8 @@ import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.repository.VocabRepository
 import com.example.vocabapp.domain.model.AnswerRecord
 import com.example.vocabapp.domain.model.HomeSummary
+import com.example.vocabapp.domain.model.SentenceQuizResult
+import com.example.vocabapp.domain.model.SentenceQuizState
 import com.example.vocabapp.domain.model.Lesson
 import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
@@ -674,6 +676,73 @@ class CustomIdiomQuizViewModel @Inject constructor(
                     if (next == 0L) submit(null)
                 }
             }
+        }
+    }
+}
+
+@HiltViewModel
+class SentenceQuizViewModel @Inject constructor(
+    private val repository: VocabRepository
+) : ViewModel() {
+    private val _state = MutableStateFlow(SentenceQuizState())
+    val state: StateFlow<SentenceQuizState> = _state.asStateFlow()
+    private val _result = MutableStateFlow<SentenceQuizResult?>(null)
+    val result: StateFlow<SentenceQuizResult?> = _result.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
+            val questions = repository.buildSentenceQuiz()
+            _state.value = SentenceQuizState(questions = questions, startedAt = startedAt)
+        }
+    }
+
+    fun selectWord(word: String) {
+        val current = _state.value
+        if (current.isAnswered || current.isFinished) return
+        val question = current.currentQuestion ?: return
+        if (current.selectedWords.size >= 4) return
+        val newSelected = current.selectedWords + word
+        if (newSelected.size == 4) {
+            val isCorrect = newSelected == question.answers
+            _state.value = current.copy(
+                selectedWords = newSelected,
+                isAnswered = true,
+                isCorrect = isCorrect,
+                correctCount = current.correctCount + if (isCorrect) 1 else 0,
+                wrongCount = current.wrongCount + if (isCorrect) 0 else 1
+            )
+        } else {
+            _state.value = current.copy(selectedWords = newSelected)
+        }
+    }
+
+    fun undoLastWord() {
+        val current = _state.value
+        if (current.isAnswered || current.selectedWords.isEmpty()) return
+        _state.value = current.copy(selectedWords = current.selectedWords.dropLast(1))
+    }
+
+    fun nextQuestion() {
+        val current = _state.value
+        if (!current.isAnswered) return
+        if (current.currentIndex >= current.questions.lastIndex) {
+            viewModelScope.launch {
+                val r = repository.finishSentenceQuiz(
+                    startedAt = current.startedAt,
+                    correctCount = current.correctCount,
+                    totalQuestions = current.questions.size
+                )
+                _result.value = r
+                _state.value = current.copy(isFinished = true)
+            }
+        } else {
+            _state.value = current.copy(
+                currentIndex = current.currentIndex + 1,
+                selectedWords = emptyList(),
+                isAnswered = false,
+                isCorrect = null
+            )
         }
     }
 }
