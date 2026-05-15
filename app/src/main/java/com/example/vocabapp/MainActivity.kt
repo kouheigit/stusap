@@ -2973,3 +2973,73 @@ private fun AddSentenceScreen(
         }
     }
 }
+
+@Composable
+private fun CustomSentenceListScreen(
+    navController: NavHostController,
+    viewModel: CustomSentenceListViewModel = hiltViewModel()
+) {
+    val sentences by viewModel.sentences.collectAsState()
+    BlueScaffold(title = "登録文章一覧", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Button(
+                    onClick = { navController.navigate(Route.AddSentence) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                    Spacer(Modifier.width(4.dp))
+                    Text("文章を追加", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (sentences.isEmpty()) {
+                item { EmptyCard("登録済みの文章はまだありません") }
+            } else {
+                items(sentences) { s ->
+                    SentenceRow(sentence = s, onDelete = { viewModel.delete(s.id) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SentenceRow(sentence: CustomSentenceEntity, onDelete: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    sentence.sentence,
+                    color = DeepBlue,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    sentence.meaning,
+                    color = TextMuted,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "削除", tint = Danger)
+            }
+        }
+    }
+}
