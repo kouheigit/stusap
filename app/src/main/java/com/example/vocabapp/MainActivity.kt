@@ -117,11 +117,16 @@ import com.example.vocabapp.domain.model.LessonStatus
 import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
 import com.example.vocabapp.domain.model.Training
+import com.example.vocabapp.domain.model.SentenceQuizResult
+import com.example.vocabapp.domain.model.SentenceQuizState
 import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
+import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.viewmodel.AddIdiomViewModel
+import com.example.vocabapp.viewmodel.AddSentenceViewModel
 import com.example.vocabapp.viewmodel.AddWordViewModel
+import com.example.vocabapp.viewmodel.CustomSentenceListViewModel
 import com.example.vocabapp.viewmodel.CustomIdiomListViewModel
 import com.example.vocabapp.viewmodel.CustomIdiomQuizViewModel
 import com.example.vocabapp.viewmodel.CustomTrainingListViewModel
@@ -136,6 +141,7 @@ import com.example.vocabapp.viewmodel.QuizViewModel
 import com.example.vocabapp.viewmodel.RandomCustomQuizViewModel
 import com.example.vocabapp.viewmodel.ResultViewModel
 import com.example.vocabapp.viewmodel.ReviewViewModel
+import com.example.vocabapp.viewmodel.SentenceQuizViewModel
 import com.example.vocabapp.viewmodel.StudyLogViewModel
 import com.example.vocabapp.viewmodel.TrainingListViewModel
 import com.example.vocabapp.viewmodel.WordDetailViewModel
