@@ -147,3 +147,34 @@ data class WordImportResult(
     val duplicateCount: Int = 0,
     val errorCount: Int = 0
 )
+
+data class SentenceQuestion(
+    val id: Int,
+    val template: String,
+    val answers: List<String>,
+    val shuffledChoices: List<String>,
+    val meaning: String
+)
+
+data class SentenceQuizState(
+    val questions: List<SentenceQuestion> = emptyList(),
+    val currentIndex: Int = 0,
+    val selectedWords: List<String> = emptyList(),
+    val isAnswered: Boolean = false,
+    val isCorrect: Boolean? = null,
+    val correctCount: Int = 0,
+    val wrongCount: Int = 0,
+    val isFinished: Boolean = false,
+    val startedAt: Long = 0L
+) {
+    val currentQuestion: SentenceQuestion? get() = questions.getOrNull(currentIndex)
+}
+
+data class SentenceQuizResult(
+    val totalQuestions: Int,
+    val correctCount: Int,
+    val wrongCount: Int,
+    val accuracy: Float,
+    val studySeconds: Int,
+    val starCount: Int
+)
