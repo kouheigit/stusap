@@ -698,30 +698,37 @@ class SentenceQuizViewModel @Inject constructor(
         }
     }
 
-    fun selectWord(word: String) {
+    fun selectWord(choiceIndex: Int) {
         val current = _state.value
         if (current.isAnswered || current.isFinished) return
         val question = current.currentQuestion ?: return
+        if (current.selectedChoiceIndices.contains(choiceIndex)) return
         if (current.selectedWords.size >= 4) return
-        val newSelected = current.selectedWords + word
-        if (newSelected.size == 4) {
-            val isCorrect = newSelected == question.answers
+        val word = question.shuffledChoices.getOrNull(choiceIndex) ?: return
+        val newWords = current.selectedWords + word
+        val newIndices = current.selectedChoiceIndices + choiceIndex
+        if (newWords.size == 4) {
+            val isCorrect = newWords == question.answers
             _state.value = current.copy(
-                selectedWords = newSelected,
+                selectedWords = newWords,
+                selectedChoiceIndices = newIndices,
                 isAnswered = true,
                 isCorrect = isCorrect,
                 correctCount = current.correctCount + if (isCorrect) 1 else 0,
                 wrongCount = current.wrongCount + if (isCorrect) 0 else 1
             )
         } else {
-            _state.value = current.copy(selectedWords = newSelected)
+            _state.value = current.copy(selectedWords = newWords, selectedChoiceIndices = newIndices)
         }
     }
 
     fun undoLastWord() {
         val current = _state.value
         if (current.isAnswered || current.selectedWords.isEmpty()) return
-        _state.value = current.copy(selectedWords = current.selectedWords.dropLast(1))
+        _state.value = current.copy(
+            selectedWords = current.selectedWords.dropLast(1),
+            selectedChoiceIndices = current.selectedChoiceIndices.dropLast(1)
+        )
     }
 
     fun nextQuestion() {
@@ -741,6 +748,7 @@ class SentenceQuizViewModel @Inject constructor(
             _state.value = current.copy(
                 currentIndex = current.currentIndex + 1,
                 selectedWords = emptyList(),
+                selectedChoiceIndices = emptyList(),
                 isAnswered = false,
                 isCorrect = null
             )

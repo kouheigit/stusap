@@ -3094,7 +3094,7 @@ private fun SentenceQuizScreen(
                 SentenceQuizContent(
                     modifier = Modifier.padding(inner),
                     state = state,
-                    onSelectWord = viewModel::selectWord,
+                    onSelectChoice = viewModel::selectWord,
                     onUndo = viewModel::undoLastWord,
                     onNext = viewModel::nextQuestion
                 )
@@ -3106,12 +3106,12 @@ private fun SentenceQuizScreen(
 private fun SentenceQuizContent(
     modifier: Modifier,
     state: SentenceQuizState,
-    onSelectWord: (String) -> Unit,
+    onSelectChoice: (Int) -> Unit,
     onUndo: () -> Unit,
     onNext: () -> Unit
 ) {
     val question = state.currentQuestion ?: return
-    val selectedSet = state.selectedWords.toSet()
+    val selectedIndexSet = state.selectedChoiceIndices.toSet()
 
     Box(modifier.fillMaxSize().background(SoftBlue)) {
         Column(
@@ -3195,12 +3195,13 @@ private fun SentenceQuizContent(
                 }
             }
             Text("選択肢", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            question.shuffledChoices.chunked(2).forEach { pair ->
+            val indexedChoices = question.shuffledChoices.mapIndexed { i, w -> i to w }
+            indexedChoices.chunked(2).forEach { pair ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    pair.forEach { word ->
-                        val isSelected = selectedSet.contains(word)
+                    pair.forEach { (choiceIdx, word) ->
+                        val isSelected = selectedIndexSet.contains(choiceIdx)
                         Button(
-                            onClick = { if (!isSelected && !state.isAnswered) onSelectWord(word) },
+                            onClick = { if (!isSelected && !state.isAnswered) onSelectChoice(choiceIdx) },
                             enabled = !isSelected && !state.isAnswered,
                             modifier = Modifier.weight(1f).height(46.dp),
                             colors = ButtonDefaults.buttonColors(

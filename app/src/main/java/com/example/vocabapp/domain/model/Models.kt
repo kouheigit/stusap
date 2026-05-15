@@ -160,6 +160,7 @@ data class SentenceQuizState(
     val questions: List<SentenceQuestion> = emptyList(),
     val currentIndex: Int = 0,
     val selectedWords: List<String> = emptyList(),
+    val selectedChoiceIndices: List<Int> = emptyList(),
     val isAnswered: Boolean = false,
     val isCorrect: Boolean? = null,
     val correctCount: Int = 0,
