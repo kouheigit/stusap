@@ -3005,10 +3005,14 @@ private fun AddSentenceScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("入力形式", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text("① そのまま英文を入力 → 4語を自動で空白に変換", color = TextMuted, fontSize = 12.sp)
-                    Text("② [語句]で囲む → その語句が並べ替え対象", color = TextMuted, fontSize = 12.sp)
+                    Text("① そのまま英文を入力（5語以上必要）", color = TextMuted, fontSize = 12.sp)
+                    Text("   → 4語をランダムに自動で空白に変換", color = TextMuted, fontSize = 12.sp)
+                    Text("② [語句]で語句を囲む（4つ必要）", color = TextMuted, fontSize = 12.sp)
+                    Text("   → その語句が並べ替え対象になる", color = TextMuted, fontSize = 12.sp)
+                    HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
+                    Text("例② : I [might][stay][as][well] as join in a tour", color = AccentBlue, fontSize = 11.sp)
                 }
             }
         }
