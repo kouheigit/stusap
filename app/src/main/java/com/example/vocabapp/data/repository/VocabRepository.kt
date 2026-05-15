@@ -420,9 +420,9 @@ class VocabRepository @Inject constructor(
 
             val wordType = when {
                 rawType.isBlank() -> if (english.contains(Regex("\\s"))) "phrase" else "word"
-                rawType == "word" || rawType == "phrase" -> rawType
+                rawType == "word" || rawType == "phrase" || rawType == "sentence" -> rawType
                 else -> {
-                    errors += ImportErrorRow(rowNumber, "type は word または phrase のみ指定できます", row)
+                    errors += ImportErrorRow(rowNumber, "type は word / phrase / sentence のみ指定できます", row)
                     return@forEachIndexed
                 }
             }
@@ -460,7 +460,7 @@ class VocabRepository @Inject constructor(
             val normalized = word.english.normalizeEnglish()
             normalized !in existing && seen.add(normalized)
         }
-        val wordItems = eligible.filter { it.type != "phrase" }.map { word ->
+        val wordItems = eligible.filter { it.type == "word" }.map { word ->
             CustomWordEntity(
                 english = word.english,
                 meaning = word.meaning,
@@ -477,13 +477,21 @@ class VocabRepository @Inject constructor(
                 addedAt = now
             )
         }
+        val sentenceItems = eligible.filter { it.type == "sentence" }.map { word ->
+            CustomSentenceEntity(
+                sentence = word.english,
+                meaning = word.meaning,
+                addedAt = now
+            )
+        }
         if (wordItems.isNotEmpty()) dao.insertCustomWords(wordItems)
         if (idiomItems.isNotEmpty()) dao.insertCustomIdioms(idiomItems)
+        if (sentenceItems.isNotEmpty()) dao.insertCustomSentences(sentenceItems)
         val lateDuplicates = preview.newWords.size - eligible.size
         return WordImportResult(
             totalRows = preview.totalRows,
             insertedCount = wordItems.size,
-            insertedIdiomCount = idiomItems.size,
+            insertedIdiomCount = idiomItems.size + sentenceItems.size,
             duplicateCount = preview.duplicateCount + lateDuplicates,
             errorCount = preview.errorCount
         )
