@@ -3261,13 +3261,24 @@ private fun SentenceQuizContent(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     pair.forEach { (choiceIdx, word) ->
                         val isSelected = selectedIndexSet.contains(choiceIdx)
+                        val selectedOrder = state.selectedChoiceIndices.indexOf(choiceIdx)
+                        val isCorrectPosition = state.isAnswered && isSelected &&
+                            selectedOrder in question.answers.indices &&
+                            word == question.answers[selectedOrder]
+                        val isWrongPosition = state.isAnswered && isSelected && !isCorrectPosition
+                        val containerColor = when {
+                            isCorrectPosition -> Success
+                            isWrongPosition -> Danger
+                            isSelected -> Color.White.copy(alpha = 0.3f)
+                            else -> AccentBlue
+                        }
                         Button(
                             onClick = { if (!isSelected && !state.isAnswered) onSelectChoice(choiceIdx) },
                             enabled = !isSelected && !state.isAnswered,
                             modifier = Modifier.weight(1f).height(46.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else AccentBlue,
-                                disabledContainerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.3f)
+                                containerColor = containerColor,
+                                disabledContainerColor = containerColor
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
@@ -3275,7 +3286,7 @@ private fun SentenceQuizContent(
                                 word,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) TextMuted else Color.White
+                                color = if (isSelected) Color.White else Color.White
                             )
                         }
                     }
