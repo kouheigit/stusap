@@ -2148,8 +2148,8 @@ private fun WordImportScreen(navController: NavHostController, viewModel: WordIm
                     ImportSummaryCard(
                         title = if (result == null) "読み込み結果" else "登録結果",
                         totalRows = result?.totalRows ?: currentPreview.totalRows,
-                        newCount = result?.insertedCount ?: currentPreview.newWords.count { it.type != "phrase" },
-                        newIdiomCount = result?.insertedIdiomCount ?: currentPreview.newWords.count { it.type == "phrase" },
+                        newCount = result?.insertedCount ?: currentPreview.newWords.count { it.type == "word" },
+                        newIdiomCount = result?.insertedIdiomCount ?: currentPreview.newWords.count { it.type == "phrase" || it.type == "sentence" },
                         duplicateCount = result?.duplicateCount ?: currentPreview.duplicateCount,
                         errorCount = result?.errorCount ?: currentPreview.errorCount
                     )
