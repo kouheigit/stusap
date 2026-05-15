@@ -951,14 +951,19 @@ class VocabRepository @Inject constructor(
                 meaning = entity.meaning
             )
         }
-        val words = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
-        if (words.size < 5) return null
-        val maxStart = words.size - 4
+        val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (rawWords.size < 5) return null
+        val maxStart = rawWords.size - 4
         val start = if (maxStart > 1) (1..maxStart).random() else 0
-        val answers = words.subList(start, start + 4)
+        val answerSlice = rawWords.subList(start, start + 4)
+        val answers = answerSlice.map { it.trimEnd('.', ',', '!', '?', ';', ':') }
         val markers = listOf("①", "②", "③", "④")
-        val templateWords = words.mapIndexed { i, w ->
-            markers.getOrNull(i - start)?.takeIf { i in start until start + 4 } ?: w
+        val templateWords = rawWords.mapIndexed { i, w ->
+            if (i in start until start + 4) {
+                val marker = markers[i - start]
+                val trailing = w.drop(w.trimEnd('.', ',', '!', '?', ';', ':').length)
+                if (trailing.isNotEmpty()) "$marker$trailing" else marker
+            } else w
         }
         return SentenceQuestion(
             id = entity.id,
