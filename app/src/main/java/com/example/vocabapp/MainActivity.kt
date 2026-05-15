@@ -302,6 +302,10 @@ private object Route {
     const val RandomCustomMenu = "random-custom-menu"
     const val RandomCustomQuiz = "random-custom-quiz/{type}"
     const val Flashcard = "flashcard/{trainingId}"
+    const val SentenceMenu = "sentence-menu"
+    const val AddSentence = "add-sentence"
+    const val CustomSentenceList = "custom-sentence-list"
+    const val SentenceQuiz = "sentence-quiz"
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
     fun customTraining(type: String) = "custom-training/$type"
