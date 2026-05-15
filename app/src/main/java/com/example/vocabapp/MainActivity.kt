@@ -297,6 +297,7 @@ private object Route {
     const val CustomIdiomList = "custom-idiom-list"
     const val CustomIdiomQuiz = "custom-idiom-quiz"
     const val CustomTraining = "custom-training/{type}"
+    const val CustomTrainingBlock = "custom-training/{type}/block/{blockNumber}"
     const val CustomTrainingQuiz = "custom-training-quiz/{type}/{setNumber}"
     const val RandomCustomMenu = "random-custom-menu"
     const val RandomCustomQuiz = "random-custom-quiz/{type}"
@@ -304,6 +305,7 @@ private object Route {
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
     fun customTraining(type: String) = "custom-training/$type"
+    fun customTrainingBlock(type: String, blockNumber: Int) = "custom-training/$type/block/$blockNumber"
     fun customTrainingQuiz(type: String, setNumber: Int) = "custom-training-quiz/$type/$setNumber"
     fun randomCustomQuiz(type: String) = "random-custom-quiz/$type"
 
@@ -378,6 +380,18 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
             Route.CustomTraining,
             arguments = listOf(navArgument("type") { type = NavType.StringType })
         ) { CustomTrainingListScreen(navController) }
+        composable(
+            Route.CustomTrainingBlock,
+            arguments = listOf(
+                navArgument("type") { type = NavType.StringType },
+                navArgument("blockNumber") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            CustomTrainingBlockScreen(
+                navController = navController,
+                blockNumber = checkNotNull(backStackEntry.arguments?.getInt("blockNumber"))
+            )
+        }
         composable(
             Route.CustomTrainingQuiz,
             arguments = listOf(
@@ -1347,6 +1361,7 @@ private fun CustomTrainingListScreen(navController: NavHostController, viewModel
     val isIdiom = viewModel.type == "idiom"
     val title = if (isIdiom) "カスタム英熟語" else "カスタム英単語"
     val listRoute = if (isIdiom) Route.CustomIdiomList else Route.CustomWordList
+    val blockLabel = if (isIdiom) "英熟語" else "英単語"
     BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
@@ -1377,12 +1392,53 @@ private fun CustomTrainingListScreen(navController: NavHostController, viewModel
                     }
                 }
             }
-            item { SectionTitle("問題一覧") }
+            item { SectionTitle("100問単位") }
             if (trainings.isEmpty()) {
                 item { EmptyCard("登録済みの問題がありません") }
             } else {
-                items(trainings) { training ->
-                    val setNumber = ((training.wordStartNumber - 1) / 10) + 1
+                val blocks = trainings.chunked(10)
+                items(blocks) { block ->
+                    val first = block.first()
+                    val last = block.last()
+                    val blockNumber = ((first.wordStartNumber - 1) / 100) + 1
+                    CardButton(
+                        title = "${first.wordStartNumber}~${last.wordEndNumber}問",
+                        subtitle = "$blockLabel ${block.size}セット",
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                        onClick = { navController.navigate(Route.customTrainingBlock(viewModel.type, blockNumber)) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomTrainingBlockScreen(
+    navController: NavHostController,
+    blockNumber: Int,
+    viewModel: CustomTrainingListViewModel = hiltViewModel()
+) {
+    val trainings by viewModel.trainings.collectAsState()
+    val isIdiom = viewModel.type == "idiom"
+    val titlePrefix = if (isIdiom) "カスタム英熟語" else "カスタム英単語"
+    val listRoute = if (isIdiom) Route.CustomIdiomList else Route.CustomWordList
+    val startQuestion = (blockNumber - 1).coerceAtLeast(0) * 100 + 1
+    val endQuestion = blockNumber * 100
+    val blockTrainings = trainings.drop((blockNumber - 1).coerceAtLeast(0) * 10).take(10)
+    val titleEndQuestion = blockTrainings.lastOrNull()?.wordEndNumber ?: endQuestion
+    BlueScaffold(title = "$titlePrefix $startQuestion~${titleEndQuestion}問", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item { SectionTitle("10問単位") }
+            if (blockTrainings.isEmpty()) {
+                item { EmptyCard("この範囲に登録済みの問題がありません") }
+            } else {
+                items(blockTrainings) { training ->
+                    val setNumber = customSetNumber(training)
                     TrainingCard(
                         training = training,
                         onQuiz = { navController.navigate(Route.customTrainingQuiz(viewModel.type, setNumber)) },
@@ -1400,8 +1456,10 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
     val state by viewModel.state.collectAsState()
     val result by viewModel.result.collectAsState()
     val isIdiom = viewModel.type == "idiom"
-    val title = if (isIdiom) "カスタム英熟語 ${viewModel.setNumber}問" else "カスタム英単語 ${viewModel.setNumber}問"
-    val listRoute = Route.customTraining(viewModel.type)
+    val startQuestion = (viewModel.setNumber - 1).coerceAtLeast(0) * 10 + 1
+    val endQuestion = viewModel.setNumber * 10
+    val title = if (isIdiom) "カスタム英熟語 $startQuestion~${endQuestion}問" else "カスタム英単語 $startQuestion~${endQuestion}問"
+    val listRoute = Route.customTrainingBlock(viewModel.type, ((viewModel.setNumber - 1).coerceAtLeast(0) / 10) + 1)
     if (state.finishedAttemptId != null && result != null) {
         BlueScaffold(title = title) { inner ->
             ResultContent(
@@ -1499,6 +1557,9 @@ private fun buildSectionPreview(items: List<String>, limit: Int = 2): String {
     val head = items.take(limit).joinToString(", ") { it.trim() }
     return if (items.size > limit) "$head, ...(省略)" else head
 }
+
+private fun customSetNumber(training: Training): Int =
+    ((training.wordStartNumber - 1) / 10) + 1
 
 @Composable
 private fun ListSectionHeader(start: Int, end: Int, preview: String = "", showDivider: Boolean = false) {
