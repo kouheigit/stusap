@@ -3195,30 +3195,29 @@ private fun SentenceQuizContent(
                 }
             }
             Text("選択肢", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            androidx.compose.foundation.layout.FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                question.shuffledChoices.forEach { word ->
-                    val isSelected = selectedSet.contains(word)
-                    Button(
-                        onClick = { if (!isSelected && !state.isAnswered) onSelectWord(word) },
-                        enabled = !isSelected && !state.isAnswered,
-                        modifier = Modifier.height(46.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else AccentBlue,
-                            disabledContainerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.3f)
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            word,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSelected) TextMuted else Color.White
-                        )
+            question.shuffledChoices.chunked(2).forEach { pair ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    pair.forEach { word ->
+                        val isSelected = selectedSet.contains(word)
+                        Button(
+                            onClick = { if (!isSelected && !state.isAnswered) onSelectWord(word) },
+                            enabled = !isSelected && !state.isAnswered,
+                            modifier = Modifier.weight(1f).height(46.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else AccentBlue,
+                                disabledContainerColor = if (isSelected) Color.White.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.3f)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                word,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) TextMuted else Color.White
+                            )
+                        }
                     }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
             if (!state.isAnswered) {
