@@ -2812,7 +2812,11 @@ private fun formatStudyTime(seconds: Int): String {
 }
 
 @Composable
-private fun SentenceMenuScreen(navController: NavHostController) {
+private fun SentenceMenuScreen(
+    navController: NavHostController,
+    viewModel: CustomSentenceListViewModel = hiltViewModel()
+) {
+    val sentences by viewModel.sentences.collectAsState()
     BlueScaffold(title = "文章問題", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
@@ -2846,13 +2850,19 @@ private fun SentenceMenuScreen(navController: NavHostController) {
             item {
                 Button(
                     onClick = { navController.navigate(Route.SentenceQuiz) },
+                    enabled = sentences.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("文章問題を開始", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (sentences.isEmpty()) "文章を登録してから開始できます"
+                        else "文章問題を開始（${sentences.size}文登録済み）",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
             item {
