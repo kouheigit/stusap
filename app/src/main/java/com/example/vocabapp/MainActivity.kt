@@ -3246,3 +3246,133 @@ private fun SentenceQuizContent(
         }
     }
 }
+
+@Composable
+private fun SentenceResultContent(
+    result: SentenceQuizResult,
+    modifier: Modifier,
+    onRetry: () -> Unit,
+    onHome: () -> Unit,
+    onMenu: () -> Unit
+) {
+    val isPerfect = result.correctCount == result.totalQuestions
+    val animProgress = remember { Animatable(0f) }
+    var displayedAccuracy by remember { mutableStateOf(0) }
+    val medalScale = remember { Animatable(0f) }
+    val medalAlpha = remember { Animatable(0f) }
+    var medalVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val animDuration = 1200
+        playSynthSound(listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250)), false)
+        launch {
+            animProgress.animateTo(
+                targetValue = (result.accuracy / 100f).coerceIn(0f, 1f),
+                animationSpec = tween(durationMillis = animDuration, easing = LinearEasing)
+            )
+        }
+        val finalAcc = result.accuracy.toInt()
+        val startTime = System.currentTimeMillis()
+        while (true) {
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed >= animDuration) { displayedAccuracy = finalAcc; break }
+            displayedAccuracy = ((elapsed.toFloat() / animDuration) * finalAcc).toInt()
+            delay(16L)
+        }
+        delay(200L)
+        medalVisible = true
+        launch { medalAlpha.animateTo(1f, animationSpec = tween(300)) }
+        medalScale.animateTo(1.1f, animationSpec = tween(280))
+        medalScale.animateTo(0.95f, animationSpec = tween(100))
+        medalScale.animateTo(1f, animationSpec = tween(100))
+    }
+
+    Column(modifier.fillMaxSize().background(BrightBlue)) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text("文章問題 結果", color = TextMuted, fontSize = 15.sp)
+                        if (medalVisible) {
+                            Text(
+                                "$displayedAccuracy%",
+                                color = if (isPerfect) Gold else DeepBlue,
+                                fontSize = 56.sp,
+                                fontWeight = FontWeight.Black,
+                                modifier = Modifier.scale(medalScale.value).alpha(medalAlpha.value)
+                            )
+                        }
+                        LinearProgressIndicator(
+                            progress = { animProgress.value },
+                            modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)),
+                            color = Teal,
+                            trackColor = Color(0xFFDDE5EC)
+                        )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("正解", color = TextMuted, fontSize = 13.sp)
+                                Text("${result.correctCount}", color = Success, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("不正解", color = TextMuted, fontSize = 13.sp)
+                                Text("${result.wrongCount}", color = Danger, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("問題数", color = TextMuted, fontSize = 13.sp)
+                                Text("${result.totalQuestions}", color = TextDark, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Column(
+            Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = onRetry,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("もう一度", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(
+                    onClick = onMenu,
+                    modifier = Modifier.weight(1f).height(48.dp)
+                ) {
+                    Text("文章問題メニュー", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onHome,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.Home, contentDescription = null)
+                    Spacer(Modifier.width(4.dp))
+                    Text("ホーム", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
