@@ -2,6 +2,7 @@ package com.example.vocabapp.data.repository
 
 import com.example.vocabapp.data.local.dao.AppDao
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
+import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptAnswerEntity
 import com.example.vocabapp.data.local.entity.QuizAttemptEntity
@@ -13,6 +14,8 @@ import com.example.vocabapp.data.local.entity.WordEntity
 import com.example.vocabapp.data.seed.IdiomSeedData
 import com.example.vocabapp.data.seed.SeedData
 import com.example.vocabapp.domain.model.AnswerRecord
+import com.example.vocabapp.domain.model.SentenceQuestion
+import com.example.vocabapp.domain.model.SentenceQuizResult
 import com.example.vocabapp.domain.model.HomeSummary
 import com.example.vocabapp.domain.model.ImportErrorRow
 import com.example.vocabapp.domain.model.ImportedWord
@@ -899,10 +902,108 @@ class VocabRepository @Inject constructor(
         val exampleTranslation: String
     )
 
+    fun observeCustomSentences(): Flow<List<CustomSentenceEntity>> = dao.observeCustomSentences()
+
+    suspend fun addCustomSentence(sentence: String, meaning: String) {
+        dao.insertCustomSentence(
+            CustomSentenceEntity(
+                sentence = sentence.trim(),
+                meaning = meaning.trim(),
+                addedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
+    suspend fun deleteCustomSentence(id: Int) { dao.deleteCustomSentence(id) }
+
+    suspend fun buildSentenceQuiz(setNumber: Int? = null): List<SentenceQuestion> {
+        val all = dao.getAllCustomSentences()
+        if (all.isEmpty()) return emptyList()
+        val targets = if (setNumber != null) {
+            all.drop((setNumber - 1).coerceAtLeast(0) * 10).take(10)
+        } else {
+            all.shuffled().take(minOf(10, all.size))
+        }
+        return targets.mapNotNull { buildSentenceQuestion(it) }
+    }
+
+    private fun buildSentenceQuestion(entity: CustomSentenceEntity): SentenceQuestion? {
+        val sentence = entity.sentence.trim()
+        val bracketPattern = Regex("\\[([^\\]]+)\\]")
+        val matches = bracketPattern.findAll(sentence).toList()
+        if (matches.size >= 4) {
+            val answers = matches.take(4).map { it.groupValues[1] }
+            val markers = listOf("①", "②", "③", "④")
+            var template = sentence
+            matches.take(4).forEachIndexed { i, m ->
+                template = template.replace(m.value, markers[i])
+            }
+            return SentenceQuestion(
+                id = entity.id,
+                template = template,
+                answers = answers,
+                shuffledChoices = answers.shuffled(),
+                meaning = entity.meaning
+            )
+        }
+        val words = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (words.size < 5) return null
+        val maxStart = words.size - 4
+        val start = if (maxStart > 1) (1..maxStart).random() else 0
+        val answers = words.subList(start, start + 4)
+        val markers = listOf("①", "②", "③", "④")
+        val templateWords = words.mapIndexed { i, w ->
+            markers.getOrNull(i - start)?.takeIf { i in start until start + 4 } ?: w
+        }
+        return SentenceQuestion(
+            id = entity.id,
+            template = templateWords.joinToString(" "),
+            answers = answers,
+            shuffledChoices = answers.shuffled(),
+            meaning = entity.meaning
+        )
+    }
+
+    suspend fun finishSentenceQuiz(
+        startedAt: Long,
+        correctCount: Int,
+        totalQuestions: Int
+    ): SentenceQuizResult {
+        val finishedAt = System.currentTimeMillis()
+        val total = totalQuestions.coerceAtLeast(1)
+        val accuracy = correctCount * 100f / total
+        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
+        val starCount = when {
+            accuracy >= 90f -> 3
+            accuracy >= 70f -> 2
+            accuracy >= 50f -> 1
+            else -> 0
+        }
+        dao.insertStudyLog(
+            StudyLogEntity(
+                studiedAt = finishedAt,
+                lessonId = CUSTOM_SENTENCE_LESSON_ID,
+                trainingId = null,
+                studySeconds = studySeconds,
+                correctCount = correctCount,
+                wrongCount = totalQuestions - correctCount
+            )
+        )
+        return SentenceQuizResult(
+            totalQuestions = total,
+            correctCount = correctCount,
+            wrongCount = total - correctCount,
+            accuracy = accuracy,
+            studySeconds = studySeconds,
+            starCount = starCount
+        )
+    }
+
     companion object {
         const val CUSTOM_TYPE_WORD = "word"
         const val CUSTOM_TYPE_IDIOM = "idiom"
         private const val CUSTOM_WORD_LESSON_ID = -10_000
         private const val CUSTOM_IDIOM_LESSON_ID = -20_000
+        const val CUSTOM_SENTENCE_LESSON_ID = -30_000
     }
 }
