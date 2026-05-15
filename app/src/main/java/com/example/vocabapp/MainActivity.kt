@@ -605,6 +605,14 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
             }
             item {
                 CardButton(
+                    title = "文章問題",
+                    subtitle = "登録した英文から並べ替え問題を出題",
+                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                    onClick = { navController.navigate(Route.SentenceMenu) }
+                )
+            }
+            item {
+                CardButton(
                     title = "復習トレーニング",
                     subtitle = "間違えた単語とチェックした単語を10問で復習",
                     icon = Icons.Default.Refresh,
