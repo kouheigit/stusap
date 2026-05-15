@@ -2810,3 +2810,68 @@ private fun formatStudyTime(seconds: Int): String {
     val safeSeconds = seconds.coerceAtLeast(0)
     return if (safeSeconds < 60) "${safeSeconds}秒" else formatSeconds(safeSeconds)
 }
+
+@Composable
+private fun SentenceMenuScreen(navController: NavHostController) {
+    BlueScaffold(title = "文章問題", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { navController.navigate(Route.AddSentence) },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text("文章登録", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = { navController.navigate(Route.CustomSentenceList) },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text("登録一覧", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            item {
+                Button(
+                    onClick = { navController.navigate(Route.SentenceQuiz) },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("文章問題を開始", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            item {
+                SectionTitle("文章問題について")
+            }
+            item {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("登録した英文から並べ替え問題を自動生成します", color = TextDark, fontSize = 15.sp)
+                        Text("・英文をそのまま入力→4語を自動で空白に", color = TextMuted, fontSize = 13.sp)
+                        Text("・[語句]形式で入力→その語句が問題に", color = TextMuted, fontSize = 13.sp)
+                        Text("例: I [might][stay][as][well] as join in a tour", color = TextMuted, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+    }
+}
