@@ -568,6 +568,50 @@ class VocabRepository @Inject constructor(
         }
     }
 
+    suspend fun buildRandomCustomQuiz(type: String): List<QuizQuestion> {
+        val all = getCustomStudyWords(type)
+        if (all.size < 4) return emptyList()
+        val targets = all.shuffled().take(minOf(10, all.size))
+        val idMultiplier = if (type == CUSTOM_TYPE_IDIOM) -200 else -100
+        val partOfSpeech = if (type == CUSTOM_TYPE_IDIOM) "英熟語" else "単語"
+        return targets.mapIndexed { questionIndex, target ->
+            val wrongPool = all.filter { it.id != target.id }.shuffled().take(3)
+            val domainWordId = customWordDomainId(type, target.id)
+            val correct = WordChoice(
+                id = target.id * idMultiplier,
+                wordId = domainWordId,
+                choiceText = target.meaning,
+                isCorrect = true,
+                displayOrder = 0
+            )
+            val wrongs = wrongPool.mapIndexed { i, wrong ->
+                WordChoice(
+                    id = wrong.id * idMultiplier - i - 1,
+                    wordId = domainWordId,
+                    choiceText = wrong.meaning,
+                    isCorrect = false,
+                    displayOrder = i + 1
+                )
+            }
+            QuizQuestion(
+                word = Word(
+                    id = domainWordId,
+                    trainingId = randomCustomTrainingId(type),
+                    english = target.english,
+                    meaning = target.meaning,
+                    phonetic = "",
+                    partOfSpeech = partOfSpeech,
+                    exampleSentence = target.exampleSentence,
+                    exampleTranslation = target.exampleTranslation,
+                    audioUrl = null,
+                    exampleAudioUrl = null,
+                    displayOrder = questionIndex + 1
+                ),
+                choices = (listOf(correct) + wrongs).shuffled().mapIndexed { i, c -> c.copy(displayOrder = i) }
+            )
+        }
+    }
+
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
         val all = dao.getAllCustomWords().filter { it.wordType != "phrase" }
         if (all.size < 4) return emptyList()
@@ -619,6 +663,51 @@ class VocabRepository @Inject constructor(
             )
         )
         updateTrainingProgress(lessonId, trainingId, accuracy, starCount, finishedAt)
+        val questionMap = questions.associateBy { it.word.id }
+        return QuizResult(
+            attemptId = -System.nanoTime(),
+            trainingId = trainingId,
+            isReview = false,
+            totalQuestions = total,
+            correctCount = correct,
+            wrongCount = wrong,
+            accuracy = accuracy,
+            studySeconds = studySeconds,
+            starCount = starCount,
+            wrongWords = answers.filter { !it.isCorrect }.mapNotNull { questionMap[it.wordId]?.word }
+        )
+    }
+
+    suspend fun finishRandomCustomQuiz(
+        type: String,
+        startedAt: Long,
+        answers: List<AnswerRecord>,
+        questions: List<QuizQuestion>
+    ): QuizResult {
+        val finishedAt = System.currentTimeMillis()
+        val total = answers.size.coerceAtLeast(1)
+        val correct = answers.count { it.isCorrect }
+        val wrong = answers.count { !it.isCorrect }
+        val accuracy = correct * 100f / total
+        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
+        val starCount = when {
+            accuracy >= 90f -> 3
+            accuracy >= 70f -> 2
+            accuracy >= 50f -> 1
+            else -> 0
+        }
+        val lessonId = customLessonId(type)
+        val trainingId = randomCustomTrainingId(type)
+        dao.insertStudyLog(
+            StudyLogEntity(
+                studiedAt = finishedAt,
+                lessonId = lessonId,
+                trainingId = trainingId,
+                studySeconds = studySeconds,
+                correctCount = correct,
+                wrongCount = wrong
+            )
+        )
         val questionMap = questions.associateBy { it.word.id }
         return QuizResult(
             attemptId = -System.nanoTime(),
@@ -753,6 +842,9 @@ class VocabRepository @Inject constructor(
 
     private fun customTrainingId(type: String, setNumber: Int): Int =
         customLessonId(type) - setNumber
+
+    private fun randomCustomTrainingId(type: String): Int =
+        customLessonId(type) - 999
 
     private fun customWordDomainId(type: String, sourceId: Int): Int =
         (if (type == CUSTOM_TYPE_IDIOM) -200_000 else -100_000) - sourceId

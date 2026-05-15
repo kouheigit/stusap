@@ -133,6 +133,7 @@ import com.example.vocabapp.viewmodel.IdiomLessonListViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
 import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
+import com.example.vocabapp.viewmodel.RandomCustomQuizViewModel
 import com.example.vocabapp.viewmodel.ResultViewModel
 import com.example.vocabapp.viewmodel.ReviewViewModel
 import com.example.vocabapp.viewmodel.StudyLogViewModel
@@ -297,11 +298,14 @@ private object Route {
     const val CustomIdiomQuiz = "custom-idiom-quiz"
     const val CustomTraining = "custom-training/{type}"
     const val CustomTrainingQuiz = "custom-training-quiz/{type}/{setNumber}"
+    const val RandomCustomMenu = "random-custom-menu"
+    const val RandomCustomQuiz = "random-custom-quiz/{type}"
     const val Flashcard = "flashcard/{trainingId}"
 
     fun flashcard(trainingId: Int) = "flashcard/$trainingId"
     fun customTraining(type: String) = "custom-training/$type"
     fun customTrainingQuiz(type: String, setNumber: Int) = "custom-training-quiz/$type/$setNumber"
+    fun randomCustomQuiz(type: String) = "random-custom-quiz/$type"
 
     fun training(lessonId: Int) = "training/$lessonId"
     fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
@@ -381,6 +385,11 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
                 navArgument("setNumber") { type = NavType.IntType }
             )
         ) { CustomTrainingQuizScreen(navController) }
+        composable(Route.RandomCustomMenu) { RandomCustomMenuScreen(navController) }
+        composable(
+            Route.RandomCustomQuiz,
+            arguments = listOf(navArgument("type") { type = NavType.StringType })
+        ) { RandomCustomQuizScreen(navController) }
         composable(
             Route.Flashcard,
             arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
@@ -562,6 +571,14 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     subtitle = "カスタム登録した英熟語の問題一覧",
                     icon = Icons.Default.School,
                     onClick = { navController.navigate(Route.customTraining("idiom")) }
+                )
+            }
+            item {
+                CardButton(
+                    title = "ランダム英単語&英熟語",
+                    subtitle = "登録済みの英単語・英熟語からランダム10問",
+                    icon = Icons.Default.PlayArrow,
+                    onClick = { navController.navigate(Route.RandomCustomMenu) }
                 )
             }
             item {
@@ -1406,6 +1423,70 @@ private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel
                 state.questions.isEmpty() -> EmptyMessage(
                     Modifier.padding(inner).background(BrightBlue),
                     "クイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
+                    "戻る"
+                ) { navController.popBackStack() }
+                else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RandomCustomMenuScreen(navController: NavHostController) {
+    BlueScaffold(title = "ランダム英単語&英熟語", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item { SectionTitle("ランダム10問") }
+            item {
+                CardButton(
+                    title = "ランダム英単語",
+                    subtitle = "登録済みの英単語から毎回ランダムに10問出題",
+                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                    onClick = { navController.navigate(Route.randomCustomQuiz("word")) }
+                )
+            }
+            item {
+                CardButton(
+                    title = "ランダム英熟語",
+                    subtitle = "登録済みの英熟語から毎回ランダムに10問出題",
+                    icon = Icons.Default.School,
+                    onClick = { navController.navigate(Route.randomCustomQuiz("idiom")) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RandomCustomQuizScreen(navController: NavHostController, viewModel: RandomCustomQuizViewModel = hiltViewModel()) {
+    val state by viewModel.state.collectAsState()
+    val result by viewModel.result.collectAsState()
+    val isIdiom = viewModel.type == "idiom"
+    val title = if (isIdiom) "ランダム英熟語" else "ランダム英単語"
+    if (state.finishedAttemptId != null && result != null) {
+        BlueScaffold(title = title) { inner ->
+            ResultContent(
+                result = result!!,
+                modifier = Modifier.padding(inner),
+                onRetry = {
+                    navController.navigate(Route.randomCustomQuiz(viewModel.type)) {
+                        popUpTo(Route.randomCustomQuiz(viewModel.type)) { inclusive = true }
+                    }
+                },
+                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
+                onNext = { navController.navigate(Route.RandomCustomMenu) { popUpTo(Route.RandomCustomMenu) { inclusive = true } } }
+            )
+        }
+    } else {
+        BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
+            when {
+                state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                state.questions.isEmpty() -> EmptyMessage(
+                    Modifier.padding(inner).background(BrightBlue),
+                    "ランダムクイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
                     "戻る"
                 ) { navController.popBackStack() }
                 else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
