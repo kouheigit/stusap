@@ -219,3 +219,11 @@ data class CustomIdiomEntity(
     val meaning: String,
     val addedAt: Long
 )
+
+@Entity(tableName = "custom_sentences")
+data class CustomSentenceEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val sentence: String,
+    val meaning: String,
+    val addedAt: Long
+)
