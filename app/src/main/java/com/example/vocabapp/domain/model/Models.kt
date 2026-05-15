@@ -112,7 +112,8 @@ data class HomeSummary(
     val reviewCount: Int = 0,
     val streakDays: Int = 0,
     val idiomMasteredLessons: Int = 0,
-    val idiomTotalLessons: Int = 0
+    val idiomTotalLessons: Int = 0,
+    val sentenceCount: Int = 0
 )
 
 data class ImportedWord(

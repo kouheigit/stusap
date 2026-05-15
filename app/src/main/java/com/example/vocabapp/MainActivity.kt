@@ -571,6 +571,11 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     StatCard("復習単語", "${summary.reviewCount}", Modifier.weight(1f))
                     StatCard("連続学習", "${summary.streakDays}日", Modifier.weight(1f))
                 }
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    StatCard("文章登録", "${summary.sentenceCount}文", Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
+                }
             }
             item {
                 CardButton(

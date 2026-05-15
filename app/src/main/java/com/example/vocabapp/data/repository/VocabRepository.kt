@@ -89,8 +89,11 @@ class VocabRepository @Inject constructor(
                 idiomTotalLessons = idiomLessons.size
             )
         }
-        return combine(base, dao.observeStudyDays()) { summary, days ->
+        val withStreak = combine(base, dao.observeStudyDays()) { summary, days ->
             summary.copy(streakDays = calculateStreak(days))
+        }
+        return combine(withStreak, dao.observeCustomSentences()) { summary, sentences ->
+            summary.copy(sentenceCount = sentences.size)
         }
     }
 
