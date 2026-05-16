@@ -3459,6 +3459,15 @@ private fun SentenceResultContent(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text("文章問題 結果", color = TextMuted, fontSize = 15.sp)
+                        if (isPerfect && medalVisible) {
+                            Text(
+                                "🎉 全問正解！",
+                                color = Gold,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Black,
+                                modifier = Modifier.alpha(medalAlpha.value)
+                            )
+                        }
                         if (medalVisible) {
                             Text(
                                 "$displayedAccuracy%",
