@@ -27,7 +27,6 @@ object AppModule {
                 AppDatabase.MIGRATION_6_7,
                 AppDatabase.MIGRATION_7_8
             )
-            .fallbackToDestructiveMigration()
             .build()
 
     @Provides

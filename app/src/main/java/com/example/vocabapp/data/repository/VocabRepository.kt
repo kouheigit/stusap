@@ -29,6 +29,7 @@ import com.example.vocabapp.domain.model.WordChoice
 import com.example.vocabapp.domain.model.WordImportPreview
 import com.example.vocabapp.domain.model.WordImportResult
 import com.example.vocabapp.domain.model.WordRelation
+import com.example.vocabapp.domain.usecase.QuizScoreCalculator
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.ZoneId
@@ -46,7 +47,8 @@ import kotlinx.coroutines.flow.map
 
 @Singleton
 class VocabRepository @Inject constructor(
-    private val dao: AppDao
+    private val dao: AppDao,
+    private val quizScoreCalculator: QuizScoreCalculator
 ) {
     suspend fun seedIfNeeded() {
         dao.seedIfNeeded(
@@ -297,6 +299,13 @@ class VocabRepository @Inject constructor(
         return word to relations
     }
 
+    fun observeWordDetail(wordId: Int): Flow<Pair<Word?, List<WordRelation>>> =
+        combine(dao.observeWord(wordId), dao.observeRelations(wordId)) { word, relations ->
+            word?.toDomain() to relations.map {
+                WordRelation(it.relatedWord, it.relatedMeaning)
+            }
+        }
+
     suspend fun finishQuiz(
         trainingId: Int?,
         lessonId: Int?,
@@ -305,29 +314,24 @@ class VocabRepository @Inject constructor(
         answers: List<AnswerRecord>
     ): Long {
         val finishedAt = System.currentTimeMillis()
-        val total = answers.size.coerceAtLeast(1)
-        val correct = answers.count { it.isCorrect }
-        val wrong = answers.count { !it.isCorrect }
-        val accuracy = correct * 100f / total
-        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
-        val starCount = when {
-            accuracy >= 90f -> 3
-            accuracy >= 70f -> 2
-            accuracy >= 50f -> 1
-            else -> 0
-        }
+        val score = quizScoreCalculator.calculate(
+            startedAt = startedAt,
+            finishedAt = finishedAt,
+            correctCount = answers.count { it.isCorrect },
+            answeredCount = answers.size
+        )
         val attemptId = dao.insertQuizAttempt(
             QuizAttemptEntity(
                 trainingId = trainingId,
                 isReview = isReview,
                 startedAt = startedAt,
                 finishedAt = finishedAt,
-                totalQuestions = total,
-                correctCount = correct,
-                wrongCount = wrong,
-                accuracy = accuracy,
-                studySeconds = studySeconds,
-                starCount = starCount
+                totalQuestions = score.total,
+                correctCount = score.correct,
+                wrongCount = score.wrong,
+                accuracy = score.accuracy,
+                studySeconds = score.studySeconds,
+                starCount = score.starCount
             )
         )
         dao.insertQuizAnswers(
@@ -348,13 +352,13 @@ class VocabRepository @Inject constructor(
                 studiedAt = finishedAt,
                 lessonId = lessonId,
                 trainingId = trainingId,
-                studySeconds = studySeconds,
-                correctCount = correct,
-                wrongCount = wrong
+                studySeconds = score.studySeconds,
+                correctCount = score.correct,
+                wrongCount = score.wrong
             )
         )
         if (trainingId != null && lessonId != null) {
-            updateTrainingProgress(lessonId, trainingId, accuracy, starCount, finishedAt)
+            updateTrainingProgress(lessonId, trainingId, score.accuracy, score.starCount, finishedAt)
             updateLessonMaster(lessonId, finishedAt)
         }
         answers.filter { !it.isCorrect || it.selectedUnknown }.forEach {
@@ -573,6 +577,8 @@ class VocabRepository @Inject constructor(
 
     suspend fun deleteAllCustomWords() { dao.deleteAllCustomWords() }
 
+    suspend fun deleteAllCustomWordsAndIdioms() { dao.deleteAllCustomWordsAndIdioms() }
+
     fun observeCustomWords(): Flow<List<CustomWordEntity>> = dao.observeCustomWords()
 
     suspend fun addCustomIdiom(english: String, meaning: String) {
@@ -725,17 +731,12 @@ class VocabRepository @Inject constructor(
         questions: List<QuizQuestion>
     ): QuizResult {
         val finishedAt = System.currentTimeMillis()
-        val total = answers.size.coerceAtLeast(1)
-        val correct = answers.count { it.isCorrect }
-        val wrong = answers.count { !it.isCorrect }
-        val accuracy = correct * 100f / total
-        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
-        val starCount = when {
-            accuracy >= 90f -> 3
-            accuracy >= 70f -> 2
-            accuracy >= 50f -> 1
-            else -> 0
-        }
+        val score = quizScoreCalculator.calculate(
+            startedAt = startedAt,
+            finishedAt = finishedAt,
+            correctCount = answers.count { it.isCorrect },
+            answeredCount = answers.size
+        )
         val lessonId = customLessonId(type)
         val trainingId = customTrainingId(type, setNumber)
         val attemptId = dao.insertQuizAttempt(
@@ -744,12 +745,12 @@ class VocabRepository @Inject constructor(
                 isReview = false,
                 startedAt = startedAt,
                 finishedAt = finishedAt,
-                totalQuestions = total,
-                correctCount = correct,
-                wrongCount = wrong,
-                accuracy = accuracy,
-                studySeconds = studySeconds,
-                starCount = starCount
+                totalQuestions = score.total,
+                correctCount = score.correct,
+                wrongCount = score.wrong,
+                accuracy = score.accuracy,
+                studySeconds = score.studySeconds,
+                starCount = score.starCount
             )
         )
         dao.insertStudyLog(
@@ -757,23 +758,23 @@ class VocabRepository @Inject constructor(
                 studiedAt = finishedAt,
                 lessonId = lessonId,
                 trainingId = trainingId,
-                studySeconds = studySeconds,
-                correctCount = correct,
-                wrongCount = wrong
+                studySeconds = score.studySeconds,
+                correctCount = score.correct,
+                wrongCount = score.wrong
             )
         )
-        updateTrainingProgress(lessonId, trainingId, accuracy, starCount, finishedAt)
+        updateTrainingProgress(lessonId, trainingId, score.accuracy, score.starCount, finishedAt)
         val questionMap = questions.associateBy { it.word.id }
         return QuizResult(
             attemptId = attemptId,
             trainingId = trainingId,
             isReview = false,
-            totalQuestions = total,
-            correctCount = correct,
-            wrongCount = wrong,
-            accuracy = accuracy,
-            studySeconds = studySeconds,
-            starCount = starCount,
+            totalQuestions = score.total,
+            correctCount = score.correct,
+            wrongCount = score.wrong,
+            accuracy = score.accuracy,
+            studySeconds = score.studySeconds,
+            starCount = score.starCount,
             wrongWords = answers.filter { !it.isCorrect }.mapNotNull { questionMap[it.wordId]?.word }
         )
     }
@@ -785,17 +786,12 @@ class VocabRepository @Inject constructor(
         questions: List<QuizQuestion>
     ): QuizResult {
         val finishedAt = System.currentTimeMillis()
-        val total = answers.size.coerceAtLeast(1)
-        val correct = answers.count { it.isCorrect }
-        val wrong = answers.count { !it.isCorrect }
-        val accuracy = correct * 100f / total
-        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
-        val starCount = when {
-            accuracy >= 90f -> 3
-            accuracy >= 70f -> 2
-            accuracy >= 50f -> 1
-            else -> 0
-        }
+        val score = quizScoreCalculator.calculate(
+            startedAt = startedAt,
+            finishedAt = finishedAt,
+            correctCount = answers.count { it.isCorrect },
+            answeredCount = answers.size
+        )
         val lessonId = customLessonId(type)
         val trainingId = randomCustomTrainingId(type)
         val attemptId = dao.insertQuizAttempt(
@@ -804,12 +800,12 @@ class VocabRepository @Inject constructor(
                 isReview = false,
                 startedAt = startedAt,
                 finishedAt = finishedAt,
-                totalQuestions = total,
-                correctCount = correct,
-                wrongCount = wrong,
-                accuracy = accuracy,
-                studySeconds = studySeconds,
-                starCount = starCount
+                totalQuestions = score.total,
+                correctCount = score.correct,
+                wrongCount = score.wrong,
+                accuracy = score.accuracy,
+                studySeconds = score.studySeconds,
+                starCount = score.starCount
             )
         )
         dao.insertStudyLog(
@@ -817,9 +813,9 @@ class VocabRepository @Inject constructor(
                 studiedAt = finishedAt,
                 lessonId = lessonId,
                 trainingId = trainingId,
-                studySeconds = studySeconds,
-                correctCount = correct,
-                wrongCount = wrong
+                studySeconds = score.studySeconds,
+                correctCount = score.correct,
+                wrongCount = score.wrong
             )
         )
         val questionMap = questions.associateBy { it.word.id }
@@ -827,12 +823,12 @@ class VocabRepository @Inject constructor(
             attemptId = attemptId,
             trainingId = trainingId,
             isReview = false,
-            totalQuestions = total,
-            correctCount = correct,
-            wrongCount = wrong,
-            accuracy = accuracy,
-            studySeconds = studySeconds,
-            starCount = starCount,
+            totalQuestions = score.total,
+            correctCount = score.correct,
+            wrongCount = score.wrong,
+            accuracy = score.accuracy,
+            studySeconds = score.studySeconds,
+            starCount = score.starCount,
             wrongWords = answers.filter { !it.isCorrect }.mapNotNull { questionMap[it.wordId]?.word }
         )
     }
@@ -1089,32 +1085,43 @@ class VocabRepository @Inject constructor(
         totalQuestions: Int
     ): SentenceQuizResult {
         val finishedAt = System.currentTimeMillis()
-        val total = totalQuestions.coerceAtLeast(1)
-        val accuracy = correctCount * 100f / total
-        val studySeconds = ((finishedAt - startedAt) / 1000).toInt().coerceAtLeast(1)
-        val starCount = when {
-            accuracy >= 90f -> 3
-            accuracy >= 70f -> 2
-            accuracy >= 50f -> 1
-            else -> 0
-        }
+        val score = quizScoreCalculator.calculate(
+            startedAt = startedAt,
+            finishedAt = finishedAt,
+            correctCount = correctCount,
+            answeredCount = totalQuestions
+        )
+        dao.insertQuizAttempt(
+            QuizAttemptEntity(
+                trainingId = CUSTOM_SENTENCE_LESSON_ID,
+                isReview = false,
+                startedAt = startedAt,
+                finishedAt = finishedAt,
+                totalQuestions = score.total,
+                correctCount = score.correct,
+                wrongCount = score.wrong,
+                accuracy = score.accuracy,
+                studySeconds = score.studySeconds,
+                starCount = score.starCount
+            )
+        )
         dao.insertStudyLog(
             StudyLogEntity(
                 studiedAt = finishedAt,
                 lessonId = CUSTOM_SENTENCE_LESSON_ID,
                 trainingId = null,
-                studySeconds = studySeconds,
-                correctCount = correctCount,
-                wrongCount = totalQuestions - correctCount
+                studySeconds = score.studySeconds,
+                correctCount = score.correct,
+                wrongCount = score.wrong
             )
         )
         return SentenceQuizResult(
-            totalQuestions = total,
-            correctCount = correctCount,
-            wrongCount = total - correctCount,
-            accuracy = accuracy,
-            studySeconds = studySeconds,
-            starCount = starCount
+            totalQuestions = score.total,
+            correctCount = score.correct,
+            wrongCount = score.wrong,
+            accuracy = score.accuracy,
+            studySeconds = score.studySeconds,
+            starCount = score.starCount
         )
     }
 

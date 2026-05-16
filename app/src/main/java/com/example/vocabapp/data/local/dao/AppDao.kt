@@ -103,11 +103,17 @@ interface AppDao {
     @Query("SELECT * FROM words WHERE id = :wordId")
     suspend fun getWord(wordId: Int): WordEntity?
 
+    @Query("SELECT * FROM words WHERE id = :wordId")
+    fun observeWord(wordId: Int): Flow<WordEntity?>
+
     @Query("SELECT * FROM word_choices WHERE wordId = :wordId ORDER BY displayOrder")
     suspend fun getChoices(wordId: Int): List<WordChoiceEntity>
 
     @Query("SELECT * FROM word_relations WHERE wordId = :wordId")
     suspend fun getRelations(wordId: Int): List<WordRelationEntity>
+
+    @Query("SELECT * FROM word_relations WHERE wordId = :wordId")
+    fun observeRelations(wordId: Int): Flow<List<WordRelationEntity>>
 
     @Query("SELECT * FROM review_words WHERE wordId = :wordId LIMIT 1")
     suspend fun getReviewByWordId(wordId: Int): ReviewWordEntity?
@@ -265,6 +271,12 @@ interface AppDao {
     @Query("DELETE FROM custom_sentences")
     suspend fun deleteAllCustomSentences()
 
+    @Transaction
+    suspend fun deleteAllCustomWordsAndIdioms() {
+        deleteAllCustomWords()
+        deleteAllCustomIdioms()
+    }
+
     @Query("""
         SELECT w.* FROM words w
         INNER JOIN quiz_attempt_answers qaa ON qaa.wordId = w.id
@@ -280,5 +292,8 @@ interface AppDao {
         deleteStudyLogs()
         deleteProgress()
         deleteReviews()
+        deleteAllCustomWords()
+        deleteAllCustomIdioms()
+        deleteAllCustomSentences()
     }
 }

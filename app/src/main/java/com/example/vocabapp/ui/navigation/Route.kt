@@ -1,0 +1,43 @@
+package com.example.vocabapp
+
+internal object Route {
+    const val Home = "home"
+    const val Lessons = "lessons"
+    const val IdiomLessons = "idiom-lessons"
+    const val Training = "training/{lessonId}"
+    const val Quiz = "quiz?trainingId={trainingId}&isReview={isReview}"
+    const val Result = "result/{attemptId}"
+    const val Review = "review"
+    const val WordDetail = "word/{wordId}"
+    const val StudyLog = "study-log"
+    const val Settings = "settings"
+    const val AddWord = "add-word"
+    const val WordImport = "word-import"
+    const val CustomQuiz = "custom-quiz"
+    const val CustomWordList = "custom-word-list"
+    const val AddIdiom = "add-idiom"
+    const val CustomIdiomList = "custom-idiom-list"
+    const val CustomIdiomQuiz = "custom-idiom-quiz"
+    const val CustomTraining = "custom-training/{type}"
+    const val CustomTrainingBlock = "custom-training/{type}/block/{blockNumber}"
+    const val CustomTrainingQuiz = "custom-training-quiz/{type}/{setNumber}"
+    const val RandomCustomMenu = "random-custom-menu"
+    const val RandomCustomQuiz = "random-custom-quiz/{type}"
+    const val Flashcard = "flashcard/{trainingId}"
+    const val SentenceMenu = "sentence-menu"
+    const val AddSentence = "add-sentence"
+    const val CustomSentenceList = "custom-sentence-list"
+    const val SentenceQuiz = "sentence-quiz"
+
+    fun flashcard(trainingId: Int) = "flashcard/$trainingId"
+    fun customTraining(type: String) = "custom-training/$type"
+    fun customTrainingBlock(type: String, blockNumber: Int) = "custom-training/$type/block/$blockNumber"
+    fun customTrainingQuiz(type: String, setNumber: Int) = "custom-training-quiz/$type/$setNumber"
+    fun randomCustomQuiz(type: String) = "random-custom-quiz/$type"
+
+    fun training(lessonId: Int) = "training/$lessonId"
+    fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
+        "quiz?trainingId=${trainingId ?: 0}&isReview=$isReview"
+    fun result(attemptId: Long) = "result/$attemptId"
+    fun word(wordId: Int) = "word/$wordId"
+}

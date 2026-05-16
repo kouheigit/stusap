@@ -166,10 +166,11 @@ data class SentenceQuizState(
     val isCorrect: Boolean? = null,
     val correctCount: Int = 0,
     val wrongCount: Int = 0,
-    val isFinished: Boolean = false,
-    val startedAt: Long = 0L
+    val startedAt: Long = 0L,
+    val result: SentenceQuizResult? = null
 ) {
     val currentQuestion: SentenceQuestion? get() = questions.getOrNull(currentIndex)
+    val isFinished: Boolean get() = result != null
 }
 
 data class SentenceQuizResult(

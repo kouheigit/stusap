@@ -52,9 +52,3 @@ class GetReviewWordsUseCase @Inject constructor(
 ) {
     operator fun invoke() = repository.observeReviewWords()
 }
-
-class CalculateStudyTimeUseCase @Inject constructor(
-    private val repository: VocabRepository
-) {
-    operator fun invoke() = repository.observeHomeSummary()
-}

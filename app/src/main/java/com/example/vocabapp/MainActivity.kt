@@ -76,7 +76,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
@@ -288,73 +287,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent { VocabTheme { AppNav() } }
     }
-}
-
-private object Route {
-    const val Home = "home"
-    const val Lessons = "lessons"
-    const val IdiomLessons = "idiom-lessons"
-    const val Training = "training/{lessonId}"
-    const val Quiz = "quiz?trainingId={trainingId}&isReview={isReview}"
-    const val Result = "result/{attemptId}"
-    const val Review = "review"
-    const val WordDetail = "word/{wordId}"
-    const val StudyLog = "study-log"
-    const val Settings = "settings"
-    const val AddWord = "add-word"
-    const val WordImport = "word-import"
-    const val CustomQuiz = "custom-quiz"
-    const val CustomWordList = "custom-word-list"
-    const val AddIdiom = "add-idiom"
-    const val CustomIdiomList = "custom-idiom-list"
-    const val CustomIdiomQuiz = "custom-idiom-quiz"
-    const val CustomTraining = "custom-training/{type}"
-    const val CustomTrainingBlock = "custom-training/{type}/block/{blockNumber}"
-    const val CustomTrainingQuiz = "custom-training-quiz/{type}/{setNumber}"
-    const val RandomCustomMenu = "random-custom-menu"
-    const val RandomCustomQuiz = "random-custom-quiz/{type}"
-    const val Flashcard = "flashcard/{trainingId}"
-    const val SentenceMenu = "sentence-menu"
-    const val AddSentence = "add-sentence"
-    const val CustomSentenceList = "custom-sentence-list"
-    const val SentenceQuiz = "sentence-quiz"
-
-    fun flashcard(trainingId: Int) = "flashcard/$trainingId"
-    fun customTraining(type: String) = "custom-training/$type"
-    fun customTrainingBlock(type: String, blockNumber: Int) = "custom-training/$type/block/$blockNumber"
-    fun customTrainingQuiz(type: String, setNumber: Int) = "custom-training-quiz/$type/$setNumber"
-    fun randomCustomQuiz(type: String) = "random-custom-quiz/$type"
-
-    fun training(lessonId: Int) = "training/$lessonId"
-    fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
-        "quiz?trainingId=${trainingId ?: 0}&isReview=$isReview"
-    fun result(attemptId: Long) = "result/$attemptId"
-    fun word(wordId: Int) = "word/$wordId"
-}
-
-private val DeepBlue = Color(0xFF0D47A1)
-private val BrightBlue = Color(0xFF1E88E5)
-private val AccentBlue = Color(0xFF03A9E6)
-private val SoftBlue = Color(0xFFE3F2FD)
-private val TextDark = Color(0xFF17203C)
-private val TextMuted = Color(0xFF7B8A95)
-private val Success = Color(0xFF22A852)
-private val Danger = Color(0xFFE5395A)
-private val Gold = Color(0xFFFFC943)
-private val Teal = Color(0xFF41C7BE)
-
-@Composable
-private fun VocabTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = androidx.compose.material3.lightColorScheme(
-            primary = BrightBlue,
-            secondary = Teal,
-            background = Color.White,
-            surface = Color.White,
-            error = Danger
-        ),
-        content = content
-    )
 }
 
 @Composable
@@ -953,7 +885,7 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
             text = {
                 Text(
                     "すべての学習進捗・クイズ履歴・復習リストを削除します。\n" +
-                        "カスタム単語・熟語・文章は削除されません。\n" +
+                        "登録したカスタム単語・熟語・文章も削除されます。\n" +
                         "この操作は元に戻せません。"
                 )
             },
@@ -3276,7 +3208,7 @@ private fun SentenceQuizScreen(
     viewModel: SentenceQuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val result by viewModel.result.collectAsState()
+    val result = state.result
     val soundPlayer = rememberSoundPlayer()
 
     LaunchedEffect(state.isAnswered) {
