@@ -3243,14 +3243,22 @@ private fun SentenceQuizScreen(
     }
 }
 
-private fun buildAnnotatedSentenceTemplate(template: String) = buildAnnotatedString {
-    val markers = setOf("①", "②", "③", "④")
+private fun buildAnnotatedSentenceTemplate(template: String, nextSlotIndex: Int = -1) = buildAnnotatedString {
+    val markerList = listOf("①", "②", "③", "④")
     val words = template.split(" ")
+    var markerCount = 0
     words.forEachIndexed { i, word ->
-        if (word in markers) {
-            withStyle(SpanStyle(color = AccentBlue, fontWeight = androidx.compose.ui.text.font.FontWeight.Black)) {
+        if (word in markerList) {
+            val isNext = markerCount == nextSlotIndex
+            val markerColor = if (isNext) Gold else AccentBlue
+            withStyle(SpanStyle(
+                color = markerColor,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
+                background = if (isNext) Gold.copy(alpha = 0.12f) else Color.Transparent
+            )) {
                 append(word)
             }
+            markerCount++
         } else {
             withStyle(SpanStyle(color = DeepBlue, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) {
                 append(word)
@@ -3308,7 +3316,8 @@ private fun SentenceQuizContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val annotated = buildAnnotatedSentenceTemplate(question.template)
+                    val nextSlot = if (state.isAnswered) -1 else state.selectedWords.size
+                    val annotated = buildAnnotatedSentenceTemplate(question.template, nextSlot)
                     Text(
                         annotated,
                         fontSize = 18.sp,
