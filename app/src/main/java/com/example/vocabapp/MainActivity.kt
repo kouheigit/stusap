@@ -623,7 +623,10 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
             item {
                 CardButton(
                     title = "文章問題",
-                    subtitle = "登録した英文から並べ替え問題を出題",
+                    subtitle = if (summary.sentenceCount > 0)
+                        "登録済み ${summary.sentenceCount}文 · 並べ替え問題を出題"
+                    else
+                        "登録した英文から並べ替え問題を出題",
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = { navController.navigate(Route.SentenceMenu) }
                 )
