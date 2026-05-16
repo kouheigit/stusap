@@ -3290,10 +3290,18 @@ private fun SentenceQuizContent(
                         lineHeight = 28.sp
                     )
                     if (state.isAnswered) {
+                        HorizontalDivider(color = TextMuted.copy(alpha = 0.15f))
                         val answerText = question.answers.joinToString("  ")
+                        val resultLabel = if (state.isCorrect == true) "✓ 正解" else "✗ 不正解"
+                        Text(
+                            resultLabel,
+                            color = if (state.isCorrect == true) Success else Danger,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                         Text(
                             "正解: $answerText",
-                            color = if (state.isCorrect == true) Success else Danger,
+                            color = TextDark,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
