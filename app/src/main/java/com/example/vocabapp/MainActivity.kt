@@ -3058,12 +3058,19 @@ private fun AddSentenceScreen(
                     colors = CardDefaults.cardColors(containerColor = Success),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        "登録しました",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    Row(
+                        Modifier.padding(16.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("登録しました", color = Color.White, fontWeight = FontWeight.Bold)
+                        TextButton(
+                            onClick = { navController.navigate(Route.CustomSentenceList) },
+                            colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                        ) {
+                            Text("一覧へ", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
                 }
             }
             Card(
