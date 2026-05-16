@@ -3117,7 +3117,28 @@ private fun CustomSentenceListScreen(
                 }
             }
             if (sentences.isEmpty()) {
-                item { EmptyCard("登録済みの文章はまだありません") }
+                item {
+                    Card(
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            Modifier.padding(24.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Info,
+                                contentDescription = null,
+                                tint = AccentBlue.copy(alpha = 0.5f),
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Text("登録済みの文章はまだありません", color = TextMuted, fontSize = 15.sp)
+                            Text("上のボタンから英文を追加してください", color = TextMuted, fontSize = 13.sp)
+                        }
+                    }
+                }
             } else {
                 itemsIndexed(sentences) { idx, s ->
                     SentenceRow(index = idx + 1, sentence = s, onDelete = { viewModel.delete(s.id) })
