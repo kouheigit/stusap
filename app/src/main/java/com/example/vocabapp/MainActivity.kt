@@ -1017,20 +1017,43 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                     Text("バージョン 1.9.0", color = TextMuted, fontSize = 13.sp)
                 }
             }
-            OutlinedButton(onClick = { showDeleteCustomDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
-                Spacer(Modifier.width(8.dp))
-                Text("カスタム単語を全削除", color = Danger)
-            }
-            OutlinedButton(onClick = { showDeleteSentenceDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
-                Spacer(Modifier.width(8.dp))
-                Text("カスタム文章を全削除", color = Danger)
-            }
-            OutlinedButton(onClick = { showResetDialog = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) {
-                Icon(Icons.Default.Refresh, contentDescription = null, tint = Danger)
-                Spacer(Modifier.width(8.dp))
-                Text("学習進捗をリセット", color = Danger)
+            Text("データ管理", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(4.dp)) {
+                    OutlinedButton(
+                        onClick = { showDeleteCustomDialog = true },
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        border = null
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
+                        Spacer(Modifier.width(8.dp))
+                        Text("カスタム単語を全削除", color = Danger, modifier = Modifier.weight(1f))
+                    }
+                    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = TextMuted.copy(alpha = 0.1f))
+                    OutlinedButton(
+                        onClick = { showDeleteSentenceDialog = true },
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        border = null
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
+                        Spacer(Modifier.width(8.dp))
+                        Text("カスタム文章を全削除", color = Danger, modifier = Modifier.weight(1f))
+                    }
+                    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = TextMuted.copy(alpha = 0.1f))
+                    OutlinedButton(
+                        onClick = { showResetDialog = true },
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        border = null
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = Danger)
+                        Spacer(Modifier.width(8.dp))
+                        Text("学習進捗をリセット", color = Danger, modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
