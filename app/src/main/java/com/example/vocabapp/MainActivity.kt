@@ -63,6 +63,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -3489,6 +3490,24 @@ private fun SentenceResultContent(
                                 Text("問題数", color = TextMuted, fontSize = 13.sp)
                                 Text("${result.totalQuestions}", color = TextDark, fontSize = 28.sp, fontWeight = FontWeight.Black)
                             }
+                        }
+                        HorizontalDivider(color = TextMuted.copy(alpha = 0.15f))
+                        val mins = result.studySeconds / 60
+                        val secs = result.studySeconds % 60
+                        val timeStr = if (mins > 0) "${mins}分${secs}秒" else "${secs}秒"
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = TextMuted,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("学習時間: $timeStr", color = TextMuted, fontSize = 13.sp)
                         }
                     }
                 }
