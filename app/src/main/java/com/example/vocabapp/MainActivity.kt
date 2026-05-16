@@ -1014,7 +1014,7 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                     }
                     Text("TOEIC向け英単語・英熟語を、10問単位の4択クイズで学習するローカル保存型アプリです。", color = TextMuted)
                     Text("英単語 100語（Lesson 1〜4） / 英熟語 30語（Lesson 1）", color = TextMuted, fontSize = 13.sp)
-                    Text("バージョン 1.9.0", color = TextMuted, fontSize = 13.sp)
+                    Text("バージョン 1.9.1", color = TextMuted, fontSize = 13.sp)
                 }
             }
             Text("データ管理", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
