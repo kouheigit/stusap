@@ -3337,7 +3337,14 @@ private fun SentenceQuizContent(
                 color = AccentBlue,
                 trackColor = Color.White
             )
-            Text("並べ替えて文を完成させよう", color = TextDark, fontSize = 15.sp)
+            Text(
+                if (state.isAnswered) "答え合わせ" else "並べ替えて文を完成させよう",
+                color = if (state.isAnswered) {
+                    if (state.isCorrect == true) Success else Danger
+                } else TextDark,
+                fontSize = 15.sp,
+                fontWeight = if (state.isAnswered) FontWeight.Bold else FontWeight.Normal
+            )
             Card(
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
