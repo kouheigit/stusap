@@ -3275,13 +3275,19 @@ private fun SentenceQuizScreen(
     BlueScaffold(title = "文章問題", onBack = { navController.popBackStack() }) { inner ->
         when {
             state.questions.isEmpty() && state.startedAt == 0L ->
-                Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                Box(Modifier.fillMaxSize().padding(inner).background(SoftBlue), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CircularProgressIndicator(color = AccentBlue)
+                        Text("問題を準備中...", color = TextMuted, fontSize = 14.sp)
+                    }
                 }
             state.questions.isEmpty() ->
                 EmptyMessage(
                     modifier = Modifier.padding(inner).background(BrightBlue),
-                    title = "文章問題には6語以上の英文を登録してください\n（[語句]形式は4語必要）",
+                    title = "出題できる文章がありません\n\n6語以上の英文、または\n[語句]形式で4つの語句を\n含む英文を登録してください",
                     button = "戻る",
                     onClick = { navController.popBackStack() }
                 )
