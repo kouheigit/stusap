@@ -962,7 +962,8 @@ class VocabRepository @Inject constructor(
         val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
         if (rawWords.size < 6) return null
         val maxStart = rawWords.size - 4
-        val start = if (maxStart > 1) (1..maxStart).random() else 0
+        val minStart = if (rawWords.size >= 7) 1 else 0
+        val start = if (maxStart > minStart) (minStart..maxStart).random() else minStart.coerceAtMost(maxStart)
         val answerSlice = rawWords.subList(start, start + 4)
         val answers = answerSlice.map { it.trimEnd('.', ',', '!', '?', ';', ':') }
         val markers = listOf("①", "②", "③", "④")
