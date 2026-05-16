@@ -3547,6 +3547,19 @@ private fun SentenceResultContent(
                             trackColor = Color(0xFFDDE5EC)
                         )
                         Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(3) { idx ->
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = if (idx < result.starCount) Gold else TextMuted.copy(alpha = 0.3f),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+                        Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
