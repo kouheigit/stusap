@@ -3439,12 +3439,22 @@ private fun SentenceQuizContent(
                 }
             }
             if (!state.isAnswered) {
+                val lastWord = state.selectedWords.lastOrNull()
                 OutlinedButton(
                     onClick = onUndo,
-                    enabled = state.selectedWords.isNotEmpty(),
+                    enabled = lastWord != null,
                     modifier = Modifier.fillMaxWidth().height(46.dp)
                 ) {
-                    Text("← もどす", fontWeight = FontWeight.Bold)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        if (lastWord != null) "「$lastWord」をもどす" else "もどす",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             } else {
                 Button(
