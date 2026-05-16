@@ -3317,22 +3317,36 @@ private fun SentenceQuizContent(
                 val markers = listOf("①", "②", "③", "④")
                 markers.forEachIndexed { i, marker ->
                     val filledWord = state.selectedWords.getOrNull(i)
+                    val isAnsweredCorrect = state.isAnswered && filledWord == question.answers.getOrNull(i)
+                    val isAnsweredWrong = state.isAnswered && filledWord != null && !isAnsweredCorrect
                     val bgColor = when {
                         filledWord == null -> Color.White.copy(alpha = 0.5f)
-                        state.isAnswered && filledWord == question.answers.getOrNull(i) -> Success.copy(alpha = 0.15f)
-                        state.isAnswered -> Danger.copy(alpha = 0.15f)
+                        isAnsweredCorrect -> Success.copy(alpha = 0.15f)
+                        isAnsweredWrong -> Danger.copy(alpha = 0.15f)
                         else -> Color.White
+                    }
+                    val borderColor = when {
+                        isAnsweredCorrect -> Success
+                        isAnsweredWrong -> Danger
+                        filledWord != null -> AccentBlue.copy(alpha = 0.5f)
+                        else -> Color.Transparent
                     }
                     Card(
                         shape = RoundedCornerShape(6.dp),
                         colors = CardDefaults.cardColors(containerColor = bgColor),
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, borderColor),
                         modifier = Modifier.weight(1f)
                     ) {
                         Column(
                             Modifier.padding(8.dp).fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(marker, color = TextMuted, fontSize = 11.sp)
+                            Text(
+                                marker,
+                                color = if (filledWord != null) AccentBlue else TextMuted,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                             Text(
                                 filledWord ?: "—",
                                 color = if (filledWord != null) DeepBlue else TextMuted,
