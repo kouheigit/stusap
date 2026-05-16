@@ -3610,18 +3610,30 @@ private fun SentenceResultContent(
                             color = Teal,
                             trackColor = Color(0xFFDDE5EC)
                         )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            repeat(3) { idx ->
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = if (idx < result.starCount) Gold else TextMuted.copy(alpha = 0.3f),
-                                    modifier = Modifier.size(28.dp)
-                                )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                repeat(3) { idx ->
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = null,
+                                        tint = if (idx < result.starCount) Gold else TextMuted.copy(alpha = 0.3f),
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
                             }
+                            val rankLabel = when (result.starCount) {
+                                3 -> "Excellent!"
+                                2 -> "Good!"
+                                1 -> "Keep trying!"
+                                else -> "Practice more"
+                            }
+                            Text(rankLabel, color = if (result.starCount >= 2) Success else TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Row(
                             Modifier.fillMaxWidth(),
