@@ -77,6 +77,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -3079,6 +3080,24 @@ private fun CustomSentenceListScreen(
 
 @Composable
 private fun SentenceRow(index: Int, sentence: CustomSentenceEntity, onDelete: () -> Unit) {
+    var showConfirm by remember { mutableStateOf(false) }
+
+    if (showConfirm) {
+        AlertDialog(
+            onDismissRequest = { showConfirm = false },
+            title = { Text("文章を削除") },
+            text = { Text("この文章を削除しますか？") },
+            confirmButton = {
+                TextButton(onClick = { showConfirm = false; onDelete() }) {
+                    Text("削除", color = Danger, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirm = false }) { Text("キャンセル") }
+            }
+        )
+    }
+
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -3112,7 +3131,7 @@ private fun SentenceRow(index: Int, sentence: CustomSentenceEntity, onDelete: ()
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = { showConfirm = true }) {
                 Icon(Icons.Default.Delete, contentDescription = "削除", tint = Danger)
             }
         }
