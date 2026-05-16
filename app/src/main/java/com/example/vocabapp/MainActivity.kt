@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
@@ -3068,8 +3069,8 @@ private fun CustomSentenceListScreen(
             if (sentences.isEmpty()) {
                 item { EmptyCard("登録済みの文章はまだありません") }
             } else {
-                items(sentences) { s ->
-                    SentenceRow(sentence = s, onDelete = { viewModel.delete(s.id) })
+                itemsIndexed(sentences) { idx, s ->
+                    SentenceRow(index = idx + 1, sentence = s, onDelete = { viewModel.delete(s.id) })
                 }
             }
         }
@@ -3077,7 +3078,7 @@ private fun CustomSentenceListScreen(
 }
 
 @Composable
-private fun SentenceRow(sentence: CustomSentenceEntity, onDelete: () -> Unit) {
+private fun SentenceRow(index: Int, sentence: CustomSentenceEntity, onDelete: () -> Unit) {
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -3087,6 +3088,13 @@ private fun SentenceRow(sentence: CustomSentenceEntity, onDelete: () -> Unit) {
             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                "$index",
+                color = AccentBlue,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.width(28.dp)
+            )
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     sentence.sentence,
