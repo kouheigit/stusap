@@ -3286,7 +3286,7 @@ private fun SentenceQuizContent(
                                 word,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color.White else Color.White
+                                color = Color.White
                             )
                         }
                     }
