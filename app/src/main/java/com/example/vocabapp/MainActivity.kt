@@ -3237,11 +3237,22 @@ private fun SentenceQuizContent(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                "${state.currentIndex + 1} / ${state.questions.size}",
-                color = TextDark,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "問題 ${state.currentIndex + 1} / ${state.questions.size}",
+                    color = TextDark,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("○ ${state.correctCount}", color = Success, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("✗ ${state.wrongCount}", color = Danger, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
             LinearProgressIndicator(
                 progress = { (state.currentIndex + 1) / state.questions.size.toFloat() },
                 modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
