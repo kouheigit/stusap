@@ -2899,6 +2899,31 @@ private fun SentenceMenuScreen(
                     )
                 }
             }
+            if (sentences.isNotEmpty()) {
+                item {
+                    Card(
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            Modifier.padding(16.dp).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("登録文章", color = TextMuted, fontSize = 12.sp)
+                                Text("${sentences.size}", color = DeepBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                                Text("文", color = TextMuted, fontSize = 11.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("出題可能", color = TextMuted, fontSize = 12.sp)
+                                Text("${sentences.size}", color = AccentBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                                Text("問", color = TextMuted, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
+            }
             item {
                 SectionTitle("文章問題について")
             }
