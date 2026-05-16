@@ -2997,9 +2997,25 @@ private fun AddSentenceScreen(
                             onImeAction = { viewModel.save(sentence, meaning) }
                         )
                     }
+                    val wordCount2 = sentence.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }.size
+                    val bracketCount2 = "\\[([^\\]]+)\\]".toRegex().findAll(sentence).count()
+                    val isValidSentence = sentence.isNotBlank() && (
+                        (bracketCount2 == 0 && wordCount2 >= 6) ||
+                        bracketCount2 == 4
+                    )
+                    val validationMsg = when {
+                        sentence.isBlank() -> null
+                        bracketCount2 > 0 && bracketCount2 < 4 -> "[語句]は4つ必要です（現在${bracketCount2}つ）"
+                        bracketCount2 > 4 -> "[語句]は4つまでにしてください"
+                        bracketCount2 == 0 && wordCount2 < 6 -> "6語以上の英文が必要です（現在${wordCount2}語）"
+                        else -> null
+                    }
+                    if (validationMsg != null) {
+                        Text(validationMsg, color = Danger, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
                     Button(
                         onClick = { viewModel.save(sentence, meaning) },
-                        enabled = sentence.isNotBlank() && meaning.isNotBlank(),
+                        enabled = isValidSentence && meaning.isNotBlank(),
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
                         shape = RoundedCornerShape(8.dp)
