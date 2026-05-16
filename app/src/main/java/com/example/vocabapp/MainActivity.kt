@@ -577,7 +577,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     StatCard("文章登録", "${summary.sentenceCount}文", Modifier.weight(1f))
-                    Spacer(Modifier.weight(1f))
+                    StatCard("今週学習", "${summary.weekStudySeconds / 60}分", Modifier.weight(1f))
                 }
             }
             item {
