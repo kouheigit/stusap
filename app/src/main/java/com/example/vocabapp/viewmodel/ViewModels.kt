@@ -54,8 +54,11 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch { repository.resetLearningData() }
     }
 
-    fun deleteAllCustomWords() {
-        viewModelScope.launch { repository.deleteAllCustomWords() }
+    fun deleteAllCustomWordsAndIdioms() {
+        viewModelScope.launch {
+            repository.deleteAllCustomWords()
+            repository.deleteAllCustomIdioms()
+        }
     }
 
     fun deleteAllCustomSentences() {

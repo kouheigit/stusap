@@ -575,10 +575,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
                     StatCard("連続学習", "${summary.streakDays}日", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatCard("文章登録", "${summary.sentenceCount}文", Modifier.weight(1f))
-                    StatCard("今週学習", "${summary.weekStudySeconds / 60}分", Modifier.weight(1f))
-                }
+                StatCard("文章登録", "${summary.sentenceCount}文", Modifier.fillMaxWidth())
             }
             item {
                 CardButton(
@@ -946,14 +943,20 @@ private fun StudyLogScreen(navController: NavHostController, viewModel: StudyLog
 @Composable
 private fun SettingsScreen(navController: NavHostController, viewModel: MainViewModel = hiltViewModel()) {
     var showResetDialog by remember { mutableStateOf(false) }
-    var showDeleteCustomDialog by remember { mutableStateOf(false) }
+    var showDeleteCustomWordsDialog by remember { mutableStateOf(false) }
     var showDeleteSentenceDialog by remember { mutableStateOf(false) }
 
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = { Text("学習進捗をリセット") },
-            text = { Text("すべての学習進捗・クイズ履歴・復習リストを削除します。\nこの操作は元に戻せません。") },
+            text = {
+                Text(
+                    "すべての学習進捗・クイズ履歴・復習リストを削除します。\n" +
+                        "カスタム単語・熟語・文章は削除されません。\n" +
+                        "この操作は元に戻せません。"
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = { viewModel.resetProgress(); showResetDialog = false },
@@ -966,19 +969,22 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
         )
     }
 
-    if (showDeleteCustomDialog) {
+    if (showDeleteCustomWordsDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteCustomDialog = false },
-            title = { Text("カスタム単語を全削除") },
-            text = { Text("登録したすべてのカスタム単語を削除します。\nこの操作は元に戻せません。") },
+            onDismissRequest = { showDeleteCustomWordsDialog = false },
+            title = { Text("カスタム単語・熟語を全削除") },
+            text = { Text("登録したすべてのカスタム単語・熟語を削除します。\nこの操作は元に戻せません。") },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.deleteAllCustomWords(); showDeleteCustomDialog = false },
+                    onClick = {
+                        viewModel.deleteAllCustomWordsAndIdioms()
+                        showDeleteCustomWordsDialog = false
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Danger)
                 ) { Text("削除") }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteCustomDialog = false }) { Text("キャンセル") }
+                OutlinedButton(onClick = { showDeleteCustomWordsDialog = false }) { Text("キャンセル") }
             }
         )
     }
@@ -1014,7 +1020,7 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                     }
                     Text("TOEIC向け英単語・英熟語を、10問単位の4択クイズで学習するローカル保存型アプリです。", color = TextMuted)
                     Text("英単語 100語（Lesson 1〜4） / 英熟語 30語（Lesson 1）", color = TextMuted, fontSize = 13.sp)
-                    Text("バージョン 1.9.1", color = TextMuted, fontSize = 13.sp)
+                    Text("バージョン 1.9.2", color = TextMuted, fontSize = 13.sp)
                 }
             }
             Text("データ管理", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -1025,13 +1031,13 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
             ) {
                 Column(Modifier.padding(4.dp)) {
                     OutlinedButton(
-                        onClick = { showDeleteCustomDialog = true },
+                        onClick = { showDeleteCustomWordsDialog = true },
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         border = null
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
                         Spacer(Modifier.width(8.dp))
-                        Text("カスタム単語を全削除", color = Danger, modifier = Modifier.weight(1f))
+                        Text("カスタム単語・熟語を全削除", color = Danger, modifier = Modifier.weight(1f))
                     }
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = TextMuted.copy(alpha = 0.1f))
                     OutlinedButton(

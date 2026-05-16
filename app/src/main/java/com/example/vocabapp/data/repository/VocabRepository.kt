@@ -30,12 +30,18 @@ import com.example.vocabapp.domain.model.WordImportPreview
 import com.example.vocabapp.domain.model.WordImportResult
 import com.example.vocabapp.domain.model.WordRelation
 import java.time.DayOfWeek
-import java.time.Instant
+import java.time.Duration
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -62,32 +68,34 @@ class VocabRepository @Inject constructor(
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun observeHomeSummary(): Flow<HomeSummary> {
-        val weekStart = Instant.now()
-            .atZone(ZoneId.systemDefault())
-            .with(DayOfWeek.MONDAY)
-            .toLocalDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-        val base = combine(
-            dao.observeTotalStudySeconds(),
-            dao.observeStudySecondsFrom(weekStart),
-            dao.observeLessons(),
-            dao.observeProgress(),
-            dao.observeActiveReviews()
-        ) { totalSeconds, weekSeconds, lessons, progress, reviews ->
-            val vocabLessons = lessons.filter { it.id < 100 }
-            val idiomLessons = lessons.filter { it.id >= 100 }
-            HomeSummary(
-                totalStudySeconds = totalSeconds,
-                weekStudySeconds = weekSeconds,
-                masteredLessons = progress.count { it.trainingId == null && it.isMastered && it.lessonId in 1..99 },
-                totalLessons = vocabLessons.size,
-                reviewCount = reviews.count { it.isActive },
-                idiomMasteredLessons = progress.count { it.trainingId == null && it.isMastered && it.lessonId >= 100 },
-                idiomTotalLessons = idiomLessons.size
-            )
+        val base = observeCurrentWeekStartMillis().flatMapLatest { weekStart ->
+            combine(
+                dao.observeTotalStudySeconds(),
+                dao.observeStudySecondsFrom(weekStart),
+                dao.observeLessons(),
+                dao.observeProgress(),
+                dao.observeActiveReviews()
+            ) { totalSeconds, weekSeconds, lessons, progress, reviews ->
+                val vocabLessons = lessons.filter { it.id < 100 }
+                val idiomLessons = lessons.filter { it.id >= 100 }
+                val vocabLessonIds = vocabLessons.mapTo(mutableSetOf()) { it.id }
+                val idiomLessonIds = idiomLessons.mapTo(mutableSetOf()) { it.id }
+                HomeSummary(
+                    totalStudySeconds = totalSeconds,
+                    weekStudySeconds = weekSeconds,
+                    masteredLessons = progress.count {
+                        it.trainingId == null && it.isMastered && it.lessonId in vocabLessonIds
+                    },
+                    totalLessons = vocabLessons.size,
+                    reviewCount = reviews.count { it.isActive },
+                    idiomMasteredLessons = progress.count {
+                        it.trainingId == null && it.isMastered && it.lessonId in idiomLessonIds
+                    },
+                    idiomTotalLessons = idiomLessons.size
+                )
+            }
         }
         val withStreak = combine(base, dao.observeStudyDays()) { summary, days ->
             summary.copy(streakDays = calculateStreak(days))
@@ -96,6 +104,25 @@ class VocabRepository @Inject constructor(
             summary.copy(sentenceCount = sentences.size)
         }
     }
+
+    private fun observeCurrentWeekStartMillis(
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): Flow<Long> = flow {
+        while (true) {
+            val now = ZonedDateTime.now(zoneId)
+            emit(weekStartMillis(now))
+            val nextDayStart = now.toLocalDate().plusDays(1).atStartOfDay(zoneId)
+            val delayMillis = Duration.between(now, nextDayStart).toMillis().coerceAtLeast(1_000L)
+            delay(delayMillis)
+        }
+    }.distinctUntilChanged()
+
+    private fun weekStartMillis(now: ZonedDateTime): Long =
+        now.with(DayOfWeek.MONDAY)
+            .toLocalDate()
+            .atStartOfDay(now.zone)
+            .toInstant()
+            .toEpochMilli()
 
     fun observeLessons(): Flow<List<Lesson>> = observeLessonsFiltered { it.id < 100 }
 
@@ -204,13 +231,57 @@ class VocabRepository @Inject constructor(
         }.shuffled()
     }
 
-    suspend fun buildReviewQuiz(): List<QuizQuestion> =
-        dao.getReviewQuizWords(10).map { word ->
-            QuizQuestion(
-                word = word.toDomain(),
-                choices = dao.getChoices(word.id).shuffled().map { it.toDomain() }
-            )
+    suspend fun buildReviewQuiz(): List<QuizQuestion> {
+        val words = dao.getReviewQuizWords(10)
+        return words.mapNotNull { word ->
+            val savedChoices = dao.getChoices(word.id).map { it.toDomain() }
+            val choices = savedChoices.ifEmpty { buildReviewFallbackChoices(word, words) }
+                .shuffled()
+                .mapIndexed { index, choice -> choice.copy(displayOrder = index) }
+            if (choices.isEmpty()) {
+                null
+            } else {
+                QuizQuestion(
+                    word = word.toDomain(),
+                    choices = choices
+                )
+            }
         }.shuffled()
+    }
+
+    private fun buildReviewFallbackChoices(
+        word: WordEntity,
+        reviewWords: List<WordEntity>
+    ): List<WordChoice> {
+        val correctMeaning = word.meaning.trim()
+        if (correctMeaning.isEmpty()) return emptyList()
+
+        val correct = WordChoice(
+            id = -1,
+            wordId = word.id,
+            choiceText = correctMeaning,
+            isCorrect = true,
+            displayOrder = 0
+        )
+        val wrongs = reviewWords
+            .filter { it.id != word.id }
+            .map { it.meaning.trim() }
+            .filter { it.isNotEmpty() && it != correctMeaning }
+            .distinct()
+            .shuffled()
+            .take(3)
+            .mapIndexed { index, meaning ->
+                WordChoice(
+                    id = -index - 2,
+                    wordId = word.id,
+                    choiceText = meaning,
+                    isCorrect = false,
+                    displayOrder = index + 1
+                )
+            }
+
+        return listOf(correct) + wrongs
+    }
 
     suspend fun getTrainingRange(trainingId: Int): String? =
         dao.getTraining(trainingId)?.let { "${it.wordStartNumber}〜${it.wordEndNumber}語" }
@@ -420,9 +491,10 @@ class VocabRepository @Inject constructor(
 
             val wordType = when {
                 rawType.isBlank() -> if (english.contains(Regex("\\s"))) "phrase" else "word"
-                rawType == "word" || rawType == "phrase" || rawType == "sentence" -> rawType
+                rawType == "word" || rawType == "sentence" -> rawType
+                rawType in CSV_IDIOM_TYPES -> "phrase"
                 else -> {
-                    errors += ImportErrorRow(rowNumber, "type は word / phrase / sentence のみ指定できます", row)
+                    errors += ImportErrorRow(rowNumber, "type は word / phrase / idiom / custom_idioms / sentence のみ指定できます", row)
                     return@forEachIndexed
                 }
             }
@@ -666,6 +738,20 @@ class VocabRepository @Inject constructor(
         }
         val lessonId = customLessonId(type)
         val trainingId = customTrainingId(type, setNumber)
+        val attemptId = dao.insertQuizAttempt(
+            QuizAttemptEntity(
+                trainingId = trainingId,
+                isReview = false,
+                startedAt = startedAt,
+                finishedAt = finishedAt,
+                totalQuestions = total,
+                correctCount = correct,
+                wrongCount = wrong,
+                accuracy = accuracy,
+                studySeconds = studySeconds,
+                starCount = starCount
+            )
+        )
         dao.insertStudyLog(
             StudyLogEntity(
                 studiedAt = finishedAt,
@@ -679,7 +765,7 @@ class VocabRepository @Inject constructor(
         updateTrainingProgress(lessonId, trainingId, accuracy, starCount, finishedAt)
         val questionMap = questions.associateBy { it.word.id }
         return QuizResult(
-            attemptId = -System.nanoTime(),
+            attemptId = attemptId,
             trainingId = trainingId,
             isReview = false,
             totalQuestions = total,
@@ -712,6 +798,20 @@ class VocabRepository @Inject constructor(
         }
         val lessonId = customLessonId(type)
         val trainingId = randomCustomTrainingId(type)
+        val attemptId = dao.insertQuizAttempt(
+            QuizAttemptEntity(
+                trainingId = trainingId,
+                isReview = false,
+                startedAt = startedAt,
+                finishedAt = finishedAt,
+                totalQuestions = total,
+                correctCount = correct,
+                wrongCount = wrong,
+                accuracy = accuracy,
+                studySeconds = studySeconds,
+                starCount = starCount
+            )
+        )
         dao.insertStudyLog(
             StudyLogEntity(
                 studiedAt = finishedAt,
@@ -724,7 +824,7 @@ class VocabRepository @Inject constructor(
         )
         val questionMap = questions.associateBy { it.word.id }
         return QuizResult(
-            attemptId = -System.nanoTime(),
+            attemptId = attemptId,
             trainingId = trainingId,
             isReview = false,
             totalQuestions = total,
@@ -1021,6 +1121,7 @@ class VocabRepository @Inject constructor(
     companion object {
         const val CUSTOM_TYPE_WORD = "word"
         const val CUSTOM_TYPE_IDIOM = "idiom"
+        private val CSV_IDIOM_TYPES = setOf("phrase", "idiom", "custom_idiom", "custom_idioms")
         private const val CUSTOM_WORD_LESSON_ID = -10_000
         private const val CUSTOM_IDIOM_LESSON_ID = -20_000
         const val CUSTOM_SENTENCE_LESSON_ID = -30_000
