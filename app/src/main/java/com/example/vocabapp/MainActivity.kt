@@ -2952,7 +2952,29 @@ private fun AddSentenceScreen(
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("英文", fontWeight = FontWeight.Bold, color = TextMuted)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("英文", fontWeight = FontWeight.Bold, color = TextMuted)
+                            val wordCount = sentence.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }.size
+                            val bracketCount = "\\[([^\\]]+)\\]".toRegex().findAll(sentence).count()
+                            val countLabel = when {
+                                bracketCount > 0 -> "[語句] $bracketCount / 4"
+                                sentence.isBlank() -> ""
+                                else -> "${wordCount}語"
+                            }
+                            val countColor = when {
+                                bracketCount > 0 && bracketCount < 4 -> Danger
+                                bracketCount == 4 -> Success
+                                wordCount in 1..5 && sentence.isNotBlank() -> Danger
+                                wordCount >= 6 -> Success
+                                else -> TextMuted
+                            }
+                            if (countLabel.isNotEmpty()) {
+                                Text(countLabel, fontSize = 12.sp, color = countColor, fontWeight = FontWeight.Bold)
+                            }
+                        }
                         AddWordField(
                             label = "",
                             placeholder = "例: I [might][stay][as][well] as join in a tour",
