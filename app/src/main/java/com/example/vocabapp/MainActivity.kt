@@ -2959,11 +2959,36 @@ private fun SentenceMenuScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("登録した英文から並べ替え問題を自動生成します", color = TextDark, fontSize = 15.sp)
-                        Text("・英文をそのまま入力→4語を自動で空白に", color = TextMuted, fontSize = 13.sp)
-                        Text("・[語句]形式で入力→その語句が問題に", color = TextMuted, fontSize = 13.sp)
-                        Text("例: I [might][stay][as][well] as join in a tour", color = TextMuted, fontSize = 12.sp)
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("登録した英文から並べ替え問題を自動生成します", color = TextDark, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        HorizontalDivider(color = TextMuted.copy(alpha = 0.15f))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Card(
+                                shape = RoundedCornerShape(6.dp),
+                                colors = CardDefaults.cardColors(containerColor = AccentBlue.copy(alpha = 0.1f)),
+                                modifier = Modifier.padding(top = 2.dp)
+                            ) {
+                                Text("A", color = AccentBlue, fontSize = 11.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("英文をそのまま入力（6語以上）", color = TextDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("→ 4語が自動で空白になります", color = TextMuted, fontSize = 12.sp)
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Card(
+                                shape = RoundedCornerShape(6.dp),
+                                colors = CardDefaults.cardColors(containerColor = Gold.copy(alpha = 0.15f)),
+                                modifier = Modifier.padding(top = 2.dp)
+                            ) {
+                                Text("B", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("[語句]で4つを囲んで入力", color = TextDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("→ その語句が並べ替え対象になります", color = TextMuted, fontSize = 12.sp)
+                                Text("例: I [might][stay][as][well] as join in a tour", color = AccentBlue, fontSize = 11.sp)
+                            }
+                        }
                     }
                 }
             }
