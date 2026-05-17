@@ -165,9 +165,7 @@ import androidx.compose.ui.draw.scale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
-import java.util.Locale
 import java.util.zip.ZipInputStream
-import org.xmlpull.v1.XmlPullParser
 
 internal val XLSX_TARGET_ENTRIES = setOf(
     "xl/sharedStrings.xml",
@@ -250,136 +248,6 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
     val sharedStrings = entries["xl/sharedStrings.xml"]?.let(::parseSharedStrings).orEmpty()
     debugImportLog("parseXlsxRows: sharedStrings.size=${sharedStrings.size}")
     return parseWorksheetRows(sheet, sharedStrings)
-}
-
-internal fun parseSharedStrings(bytes: ByteArray): List<String> {
-    debugImportLog("parseSharedStrings: parsing ${bytes.size} bytes")
-    val parser = newXmlParser(bytes)
-    val values = mutableListOf<String>()
-    var insideSi = false
-    var current = StringBuilder()
-
-    try {
-        while (parser.next() != XmlPullParser.END_DOCUMENT) {
-            when (parser.eventType) {
-                XmlPullParser.START_TAG -> {
-                    val tag = parser.name.substringAfterLast(':')
-                    if (tag == "si") {
-                        insideSi = true
-                        current = StringBuilder()
-                    }
-                }
-                XmlPullParser.TEXT -> if (insideSi) current.append(parser.text)
-                XmlPullParser.END_TAG -> {
-                    val tag = parser.name.substringAfterLast(':')
-                    if (tag == "si") {
-                        values += current.toString()
-                        insideSi = false
-                    }
-                }
-            }
-        }
-    } catch (e: Exception) {
-        errorImportLog("parseSharedStrings: parse error after ${values.size} entries: ${e.javaClass.simpleName}: ${e.message}")
-    }
-    debugImportLog("parseSharedStrings: parsed ${values.size} shared strings")
-    return values
-}
-
-internal fun parseWorksheetRows(bytes: ByteArray, sharedStrings: List<String>): List<List<String>> {
-    debugImportLog("parseWorksheetRows: parsing ${bytes.size} bytes, sharedStrings=${sharedStrings.size}")
-    val parser = newXmlParser(bytes)
-    val rows = mutableListOf<List<String>>()
-    var currentRow: MutableList<String>? = null
-    var cellReference = ""
-    var cellType = ""
-    var cellValue = StringBuilder()
-    var readingValue = false
-    var readingInlineText = false
-
-    try {
-        while (parser.next() != XmlPullParser.END_DOCUMENT) {
-            when (parser.eventType) {
-                XmlPullParser.START_TAG -> {
-                    val tag = parser.name.substringAfterLast(':')
-                    when (tag) {
-                        "row" -> currentRow = mutableListOf()
-                        "c" -> {
-                            cellReference = parser.getAttributeValue(null, "r").orEmpty()
-                            cellType = parser.getAttributeValue(null, "t").orEmpty()
-                            cellValue = StringBuilder()
-                        }
-                        "v" -> readingValue = true
-                        "t" -> if (cellType == "inlineStr") readingInlineText = true
-                    }
-                }
-                XmlPullParser.TEXT -> {
-                    if (readingValue || readingInlineText) cellValue.append(parser.text)
-                }
-                XmlPullParser.END_TAG -> {
-                    val tag = parser.name.substringAfterLast(':')
-                    when (tag) {
-                        "v" -> readingValue = false
-                        "t" -> readingInlineText = false
-                        "c" -> {
-                            currentRow?.let { row ->
-                                val columnIndex = xlsxColumnIndex(cellReference)
-                                while (row.size < columnIndex) row += ""
-                                row += resolveXlsxCellValue(cellValue.toString(), cellType, sharedStrings)
-                            }
-                        }
-                        "row" -> {
-                            currentRow?.dropLastWhile { it.isBlank() }
-                                ?.takeIf { row -> row.any { it.isNotBlank() } }
-                                ?.let(rows::add)
-                            currentRow = null
-                        }
-                    }
-                }
-            }
-        }
-    } catch (e: Exception) {
-        errorImportLog("parseWorksheetRows: parse error after ${rows.size} rows: ${e.javaClass.simpleName}: ${e.message}")
-    }
-    debugImportLog("parseWorksheetRows: parsed ${rows.size} rows")
-    return rows
-}
-
-internal fun resolveXlsxCellValue(rawValue: String, type: String, sharedStrings: List<String>): String {
-    val resolved = when (type) {
-        "s" -> {
-            val idx = rawValue.toIntOrNull()
-            if (idx == null) {
-                warnImportLog("resolveXlsxCellValue: shared string index not an int: '$rawValue'")
-                ""
-            } else {
-                sharedStrings.getOrNull(idx).also {
-                    if (it == null) warnImportLog("resolveXlsxCellValue: shared string index $idx out of range (size=${sharedStrings.size})")
-                }.orEmpty()
-            }
-        }
-        "b" -> if (rawValue == "1") "TRUE" else "FALSE"
-        "e" -> ""
-        else -> rawValue
-    }.trim()
-    return resolved
-}
-
-internal fun xlsxColumnIndex(reference: String): Int {
-    if (reference.isBlank()) {
-        warnImportLog("xlsxColumnIndex: empty cell reference, defaulting to column 0")
-        return 0
-    }
-    var result = 0
-    val letters = reference.takeWhile { it.isLetter() }.uppercase(Locale.ROOT)
-    if (letters.isEmpty()) {
-        warnImportLog("xlsxColumnIndex: no letter prefix in reference '$reference', defaulting to column 0")
-        return 0
-    }
-    letters.forEach { char ->
-        result = result * 26 + (char - 'A' + 1)
-    }
-    return maxOf(result - 1, 0)
 }
 
 internal fun List<List<String>>.toCsvText(): String {
