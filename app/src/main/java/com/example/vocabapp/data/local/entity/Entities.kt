@@ -65,7 +65,9 @@ data class WordEntity(
     val exampleTranslation: String,
     val audioUrl: String?,
     val exampleAudioUrl: String?,
-    val displayOrder: Int
+    val displayOrder: Int,
+    @ColumnInfo(defaultValue = "0") val isFavorite: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val isLearned: Boolean = false
 )
 
 @Entity(
@@ -130,12 +132,6 @@ data class QuizAttemptEntity(
             parentColumns = ["id"],
             childColumns = ["quizAttemptId"],
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = WordEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["wordId"],
-            onDelete = ForeignKey.CASCADE
         )
     ],
     indices = [Index("quizAttemptId"), Index("wordId")]
@@ -148,7 +144,17 @@ data class QuizAttemptAnswerEntity(
     val isCorrect: Boolean,
     val answeredAt: Long,
     val responseMillis: Int,
-    val selectedUnknown: Boolean
+    val selectedUnknown: Boolean,
+    @ColumnInfo(defaultValue = "0") val wordTrainingId: Int = 0,
+    @ColumnInfo(defaultValue = "") val wordEnglish: String = "",
+    @ColumnInfo(defaultValue = "") val wordMeaning: String = "",
+    @ColumnInfo(defaultValue = "") val wordPhonetic: String = "",
+    @ColumnInfo(defaultValue = "") val wordPartOfSpeech: String = "",
+    @ColumnInfo(defaultValue = "") val wordExampleSentence: String = "",
+    @ColumnInfo(defaultValue = "") val wordExampleTranslation: String = "",
+    val wordAudioUrl: String? = null,
+    val wordExampleAudioUrl: String? = null,
+    @ColumnInfo(defaultValue = "0") val wordDisplayOrder: Int = 0
 )
 
 @Entity(
@@ -209,7 +215,9 @@ data class CustomWordEntity(
     val addedAt: Long,
     @androidx.room.ColumnInfo(defaultValue = "") val exampleSentence: String = "",
     @androidx.room.ColumnInfo(defaultValue = "") val exampleTranslation: String = "",
-    @androidx.room.ColumnInfo(defaultValue = "word") val wordType: String = "word"
+    @androidx.room.ColumnInfo(defaultValue = "word") val wordType: String = "word",
+    @ColumnInfo(defaultValue = "0") val isFavorite: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val isLearned: Boolean = false
 )
 
 @Entity(tableName = "custom_idioms")
@@ -226,4 +234,11 @@ data class CustomSentenceEntity(
     val sentence: String,
     val meaning: String,
     val addedAt: Long
+)
+
+@Entity(tableName = "app_settings")
+data class AppSettingsEntity(
+    @PrimaryKey val id: Int = 1,
+    @ColumnInfo(name = "stockalert_threshold", defaultValue = "0") val stockAlertThreshold: Int = 0,
+    @ColumnInfo(name = "is_active", defaultValue = "1") val isActive: Boolean = true
 )

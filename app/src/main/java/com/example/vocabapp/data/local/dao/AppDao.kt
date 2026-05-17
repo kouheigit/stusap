@@ -106,6 +106,12 @@ interface AppDao {
     @Query("SELECT * FROM words WHERE id = :wordId")
     fun observeWord(wordId: Int): Flow<WordEntity?>
 
+    @Query("UPDATE words SET isFavorite = :isFavorite WHERE id = :wordId")
+    suspend fun setWordFavorite(wordId: Int, isFavorite: Boolean)
+
+    @Query("UPDATE words SET isLearned = :isLearned WHERE id = :wordId")
+    suspend fun setWordLearned(wordId: Int, isLearned: Boolean)
+
     @Query("SELECT * FROM word_choices WHERE wordId = :wordId ORDER BY displayOrder")
     suspend fun getChoices(wordId: Int): List<WordChoiceEntity>
 
@@ -202,6 +208,12 @@ interface AppDao {
     @Query("SELECT * FROM custom_words ORDER BY addedAt DESC")
     fun observeCustomWords(): Flow<List<CustomWordEntity>>
 
+    @Query("UPDATE custom_words SET isFavorite = :isFavorite WHERE id = :id")
+    suspend fun setCustomWordFavorite(id: Int, isFavorite: Boolean)
+
+    @Query("UPDATE custom_words SET isLearned = :isLearned WHERE id = :id")
+    suspend fun setCustomWordLearned(id: Int, isLearned: Boolean)
+
     @Query("SELECT * FROM custom_words ORDER BY RANDOM()")
     suspend fun getAllCustomWords(): List<CustomWordEntity>
 
@@ -277,13 +289,8 @@ interface AppDao {
         deleteAllCustomIdioms()
     }
 
-    @Query("""
-        SELECT w.* FROM words w
-        INNER JOIN quiz_attempt_answers qaa ON qaa.wordId = w.id
-        WHERE qaa.quizAttemptId = :attemptId AND qaa.isCorrect = 0
-        ORDER BY qaa.answeredAt
-    """)
-    suspend fun getWrongWordsForAttempt(attemptId: Long): List<WordEntity>
+    @Query("SELECT * FROM quiz_attempt_answers WHERE quizAttemptId = :attemptId AND isCorrect = 0 ORDER BY answeredAt")
+    suspend fun getWrongAnswersForAttempt(attemptId: Long): List<QuizAttemptAnswerEntity>
 
     @Transaction
     suspend fun resetLearningData() {

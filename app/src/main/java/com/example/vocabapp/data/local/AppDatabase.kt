@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.entity.AppSettingsEntity
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
@@ -33,9 +34,10 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         QuizAttemptAnswerEntity::class,
         ReviewWordEntity::class,
         StudyLogEntity::class,
-        UserProgressEntity::class
+        UserProgressEntity::class,
+        AppSettingsEntity::class
     ],
-    version = 8,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -85,13 +87,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("DELETE FROM word_choices")
-                db.execSQL("DELETE FROM word_relations")
-                db.execSQL("DELETE FROM quiz_attempt_answers")
-                db.execSQL("DELETE FROM review_words")
-                db.execSQL("DELETE FROM words")
-                db.execSQL("DELETE FROM trainings")
-                db.execSQL("DELETE FROM lessons")
+                // Keep user learning history intact. Seed refreshes must not delete progress-linked data.
             }
         }
         val MIGRATION_7_8 = object : Migration(7, 8) {
@@ -104,6 +100,70 @@ abstract class AppDatabase : RoomDatabase() {
                         `addedAt` INTEGER NOT NULL
                     )
                 """)
+            }
+        }
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `app_settings` (
+                        `id` INTEGER NOT NULL,
+                        `stockalert_threshold` INTEGER NOT NULL DEFAULT 0,
+                        `is_active` INTEGER NOT NULL DEFAULT 1,
+                        PRIMARY KEY(`id`)
+                    )
+                """)
+            }
+        }
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE words ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE words ADD COLUMN isLearned INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE custom_words ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE custom_words ADD COLUMN isLearned INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `quiz_attempt_answers_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `quizAttemptId` INTEGER NOT NULL,
+                        `wordId` INTEGER NOT NULL,
+                        `selectedChoiceId` INTEGER,
+                        `isCorrect` INTEGER NOT NULL,
+                        `answeredAt` INTEGER NOT NULL,
+                        `responseMillis` INTEGER NOT NULL,
+                        `selectedUnknown` INTEGER NOT NULL,
+                        `wordTrainingId` INTEGER NOT NULL DEFAULT 0,
+                        `wordEnglish` TEXT NOT NULL DEFAULT '',
+                        `wordMeaning` TEXT NOT NULL DEFAULT '',
+                        `wordPhonetic` TEXT NOT NULL DEFAULT '',
+                        `wordPartOfSpeech` TEXT NOT NULL DEFAULT '',
+                        `wordExampleSentence` TEXT NOT NULL DEFAULT '',
+                        `wordExampleTranslation` TEXT NOT NULL DEFAULT '',
+                        `wordAudioUrl` TEXT,
+                        `wordExampleAudioUrl` TEXT,
+                        `wordDisplayOrder` INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY(`quizAttemptId`) REFERENCES `quiz_attempts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """)
+                db.execSQL("""
+                    INSERT INTO quiz_attempt_answers_new (
+                        id, quizAttemptId, wordId, selectedChoiceId, isCorrect, answeredAt,
+                        responseMillis, selectedUnknown, wordTrainingId, wordEnglish, wordMeaning,
+                        wordPhonetic, wordPartOfSpeech, wordExampleSentence, wordExampleTranslation,
+                        wordAudioUrl, wordExampleAudioUrl, wordDisplayOrder
+                    )
+                    SELECT
+                        qaa.id, qaa.quizAttemptId, qaa.wordId, qaa.selectedChoiceId, qaa.isCorrect,
+                        qaa.answeredAt, qaa.responseMillis, qaa.selectedUnknown,
+                        COALESCE(w.trainingId, 0), COALESCE(w.english, ''), COALESCE(w.meaning, ''),
+                        COALESCE(w.phonetic, ''), COALESCE(w.partOfSpeech, ''),
+                        COALESCE(w.exampleSentence, ''), COALESCE(w.exampleTranslation, ''),
+                        w.audioUrl, w.exampleAudioUrl, COALESCE(w.displayOrder, 0)
+                    FROM quiz_attempt_answers qaa
+                    LEFT JOIN words w ON w.id = qaa.wordId
+                """)
+                db.execSQL("DROP TABLE quiz_attempt_answers")
+                db.execSQL("ALTER TABLE quiz_attempt_answers_new RENAME TO quiz_attempt_answers")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_quiz_attempt_answers_quizAttemptId ON quiz_attempt_answers(quizAttemptId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_quiz_attempt_answers_wordId ON quiz_attempt_answers(wordId)")
             }
         }
     }

@@ -55,12 +55,15 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
@@ -71,12 +74,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -85,7 +90,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -111,6 +115,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -283,7 +288,7 @@ private data class Speaker(
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(null)
+        super.onCreate(savedInstanceState)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent { VocabTheme { AppNav() } }
     }
@@ -472,7 +477,7 @@ private fun rememberSpeaker(): Speaker {
 
 @Composable
 private fun HomeScreen(navController: NavHostController, viewModel: MainViewModel = hiltViewModel()) {
-    val summary by viewModel.summary.collectAsState()
+    val summary by viewModel.summary.collectAsStateWithLifecycle()
     BlueScaffold(
         title = "TOEIC Vocab Trainer",
         actions = {
@@ -580,7 +585,7 @@ private fun HomeScreen(navController: NavHostController, viewModel: MainViewMode
 
 @Composable
 private fun LessonListScreen(navController: NavHostController, viewModel: LessonListViewModel = hiltViewModel()) {
-    val lessons by viewModel.lessons.collectAsState()
+    val lessons by viewModel.lessons.collectAsStateWithLifecycle()
     BlueScaffold(title = "英単語", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
@@ -633,7 +638,7 @@ private fun LessonListScreen(navController: NavHostController, viewModel: Lesson
 
 @Composable
 private fun IdiomLessonListScreen(navController: NavHostController, viewModel: IdiomLessonListViewModel = hiltViewModel()) {
-    val lessons by viewModel.lessons.collectAsState()
+    val lessons by viewModel.lessons.collectAsStateWithLifecycle()
     val totalWords = lessons.sumOf { it.wordEndNumber - it.wordStartNumber + 1 }
     BlueScaffold(title = "英熟語", onBack = { navController.popBackStack() }) { inner ->
         if (lessons.isEmpty()) {
@@ -697,7 +702,7 @@ private fun IdiomLessonListScreen(navController: NavHostController, viewModel: I
 
 @Composable
 private fun TrainingListScreen(navController: NavHostController, viewModel: TrainingListViewModel = hiltViewModel()) {
-    val trainings by viewModel.trainings.collectAsState()
+    val trainings by viewModel.trainings.collectAsStateWithLifecycle()
     val isIdiom = viewModel.lessonId >= 100
     val screenTitle = if (isIdiom) "英熟語 トレーニング" else "トレーニング一覧"
     val sectionTitle = if (isIdiom) "英熟語 トレーニング一覧" else "トレーニング一覧"
@@ -722,7 +727,7 @@ private fun TrainingListScreen(navController: NavHostController, viewModel: Trai
 
 @Composable
 private fun QuizScreen(navController: NavHostController, viewModel: QuizViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.finishedAttemptId) {
         state.finishedAttemptId?.let {
             navController.navigate(Route.result(it)) {
@@ -746,15 +751,15 @@ private fun QuizScreen(navController: NavHostController, viewModel: QuizViewMode
 
 @Composable
 private fun ResultScreen(navController: NavHostController, viewModel: ResultViewModel = hiltViewModel()) {
-    val result by viewModel.result.collectAsState()
-    val trainingLabel by viewModel.trainingLabel.collectAsState()
+    val result by viewModel.result.collectAsStateWithLifecycle()
+    val trainingLabel by viewModel.trainingLabel.collectAsStateWithLifecycle()
     val title = trainingLabel ?: "クイズ結果"
     BlueScaffold(title = title, onBack = { navController.navigate(Route.Home) }) { inner ->
         result?.let {
             ResultContent(
                 result = it,
                 modifier = Modifier.padding(inner),
-                onRetry = { navController.navigate(Route.quiz(it.trainingId, it.isReview)) },
+                onRetry = { navController.navigate(retryRouteFor(it)) },
                 onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
                 onNext = { navController.navigate(Route.Lessons) }
             )
@@ -764,9 +769,20 @@ private fun ResultScreen(navController: NavHostController, viewModel: ResultView
     }
 }
 
+private fun retryRouteFor(result: QuizResult): String {
+    val trainingId = result.trainingId ?: return Route.quiz(isReview = result.isReview)
+    return when {
+        trainingId == -10_999 -> Route.randomCustomQuiz("word")
+        trainingId == -20_999 -> Route.randomCustomQuiz("idiom")
+        trainingId < -20_000 -> Route.customTrainingQuiz("idiom", -20_000 - trainingId)
+        trainingId < -10_000 -> Route.customTrainingQuiz("word", -10_000 - trainingId)
+        else -> Route.quiz(trainingId, result.isReview)
+    }
+}
+
 @Composable
 private fun ReviewScreen(navController: NavHostController, viewModel: ReviewViewModel = hiltViewModel()) {
-    val words by viewModel.words.collectAsState()
+    val words by viewModel.words.collectAsStateWithLifecycle()
     BlueScaffold(title = "復習", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
@@ -806,8 +822,8 @@ private fun ReviewScreen(navController: NavHostController, viewModel: ReviewView
 
 @Composable
 private fun WordDetailScreen(navController: NavHostController, viewModel: WordDetailViewModel = hiltViewModel()) {
-    val word by viewModel.word.collectAsState()
-    val relations by viewModel.relations.collectAsState()
+    val word by viewModel.word.collectAsStateWithLifecycle()
+    val relations by viewModel.relations.collectAsStateWithLifecycle()
     val speaker = rememberSpeaker()
     BlueScaffold(title = "単語詳細", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
@@ -831,6 +847,28 @@ private fun WordDetailScreen(navController: NavHostController, viewModel: WordDe
                                 Text("関連語", color = TextMuted, fontWeight = FontWeight.Bold)
                                 relations.forEach { rel -> Text("${rel.relatedWord}: ${rel.relatedMeaning}", color = TextDark) }
                             }
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                                OutlinedButton(
+                                    onClick = { viewModel.setFavorite(!it.isFavorite) },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        if (it.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                        contentDescription = null,
+                                        tint = if (it.isFavorite) Danger else BrightBlue
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(if (it.isFavorite) "お気に入り中" else "お気に入り")
+                                }
+                                OutlinedButton(
+                                    onClick = { viewModel.setLearned(!it.isLearned) },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = if (it.isLearned) Success else BrightBlue)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(if (it.isLearned) "学習済み" else "未学習")
+                                }
+                            }
                             Button(onClick = viewModel::addReview, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)) {
                                 Icon(Icons.Default.BookmarkBorder, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
@@ -846,7 +884,7 @@ private fun WordDetailScreen(navController: NavHostController, viewModel: WordDe
 
 @Composable
 private fun StudyLogScreen(navController: NavHostController, viewModel: StudyLogViewModel = hiltViewModel()) {
-    val logs by viewModel.logs.collectAsState()
+    val logs by viewModel.logs.collectAsStateWithLifecycle()
     BlueScaffold(title = "学習ログ", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
@@ -952,7 +990,7 @@ private fun SettingsScreen(navController: NavHostController, viewModel: MainView
                     }
                     Text("TOEIC向け英単語・英熟語を、10問単位の4択クイズで学習するローカル保存型アプリです。", color = TextMuted)
                     Text("英単語 100語（Lesson 1〜4） / 英熟語 30語（Lesson 1）", color = TextMuted, fontSize = 13.sp)
-                    Text("バージョン 1.9.2", color = TextMuted, fontSize = 13.sp)
+                    Text("バージョン ${BuildConfig.VERSION_NAME}", color = TextMuted, fontSize = 13.sp)
                 }
             }
             Text("データ管理", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -1122,7 +1160,7 @@ private fun CustomWordQuizResultContent(
 
 @Composable
 private fun CustomIdiomQuizScreen(navController: NavHostController, viewModel: CustomIdiomQuizViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     if (state.finishedAttemptId != null) {
         val total = state.questions.size.coerceAtLeast(1)
         BlueScaffold(title = "カスタム英熟語クイズ") { inner ->
@@ -1147,7 +1185,7 @@ private fun CustomIdiomQuizScreen(navController: NavHostController, viewModel: C
 
 @Composable
 private fun CustomWordQuizScreen(navController: NavHostController, viewModel: CustomWordQuizViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     if (state.finishedAttemptId != null) {
         val total = state.questions.size.coerceAtLeast(1)
         BlueScaffold(title = "カスタム単語クイズ") { inner ->
@@ -1172,9 +1210,9 @@ private fun CustomWordQuizScreen(navController: NavHostController, viewModel: Cu
 
 @Composable
 private fun FlashcardScreen(navController: NavHostController, viewModel: FlashcardViewModel = hiltViewModel()) {
-    val words by viewModel.words.collectAsState()
-    val index by viewModel.index.collectAsState()
-    val revealed by viewModel.revealed.collectAsState()
+    val words by viewModel.words.collectAsStateWithLifecycle()
+    val index by viewModel.index.collectAsStateWithLifecycle()
+    val revealed by viewModel.revealed.collectAsStateWithLifecycle()
     val speaker = rememberSpeaker()
     val word = words.getOrNull(index)
     val title = if (viewModel.trainingId >= 100) "英熟語帳" else "単語帳"
@@ -1256,24 +1294,67 @@ private fun FlashcardScreen(navController: NavHostController, viewModel: Flashca
 
 @Composable
 private fun CustomWordListScreen(navController: NavHostController, viewModel: CustomWordListViewModel = hiltViewModel()) {
-    val words by viewModel.words.collectAsState()
-    BlueScaffold(title = "登録単語一覧 (${words.size}語)", onBack = { navController.popBackStack() }) { inner ->
+    val words by viewModel.words.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
+    var filter by rememberSaveable { mutableStateOf(CustomWordFilter.All.name) }
+    val selectedFilter = CustomWordFilter.valueOf(filter)
+    val filteredWords = words.filter { word ->
+        val matchesQuery = query.isBlank() ||
+            word.english.contains(query, ignoreCase = true) ||
+            word.meaning.contains(query, ignoreCase = true)
+        val matchesFilter = when (selectedFilter) {
+            CustomWordFilter.All -> true
+            CustomWordFilter.Favorite -> word.isFavorite
+            CustomWordFilter.Learned -> word.isLearned
+            CustomWordFilter.Unlearned -> !word.isLearned
+        }
+        matchesQuery && matchesFilter
+    }
+    BlueScaffold(title = "登録単語一覧 (${filteredWords.size}/${words.size}語)", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            item {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    singleLine = true,
+                    label = { Text("単語・意味を検索") }
+                )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    CustomWordFilter.entries.forEach { item ->
+                        FilterChip(
+                            selected = selectedFilter == item,
+                            onClick = { filter = item.name },
+                            label = { Text(item.label) }
+                        )
+                    }
+                }
+            }
             if (words.isEmpty()) {
                 item { EmptyCard("登録された単語はありません\n「単語登録」から追加してください") }
+            } else if (filteredWords.isEmpty()) {
+                item { EmptyCard("条件に一致する単語はありません") }
             } else {
-                val chunks = words.chunked(10)
+                val chunks = filteredWords.chunked(10)
                 chunks.forEachIndexed { idx, chunk ->
                     val start = idx * 10 + 1
                     val end = start + chunk.size - 1
                     val preview = buildSectionPreview(chunk.map { it.english })
                     item(key = "word_header_$idx") { ListSectionHeader(start = start, end = end, preview = preview, showDivider = idx > 0) }
                     items(chunk, key = { it.id }) { word ->
-                        CustomWordRow(word = word, onDelete = { viewModel.delete(word.id) })
+                        CustomWordRow(
+                            word = word,
+                            onFavorite = { viewModel.setFavorite(word.id, !word.isFavorite) },
+                            onLearned = { viewModel.setLearned(word.id, !word.isLearned) },
+                            onDelete = { viewModel.delete(word.id) }
+                        )
                     }
                 }
             }
@@ -1281,9 +1362,16 @@ private fun CustomWordListScreen(navController: NavHostController, viewModel: Cu
     }
 }
 
+private enum class CustomWordFilter(val label: String) {
+    All("すべて"),
+    Favorite("お気に入り"),
+    Learned("学習済み"),
+    Unlearned("未学習")
+}
+
 @Composable
 private fun CustomIdiomListScreen(navController: NavHostController, viewModel: CustomIdiomListViewModel = hiltViewModel()) {
-    val idioms by viewModel.idioms.collectAsState()
+    val idioms by viewModel.idioms.collectAsStateWithLifecycle()
     BlueScaffold(title = "登録英熟語一覧 (${idioms.size}語)", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
@@ -1329,7 +1417,7 @@ private fun CustomIdiomRow(idiom: CustomIdiomEntity, onDelete: () -> Unit) {
 
 @Composable
 private fun AddIdiomScreen(navController: NavHostController, viewModel: AddIdiomViewModel = hiltViewModel()) {
-    val saved by viewModel.saved.collectAsState()
+    val saved by viewModel.saved.collectAsStateWithLifecycle()
     var english by rememberSaveable { mutableStateOf("") }
     var meaning by rememberSaveable { mutableStateOf("") }
     var meaningInput by remember { mutableStateOf<EditText?>(null) }
@@ -1377,7 +1465,7 @@ private fun AddIdiomScreen(navController: NavHostController, viewModel: AddIdiom
 
 @Composable
 private fun CustomTrainingListScreen(navController: NavHostController, viewModel: CustomTrainingListViewModel = hiltViewModel()) {
-    val trainings by viewModel.trainings.collectAsState()
+    val trainings by viewModel.trainings.collectAsStateWithLifecycle()
     val isIdiom = viewModel.type == "idiom"
     val title = if (isIdiom) "カスタム英熟語" else "カスタム英単語"
     val listRoute = if (isIdiom) Route.CustomIdiomList else Route.CustomWordList
@@ -1439,7 +1527,7 @@ private fun CustomTrainingBlockScreen(
     blockNumber: Int,
     viewModel: CustomTrainingListViewModel = hiltViewModel()
 ) {
-    val trainings by viewModel.trainings.collectAsState()
+    val trainings by viewModel.trainings.collectAsStateWithLifecycle()
     val isIdiom = viewModel.type == "idiom"
     val titlePrefix = if (isIdiom) "カスタム英熟語" else "カスタム英単語"
     val listRoute = if (isIdiom) Route.CustomIdiomList else Route.CustomWordList
@@ -1473,38 +1561,27 @@ private fun CustomTrainingBlockScreen(
 
 @Composable
 private fun CustomTrainingQuizScreen(navController: NavHostController, viewModel: CustomTrainingQuizViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
-    val result by viewModel.result.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val isIdiom = viewModel.type == "idiom"
     val startQuestion = (viewModel.setNumber - 1).coerceAtLeast(0) * 10 + 1
     val endQuestion = viewModel.setNumber * 10
     val title = if (isIdiom) "カスタム英熟語 $startQuestion~${endQuestion}問" else "カスタム英単語 $startQuestion~${endQuestion}問"
-    val listRoute = Route.customTrainingBlock(viewModel.type, ((viewModel.setNumber - 1).coerceAtLeast(0) / 10) + 1)
-    if (state.finishedAttemptId != null && result != null) {
-        BlueScaffold(title = title) { inner ->
-            ResultContent(
-                result = result!!,
-                modifier = Modifier.padding(inner),
-                onRetry = {
-                    navController.navigate(Route.customTrainingQuiz(viewModel.type, viewModel.setNumber)) {
-                        popUpTo(Route.customTrainingQuiz(viewModel.type, viewModel.setNumber)) { inclusive = true }
-                    }
-                },
-                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
-                onNext = { navController.navigate(listRoute) { popUpTo(listRoute) { inclusive = true } } }
-            )
-        }
-    } else {
-        BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
-            when {
-                state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                state.questions.isEmpty() -> EmptyMessage(
-                    Modifier.padding(inner).background(BrightBlue),
-                    "クイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
-                    "戻る"
-                ) { navController.popBackStack() }
-                else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
+    LaunchedEffect(state.finishedAttemptId) {
+        state.finishedAttemptId?.let {
+            navController.navigate(Route.result(it)) {
+                popUpTo(Route.Home)
             }
+        }
+    }
+    BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
+        when {
+            state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            state.questions.isEmpty() -> EmptyMessage(
+                Modifier.padding(inner).background(BrightBlue),
+                "クイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
+                "戻る"
+            ) { navController.popBackStack() }
+            else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
         }
     }
 }
@@ -1540,35 +1617,25 @@ private fun RandomCustomMenuScreen(navController: NavHostController) {
 
 @Composable
 private fun RandomCustomQuizScreen(navController: NavHostController, viewModel: RandomCustomQuizViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
-    val result by viewModel.result.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val isIdiom = viewModel.type == "idiom"
     val title = if (isIdiom) "ランダム英熟語" else "ランダム英単語"
-    if (state.finishedAttemptId != null && result != null) {
-        BlueScaffold(title = title) { inner ->
-            ResultContent(
-                result = result!!,
-                modifier = Modifier.padding(inner),
-                onRetry = {
-                    navController.navigate(Route.randomCustomQuiz(viewModel.type)) {
-                        popUpTo(Route.randomCustomQuiz(viewModel.type)) { inclusive = true }
-                    }
-                },
-                onHome = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
-                onNext = { navController.navigate(Route.RandomCustomMenu) { popUpTo(Route.RandomCustomMenu) { inclusive = true } } }
-            )
-        }
-    } else {
-        BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
-            when {
-                state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                state.questions.isEmpty() -> EmptyMessage(
-                    Modifier.padding(inner).background(BrightBlue),
-                    "ランダムクイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
-                    "戻る"
-                ) { navController.popBackStack() }
-                else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
+    LaunchedEffect(state.finishedAttemptId) {
+        state.finishedAttemptId?.let {
+            navController.navigate(Route.result(it)) {
+                popUpTo(Route.Home)
             }
+        }
+    }
+    BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
+        when {
+            state.startedAt == 0L -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            state.questions.isEmpty() -> EmptyMessage(
+                Modifier.padding(inner).background(BrightBlue),
+                "ランダムクイズには4つ以上の${if (isIdiom) "英熟語" else "単語"}を登録してください",
+                "戻る"
+            ) { navController.popBackStack() }
+            else -> QuizContent(Modifier.padding(inner), state, viewModel::submit)
         }
     }
 }
@@ -1608,7 +1675,12 @@ private fun ListSectionHeader(start: Int, end: Int, preview: String = "", showDi
 }
 
 @Composable
-private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
+private fun CustomWordRow(
+    word: CustomWordEntity,
+    onFavorite: () -> Unit,
+    onLearned: () -> Unit,
+    onDelete: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -1618,6 +1690,20 @@ private fun CustomWordRow(word: CustomWordEntity, onDelete: () -> Unit) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(word.english, color = DeepBlue, fontSize = 20.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(word.meaning, color = TextMuted, fontSize = 15.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+            IconButton(onClick = onFavorite) {
+                Icon(
+                    if (word.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "お気に入り",
+                    tint = if (word.isFavorite) Danger else TextMuted
+                )
+            }
+            IconButton(onClick = onLearned) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = "学習済み",
+                    tint = if (word.isLearned) Success else TextMuted
+                )
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "削除", tint = Danger)
@@ -2041,10 +2127,10 @@ private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
 @Composable
 private fun WordImportScreen(navController: NavHostController, viewModel: WordImportViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val preview by viewModel.preview.collectAsState()
-    val result by viewModel.result.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val message by viewModel.message.collectAsState()
+    val preview by viewModel.preview.collectAsStateWithLifecycle()
+    val result by viewModel.result.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val message by viewModel.message.collectAsStateWithLifecycle()
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -2209,7 +2295,7 @@ private fun ImportWordRow(english: String, meaning: String, type: String) {
 
 @Composable
 private fun AddWordScreen(navController: NavHostController, viewModel: AddWordViewModel = hiltViewModel()) {
-    val saved by viewModel.saved.collectAsState()
+    val saved by viewModel.saved.collectAsStateWithLifecycle()
     var english by rememberSaveable { mutableStateOf("") }
     var meaning by rememberSaveable { mutableStateOf("") }
     var meaningInput by remember { mutableStateOf<EditText?>(null) }
@@ -2814,7 +2900,7 @@ private fun SentenceMenuScreen(
     navController: NavHostController,
     viewModel: CustomSentenceListViewModel = hiltViewModel()
 ) {
-    val sentences by viewModel.sentences.collectAsState()
+    val sentences by viewModel.sentences.collectAsStateWithLifecycle()
     BlueScaffold(title = "文章問題", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
@@ -2939,7 +3025,7 @@ private fun AddSentenceScreen(
     navController: NavHostController,
     viewModel: AddSentenceViewModel = hiltViewModel()
 ) {
-    val saved by viewModel.saved.collectAsState()
+    val saved by viewModel.saved.collectAsStateWithLifecycle()
     var sentence by rememberSaveable { mutableStateOf("") }
     var meaning by rememberSaveable { mutableStateOf("") }
 
@@ -3086,7 +3172,7 @@ private fun CustomSentenceListScreen(
     navController: NavHostController,
     viewModel: CustomSentenceListViewModel = hiltViewModel()
 ) {
-    val sentences by viewModel.sentences.collectAsState()
+    val sentences by viewModel.sentences.collectAsStateWithLifecycle()
     BlueScaffold(title = "登録文章一覧", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
@@ -3207,7 +3293,7 @@ private fun SentenceQuizScreen(
     navController: NavHostController,
     viewModel: SentenceQuizViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val result = state.result
     val soundPlayer = rememberSoundPlayer()
 

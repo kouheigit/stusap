@@ -335,16 +335,8 @@ class VocabRepository @Inject constructor(
             )
         )
         dao.insertQuizAnswers(
-            answers.map {
-                QuizAttemptAnswerEntity(
-                    quizAttemptId = attemptId,
-                    wordId = it.wordId,
-                    selectedChoiceId = it.selectedChoiceId,
-                    isCorrect = it.isCorrect,
-                    answeredAt = it.answeredAt,
-                    responseMillis = it.responseMillis,
-                    selectedUnknown = it.selectedUnknown
-                )
+            answers.map { answer ->
+                answer.toAnswerEntity(attemptId, dao.getWord(answer.wordId)?.toDomain())
             }
         )
         dao.insertStudyLog(
@@ -372,7 +364,7 @@ class VocabRepository @Inject constructor(
 
     suspend fun getResult(attemptId: Long): QuizResult? =
         dao.getAttempt(attemptId)?.let { attempt ->
-            val wrongWords = dao.getWrongWordsForAttempt(attemptId).map { it.toDomain() }
+            val wrongWords = dao.getWrongAnswersForAttempt(attemptId).mapNotNull { it.toSnapshotWord() }
             QuizResult(
                 attemptId = attempt.id,
                 trainingId = attempt.trainingId,
@@ -424,6 +416,22 @@ class VocabRepository @Inject constructor(
             meaning = meaning.trim(),
             addedAt = System.currentTimeMillis()
         ))
+    }
+
+    suspend fun setWordFavorite(wordId: Int, isFavorite: Boolean) {
+        dao.setWordFavorite(wordId, isFavorite)
+    }
+
+    suspend fun setWordLearned(wordId: Int, isLearned: Boolean) {
+        dao.setWordLearned(wordId, isLearned)
+    }
+
+    suspend fun setCustomWordFavorite(id: Int, isFavorite: Boolean) {
+        dao.setCustomWordFavorite(id, isFavorite)
+    }
+
+    suspend fun setCustomWordLearned(id: Int, isLearned: Boolean) {
+        dao.setCustomWordLearned(id, isLearned)
     }
 
     suspend fun previewCustomWordCsv(csvText: String): WordImportPreview {
@@ -753,6 +761,12 @@ class VocabRepository @Inject constructor(
                 starCount = score.starCount
             )
         )
+        val questionMap = questions.associateBy { it.word.id }
+        dao.insertQuizAnswers(
+            answers.map { answer ->
+                answer.toAnswerEntity(attemptId, questionMap[answer.wordId]?.word)
+            }
+        )
         dao.insertStudyLog(
             StudyLogEntity(
                 studiedAt = finishedAt,
@@ -764,7 +778,6 @@ class VocabRepository @Inject constructor(
             )
         )
         updateTrainingProgress(lessonId, trainingId, score.accuracy, score.starCount, finishedAt)
-        val questionMap = questions.associateBy { it.word.id }
         return QuizResult(
             attemptId = attemptId,
             trainingId = trainingId,
@@ -808,6 +821,12 @@ class VocabRepository @Inject constructor(
                 starCount = score.starCount
             )
         )
+        val questionMap = questions.associateBy { it.word.id }
+        dao.insertQuizAnswers(
+            answers.map { answer ->
+                answer.toAnswerEntity(attemptId, questionMap[answer.wordId]?.word)
+            }
+        )
         dao.insertStudyLog(
             StudyLogEntity(
                 studiedAt = finishedAt,
@@ -818,7 +837,6 @@ class VocabRepository @Inject constructor(
                 wrongCount = score.wrong
             )
         )
-        val questionMap = questions.associateBy { it.word.id }
         return QuizResult(
             attemptId = attemptId,
             trainingId = trainingId,
@@ -919,8 +937,48 @@ class VocabRepository @Inject constructor(
             exampleTranslation = exampleTranslation,
             audioUrl = audioUrl,
             exampleAudioUrl = exampleAudioUrl,
-            displayOrder = displayOrder
+            displayOrder = displayOrder,
+            isFavorite = isFavorite,
+            isLearned = isLearned
         )
+
+    private fun AnswerRecord.toAnswerEntity(attemptId: Long, word: Word?): QuizAttemptAnswerEntity =
+        QuizAttemptAnswerEntity(
+            quizAttemptId = attemptId,
+            wordId = wordId,
+            selectedChoiceId = selectedChoiceId,
+            isCorrect = isCorrect,
+            answeredAt = answeredAt,
+            responseMillis = responseMillis,
+            selectedUnknown = selectedUnknown,
+            wordTrainingId = word?.trainingId ?: 0,
+            wordEnglish = word?.english.orEmpty(),
+            wordMeaning = word?.meaning.orEmpty(),
+            wordPhonetic = word?.phonetic.orEmpty(),
+            wordPartOfSpeech = word?.partOfSpeech.orEmpty(),
+            wordExampleSentence = word?.exampleSentence.orEmpty(),
+            wordExampleTranslation = word?.exampleTranslation.orEmpty(),
+            wordAudioUrl = word?.audioUrl,
+            wordExampleAudioUrl = word?.exampleAudioUrl,
+            wordDisplayOrder = word?.displayOrder ?: 0
+        )
+
+    private fun QuizAttemptAnswerEntity.toSnapshotWord(): Word? {
+        if (wordEnglish.isBlank() && wordMeaning.isBlank()) return null
+        return Word(
+            id = wordId,
+            trainingId = wordTrainingId,
+            english = wordEnglish,
+            meaning = wordMeaning,
+            phonetic = wordPhonetic,
+            partOfSpeech = wordPartOfSpeech,
+            exampleSentence = wordExampleSentence,
+            exampleTranslation = wordExampleTranslation,
+            audioUrl = wordAudioUrl,
+            exampleAudioUrl = wordExampleAudioUrl,
+            displayOrder = wordDisplayOrder
+        )
+    }
 
     private fun WordChoiceEntity.toDomain(): WordChoice =
         WordChoice(

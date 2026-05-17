@@ -186,6 +186,14 @@ class WordDetailViewModel @Inject constructor(
     fun addReview() {
         viewModelScope.launch { repository.addReviewWord(wordId) }
     }
+
+    fun setFavorite(isFavorite: Boolean) {
+        viewModelScope.launch { repository.setWordFavorite(wordId, isFavorite) }
+    }
+
+    fun setLearned(isLearned: Boolean) {
+        viewModelScope.launch { repository.setWordLearned(wordId, isLearned) }
+    }
 }
 
 @HiltViewModel
@@ -321,6 +329,14 @@ class CustomWordListViewModel @Inject constructor(
 
     fun delete(id: Int) {
         viewModelScope.launch { repository.deleteCustomWord(id) }
+    }
+
+    fun setFavorite(id: Int, isFavorite: Boolean) {
+        viewModelScope.launch { repository.setCustomWordFavorite(id, isFavorite) }
+    }
+
+    fun setLearned(id: Int, isLearned: Boolean) {
+        viewModelScope.launch { repository.setCustomWordLearned(id, isLearned) }
     }
 }
 

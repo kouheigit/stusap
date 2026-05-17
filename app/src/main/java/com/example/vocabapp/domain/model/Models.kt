@@ -39,7 +39,9 @@ data class Word(
     val exampleTranslation: String,
     val audioUrl: String?,
     val exampleAudioUrl: String?,
-    val displayOrder: Int
+    val displayOrder: Int,
+    val isFavorite: Boolean = false,
+    val isLearned: Boolean = false
 )
 
 data class WordChoice(
