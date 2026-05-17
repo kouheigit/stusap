@@ -172,7 +172,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.InputStream
 import java.util.Date
 import java.util.Locale
 import java.util.zip.ZipInputStream
@@ -220,25 +219,6 @@ internal fun Context.queryDisplayName(uri: Uri): String {
         }
     }
     return uri.lastPathSegment.orEmpty().sanitizeDisplayName()
-}
-
-internal fun String.sanitizeDisplayName(): String =
-    filterNot { it.isISOControl() }.take(128)
-
-internal fun InputStream.readBytesWithLimit(maxBytes: Int): ByteArray {
-    val output = java.io.ByteArrayOutputStream()
-    val buffer = ByteArray(8 * 1024)
-    var total = 0
-    while (true) {
-        val read = read(buffer)
-        if (read == -1) break
-        total += read
-        if (total > maxBytes) {
-            error("ファイルサイズが上限を超えています")
-        }
-        output.write(buffer, 0, read)
-    }
-    return output.toByteArray()
 }
 
 internal fun decodeCsvBytes(bytes: ByteArray): String {
