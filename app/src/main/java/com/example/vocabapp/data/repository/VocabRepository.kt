@@ -45,6 +45,18 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
+const val MAX_CUSTOM_ENGLISH_CHARS = 200
+const val MAX_CUSTOM_MEANING_CHARS = 500
+const val MAX_CUSTOM_EXAMPLE_CHARS = 1_000
+const val MAX_CUSTOM_SENTENCE_CHARS = 1_000
+const val MAX_CUSTOM_CONTENT_ITEMS = 2_000
+private const val MAX_IMPORT_ROWS = 1_000
+private const val MAX_IMPORT_COLUMNS = 8
+private const val MAX_IMPORT_CELL_CHARS = 1_000
+private const val MAX_PREVIEW_DUPLICATES = 50
+private const val MAX_PREVIEW_ERRORS = 50
+private const val IMPORT_INSERT_CHUNK_SIZE = 200
+
 @Singleton
 /**
  * 語彙学習データのRepository。
@@ -434,9 +446,13 @@ class VocabRepository @Inject constructor(
     }
 
     suspend fun addCustomWord(english: String, meaning: String) {
+        ensureCustomContentCapacity(1)
+        val trimmedEnglish = english.trim().take(MAX_CUSTOM_ENGLISH_CHARS)
+        val trimmedMeaning = meaning.trim().take(MAX_CUSTOM_MEANING_CHARS)
+        if (trimmedEnglish.isBlank() || trimmedMeaning.isBlank()) return
         dao.insertCustomWord(CustomWordEntity(
-            english = english.trim(),
-            meaning = meaning.trim(),
+            english = trimmedEnglish,
+            meaning = trimmedMeaning,
             addedAt = System.currentTimeMillis()
         ))
     }
@@ -509,7 +525,25 @@ class VocabRepository @Inject constructor(
         val newWords = mutableListOf<ImportedWord>()
         val duplicateWords = mutableListOf<ImportedWord>()
         val errors = mutableListOf<ImportErrorRow>()
+        var omittedDuplicateCount = 0
+        var omittedErrorCount = 0
+        fun addError(rowNumber: Int, reason: String, row: List<String>) {
+            if (errors.size < MAX_PREVIEW_ERRORS) {
+                errors += ImportErrorRow(rowNumber, reason, row.take(MAX_IMPORT_COLUMNS))
+            } else {
+                omittedErrorCount++
+            }
+        }
+        fun addDuplicate(word: ImportedWord) {
+            if (duplicateWords.size < MAX_PREVIEW_DUPLICATES) {
+                duplicateWords += word
+            } else {
+                omittedDuplicateCount++
+            }
+        }
         val dataRows = rows.drop(1)
+        val currentCustomCount = dao.customWordCount() + dao.customIdiomCount() + dao.customSentenceCount()
+        val availableSlots = (MAX_CUSTOM_CONTENT_ITEMS - currentCustomCount).coerceAtLeast(0)
 
         dataRows.forEachIndexed { index, row ->
             val rowNumber = index + 2
@@ -520,7 +554,15 @@ class VocabRepository @Inject constructor(
             val rawType = row.getOrEmpty(typeIndex).trim().lowercase()
 
             if (english.isBlank() || meaning.isBlank()) {
-                errors += ImportErrorRow(rowNumber, "english と meaning は必須です", row)
+                addError(rowNumber, "english と meaning は必須です", row)
+                return@forEachIndexed
+            }
+            if (meaning.length > MAX_CUSTOM_MEANING_CHARS) {
+                addError(rowNumber, "meaning は${MAX_CUSTOM_MEANING_CHARS}文字以内にしてください", row)
+                return@forEachIndexed
+            }
+            if (example.length > MAX_CUSTOM_EXAMPLE_CHARS || exampleTranslation.length > MAX_CUSTOM_EXAMPLE_CHARS) {
+                addError(rowNumber, "例文と例文訳は各${MAX_CUSTOM_EXAMPLE_CHARS}文字以内にしてください", row)
                 return@forEachIndexed
             }
 
@@ -529,9 +571,17 @@ class VocabRepository @Inject constructor(
                 rawType == "word" || rawType == "sentence" -> rawType
                 rawType in CSV_IDIOM_TYPES -> "phrase"
                 else -> {
-                    errors += ImportErrorRow(rowNumber, "type は word / phrase / idiom / custom_idioms / sentence のみ指定できます", row)
+                    addError(rowNumber, "type は word / phrase / idiom / custom_idioms / sentence のみ指定できます", row)
                     return@forEachIndexed
                 }
+            }
+            if (wordType == "sentence" && english.length > MAX_CUSTOM_SENTENCE_CHARS) {
+                addError(rowNumber, "sentence は${MAX_CUSTOM_SENTENCE_CHARS}文字以内にしてください", row)
+                return@forEachIndexed
+            }
+            if (wordType != "sentence" && english.length > MAX_CUSTOM_ENGLISH_CHARS) {
+                addError(rowNumber, "english は${MAX_CUSTOM_ENGLISH_CHARS}文字以内にしてください", row)
+                return@forEachIndexed
             }
 
             val imported = ImportedWord(
@@ -543,7 +593,9 @@ class VocabRepository @Inject constructor(
             )
             val normalized = english.normalizeEnglish()
             if (normalized in existing || normalized in seenInCsv) {
-                duplicateWords += imported
+                addDuplicate(imported)
+            } else if (newWords.size >= availableSlots) {
+                addError(rowNumber, "登録上限（${MAX_CUSTOM_CONTENT_ITEMS}件）を超えています", row)
             } else {
                 seenInCsv += normalized
                 newWords += imported
@@ -554,12 +606,15 @@ class VocabRepository @Inject constructor(
             totalRows = dataRows.size,
             newWords = newWords,
             duplicateWords = duplicateWords,
-            errors = errors
+            errors = errors,
+            omittedDuplicateCount = omittedDuplicateCount,
+            omittedErrorCount = omittedErrorCount
         )
     }
 
     suspend fun importCustomWords(preview: WordImportPreview): WordImportResult {
         val now = System.currentTimeMillis()
+        ensureCustomContentCapacity(preview.newWords.size)
         val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish()
             + dao.getNormalizedCustomIdiomEnglish()).toSet()
         val seen = mutableSetOf<String>()
@@ -569,31 +624,31 @@ class VocabRepository @Inject constructor(
         }
         val wordItems = eligible.filter { it.type == "word" }.map { word ->
             CustomWordEntity(
-                english = word.english,
-                meaning = word.meaning,
+                english = word.english.trim().take(MAX_CUSTOM_ENGLISH_CHARS),
+                meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
                 addedAt = now,
-                exampleSentence = word.exampleSentence,
-                exampleTranslation = word.exampleTranslation,
+                exampleSentence = word.exampleSentence.trim().take(MAX_CUSTOM_EXAMPLE_CHARS),
+                exampleTranslation = word.exampleTranslation.trim().take(MAX_CUSTOM_EXAMPLE_CHARS),
                 wordType = word.type
             )
         }
         val idiomItems = eligible.filter { it.type == "phrase" }.map { word ->
             CustomIdiomEntity(
-                english = word.english,
-                meaning = word.meaning,
+                english = word.english.trim().take(MAX_CUSTOM_ENGLISH_CHARS),
+                meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
                 addedAt = now
             )
         }
         val sentenceItems = eligible.filter { it.type == "sentence" }.map { word ->
             CustomSentenceEntity(
-                sentence = word.english,
-                meaning = word.meaning,
+                sentence = word.english.trim().take(MAX_CUSTOM_SENTENCE_CHARS),
+                meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
                 addedAt = now
             )
         }
-        if (wordItems.isNotEmpty()) dao.insertCustomWords(wordItems)
-        if (idiomItems.isNotEmpty()) dao.insertCustomIdioms(idiomItems)
-        if (sentenceItems.isNotEmpty()) dao.insertCustomSentences(sentenceItems)
+        wordItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomWords(it) }
+        idiomItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomIdioms(it) }
+        sentenceItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomSentences(it) }
         val lateDuplicates = preview.newWords.size - eligible.size
         return WordImportResult(
             totalRows = preview.totalRows,
@@ -613,9 +668,13 @@ class VocabRepository @Inject constructor(
     fun observeCustomWords(): Flow<List<CustomWordEntity>> = dao.observeCustomWords()
 
     suspend fun addCustomIdiom(english: String, meaning: String) {
+        ensureCustomContentCapacity(1)
+        val trimmedEnglish = english.trim().take(MAX_CUSTOM_ENGLISH_CHARS)
+        val trimmedMeaning = meaning.trim().take(MAX_CUSTOM_MEANING_CHARS)
+        if (trimmedEnglish.isBlank() || trimmedMeaning.isBlank()) return
         dao.insertCustomIdiom(CustomIdiomEntity(
-            english = english.trim(),
-            meaning = meaning.trim(),
+            english = trimmedEnglish,
+            meaning = trimmedMeaning,
             addedAt = System.currentTimeMillis()
         ))
     }
@@ -1055,31 +1114,65 @@ class VocabRepository @Inject constructor(
             val char = input[index]
             when {
                 char == '"' && inQuotes && index + 1 < input.length && input[index + 1] == '"' -> {
+                    if (currentCell.length >= MAX_IMPORT_CELL_CHARS) {
+                        throw IllegalArgumentException("セルは${MAX_IMPORT_CELL_CHARS}文字以内にしてください")
+                    }
                     currentCell.append('"')
                     index++
                 }
                 char == '"' -> inQuotes = !inQuotes
                 char == ',' && !inQuotes -> {
+                    if (currentRow.size + 1 > MAX_IMPORT_COLUMNS) {
+                        throw IllegalArgumentException("列数は${MAX_IMPORT_COLUMNS}列以内にしてください")
+                    }
                     currentRow += currentCell.toString()
                     currentCell.clear()
                 }
                 (char == '\n' || char == '\r') && !inQuotes -> {
+                    if (currentRow.size + 1 > MAX_IMPORT_COLUMNS) {
+                        throw IllegalArgumentException("列数は${MAX_IMPORT_COLUMNS}列以内にしてください")
+                    }
                     currentRow += currentCell.toString()
                     currentCell.clear()
-                    if (currentRow.any { it.isNotBlank() }) rows += currentRow.toList()
+                    if (currentRow.any { it.isNotBlank() }) {
+                        if (rows.size >= MAX_IMPORT_ROWS + 1) {
+                            throw IllegalArgumentException("読み込み行数は${MAX_IMPORT_ROWS}件以内にしてください")
+                        }
+                        rows += currentRow.toList()
+                    }
                     currentRow.clear()
                     if (char == '\r' && index + 1 < input.length && input[index + 1] == '\n') {
                         index++
                     }
                 }
-                else -> currentCell.append(char)
+                else -> {
+                    if (currentCell.length >= MAX_IMPORT_CELL_CHARS) {
+                        throw IllegalArgumentException("セルは${MAX_IMPORT_CELL_CHARS}文字以内にしてください")
+                    }
+                    currentCell.append(char)
+                }
             }
             index++
         }
 
+        if (currentRow.size + 1 > MAX_IMPORT_COLUMNS) {
+            throw IllegalArgumentException("列数は${MAX_IMPORT_COLUMNS}列以内にしてください")
+        }
         currentRow += currentCell.toString()
-        if (currentRow.any { it.isNotBlank() }) rows += currentRow.toList()
+        if (currentRow.any { it.isNotBlank() }) {
+            if (rows.size >= MAX_IMPORT_ROWS + 1) {
+                throw IllegalArgumentException("読み込み行数は${MAX_IMPORT_ROWS}件以内にしてください")
+            }
+            rows += currentRow.toList()
+        }
         return rows
+    }
+
+    private suspend fun ensureCustomContentCapacity(additionalCount: Int) {
+        val currentCount = dao.customWordCount() + dao.customIdiomCount() + dao.customSentenceCount()
+        if (currentCount + additionalCount > MAX_CUSTOM_CONTENT_ITEMS) {
+            throw IllegalArgumentException("登録上限（${MAX_CUSTOM_CONTENT_ITEMS}件）を超えています")
+        }
     }
 
     private data class CustomStudyWord(
@@ -1095,10 +1188,14 @@ class VocabRepository @Inject constructor(
     suspend fun deleteAllCustomSentences() { dao.deleteAllCustomSentences() }
 
     suspend fun addCustomSentence(sentence: String, meaning: String) {
+        ensureCustomContentCapacity(1)
+        val trimmedSentence = sentence.trim().take(MAX_CUSTOM_SENTENCE_CHARS)
+        val trimmedMeaning = meaning.trim().take(MAX_CUSTOM_MEANING_CHARS)
+        if (trimmedSentence.isBlank() || trimmedMeaning.isBlank()) return
         dao.insertCustomSentence(
             CustomSentenceEntity(
-                sentence = sentence.trim(),
-                meaning = meaning.trim(),
+                sentence = trimmedSentence,
+                meaning = trimmedMeaning,
                 addedAt = System.currentTimeMillis()
             )
         )

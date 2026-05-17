@@ -116,8 +116,11 @@ class AddSentenceViewModel @Inject constructor(
     fun save(sentence: String, meaning: String) {
         if (sentence.isBlank() || meaning.isBlank()) return
         viewModelScope.launch {
-            repository.addCustomSentence(sentence.trim(), meaning.trim())
-            _saved.value = true
+            runCatching {
+                repository.addCustomSentence(sentence.trim(), meaning.trim())
+            }.onSuccess {
+                _saved.value = true
+            }
         }
     }
 

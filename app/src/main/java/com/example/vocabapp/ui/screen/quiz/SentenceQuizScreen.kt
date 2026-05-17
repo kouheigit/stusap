@@ -133,6 +133,8 @@ import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
+import com.example.vocabapp.data.repository.MAX_CUSTOM_MEANING_CHARS
+import com.example.vocabapp.data.repository.MAX_CUSTOM_SENTENCE_CHARS
 import com.example.vocabapp.viewmodel.AddIdiomViewModel
 import com.example.vocabapp.viewmodel.AddSentenceViewModel
 import com.example.vocabapp.viewmodel.AddWordViewModel
@@ -367,7 +369,7 @@ internal fun AddSentenceScreen(
                             label = "",
                             placeholder = "例: I [might][stay][as][well] as join in a tour",
                             value = sentence,
-                            onValueChange = { sentence = it },
+                            onValueChange = { sentence = it.take(MAX_CUSTOM_SENTENCE_CHARS) },
                             imeAction = EditorInfo.IME_ACTION_NEXT,
                             autoFocus = true
                         )
@@ -378,7 +380,7 @@ internal fun AddSentenceScreen(
                             label = "",
                             placeholder = "例: パッケージツアーに参加するよりも家にいた方がいい",
                             value = meaning,
-                            onValueChange = { meaning = it },
+                            onValueChange = { meaning = it.take(MAX_CUSTOM_MEANING_CHARS) },
                             imeAction = EditorInfo.IME_ACTION_DONE,
                             onImeAction = { viewModel.save(sentence, meaning) }
                         )

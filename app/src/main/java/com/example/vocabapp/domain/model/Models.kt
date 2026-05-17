@@ -136,11 +136,13 @@ data class WordImportPreview(
     val totalRows: Int = 0,
     val newWords: List<ImportedWord> = emptyList(),
     val duplicateWords: List<ImportedWord> = emptyList(),
-    val errors: List<ImportErrorRow> = emptyList()
+    val errors: List<ImportErrorRow> = emptyList(),
+    val omittedDuplicateCount: Int = 0,
+    val omittedErrorCount: Int = 0
 ) {
     val newCount: Int get() = newWords.size
-    val duplicateCount: Int get() = duplicateWords.size
-    val errorCount: Int get() = errors.size
+    val duplicateCount: Int get() = duplicateWords.size + omittedDuplicateCount
+    val errorCount: Int get() = errors.size + omittedErrorCount
 }
 
 data class WordImportResult(

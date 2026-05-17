@@ -133,6 +133,8 @@ import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
+import com.example.vocabapp.data.repository.MAX_CUSTOM_ENGLISH_CHARS
+import com.example.vocabapp.data.repository.MAX_CUSTOM_MEANING_CHARS
 import com.example.vocabapp.viewmodel.AddIdiomViewModel
 import com.example.vocabapp.viewmodel.AddSentenceViewModel
 import com.example.vocabapp.viewmodel.AddWordViewModel
@@ -246,7 +248,7 @@ internal fun AddIdiomScreen(navController: NavHostController, viewModel: AddIdio
                         label = "英熟語",
                         placeholder = "例: as soon as possible, keep in mind",
                         value = english,
-                        onValueChange = { english = it },
+                        onValueChange = { english = it.take(MAX_CUSTOM_ENGLISH_CHARS) },
                         imeAction = EditorInfo.IME_ACTION_NEXT,
                         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
                         autoFocus = true,
@@ -256,7 +258,7 @@ internal fun AddIdiomScreen(navController: NavHostController, viewModel: AddIdio
                         label = "日本語の意味",
                         placeholder = "例: できるだけ早く、心に留めておく",
                         value = meaning,
-                        onValueChange = { meaning = it },
+                        onValueChange = { meaning = it.take(MAX_CUSTOM_MEANING_CHARS) },
                         imeAction = EditorInfo.IME_ACTION_DONE,
                         onReady = { meaningInput = it },
                     )

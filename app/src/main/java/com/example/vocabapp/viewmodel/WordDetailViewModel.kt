@@ -80,12 +80,15 @@ class AddWordViewModel @Inject constructor(
         if (english.isBlank() || meaning.isBlank()) return
         viewModelScope.launch {
             val trimmed = english.trim()
-            if (trimmed.contains(Regex("\\s"))) {
-                repository.addCustomIdiom(trimmed, meaning.trim())
-            } else {
-                repository.addCustomWord(trimmed, meaning.trim())
+            runCatching {
+                if (trimmed.contains(Regex("\\s"))) {
+                    repository.addCustomIdiom(trimmed, meaning.trim())
+                } else {
+                    repository.addCustomWord(trimmed, meaning.trim())
+                }
+            }.onSuccess {
+                _saved.value = true
             }
-            _saved.value = true
         }
     }
 
@@ -116,8 +119,7 @@ class WordImportViewModel @Inject constructor(
                 _preview.value = loadedPreview
             }.onFailure { error ->
                 _preview.value = null
-                _message.value = error.message?.let { "${error.javaClass.simpleName}: $it" }
-                    ?: "CSVの読み込みに失敗しました"
+                _message.value = error.message ?: "CSVの読み込みに失敗しました"
             }
             _isLoading.value = false
         }
@@ -133,8 +135,7 @@ class WordImportViewModel @Inject constructor(
             }.onSuccess { importResult ->
                 _result.value = importResult
             }.onFailure { error ->
-                _message.value = error.message?.let { "${error.javaClass.simpleName}: $it" }
-                    ?: "登録に失敗しました"
+                _message.value = error.message ?: "登録に失敗しました"
             }
             _isLoading.value = false
         }

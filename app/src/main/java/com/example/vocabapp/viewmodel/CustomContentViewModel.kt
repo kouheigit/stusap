@@ -103,8 +103,11 @@ class AddIdiomViewModel @Inject constructor(
     fun save(english: String, meaning: String) {
         if (english.isBlank() || meaning.isBlank()) return
         viewModelScope.launch {
-            repository.addCustomIdiom(english.trim(), meaning.trim())
-            _saved.value = true
+            runCatching {
+                repository.addCustomIdiom(english.trim(), meaning.trim())
+            }.onSuccess {
+                _saved.value = true
+            }
         }
     }
 

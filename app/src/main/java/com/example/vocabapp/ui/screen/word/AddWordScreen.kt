@@ -133,6 +133,8 @@ import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
+import com.example.vocabapp.data.repository.MAX_CUSTOM_ENGLISH_CHARS
+import com.example.vocabapp.data.repository.MAX_CUSTOM_MEANING_CHARS
 import com.example.vocabapp.viewmodel.AddIdiomViewModel
 import com.example.vocabapp.viewmodel.AddSentenceViewModel
 import com.example.vocabapp.viewmodel.AddWordViewModel
@@ -200,7 +202,7 @@ internal fun AddWordScreen(navController: NavHostController, viewModel: AddWordV
                         label = "英語",
                         placeholder = "例: apple, give up",
                         value = english,
-                        onValueChange = { english = it },
+                        onValueChange = { english = it.take(MAX_CUSTOM_ENGLISH_CHARS) },
                         imeAction = EditorInfo.IME_ACTION_NEXT,
                         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
                         autoFocus = true,
@@ -210,7 +212,7 @@ internal fun AddWordScreen(navController: NavHostController, viewModel: AddWordV
                         label = "日本語",
                         placeholder = "例: りんご、美しい",
                         value = meaning,
-                        onValueChange = { meaning = it },
+                        onValueChange = { meaning = it.take(MAX_CUSTOM_MEANING_CHARS) },
                         imeAction = EditorInfo.IME_ACTION_DONE,
                         onReady = { meaningInput = it },
                     )
