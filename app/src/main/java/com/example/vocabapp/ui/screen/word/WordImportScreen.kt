@@ -180,10 +180,6 @@ import java.util.zip.ZipInputStream
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
-private const val MAX_IMPORT_FILE_BYTES = 5 * 1024 * 1024
-private const val MAX_XLSX_ENTRY_BYTES = 2 * 1024 * 1024
-
-
 internal fun Context.readImportFileAsCsv(uri: Uri): String {
     debugImportLog("readImportFileAsCsv: start")
     val bytes = contentResolver.openInputStream(uri)?.use { it.readBytesWithLimit(MAX_IMPORT_FILE_BYTES) }
