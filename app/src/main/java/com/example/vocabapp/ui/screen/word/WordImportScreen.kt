@@ -1,16 +1,13 @@
 package com.example.vocabapp
 
-import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.OpenableColumns
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.text.Editable
@@ -177,49 +174,6 @@ import java.util.Locale
 import java.util.zip.ZipInputStream
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
-
-internal fun Context.readImportFileAsCsv(uri: Uri): String {
-    debugImportLog("readImportFileAsCsv: start")
-    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytesWithLimit(MAX_IMPORT_FILE_BYTES) }
-        ?: error("ファイルを開けませんでした")
-    if (bytes.isEmpty()) error("ファイルが空です")
-
-    val fileName = queryDisplayName(uri).lowercase(Locale.ROOT)
-    val mimeType = contentResolver.getType(uri).orEmpty().lowercase(Locale.ROOT)
-    debugImportLog("readImportFileAsCsv: mimeType=$mimeType size=${bytes.size}")
-
-    val isZipMagic = bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))
-    val isOle2Magic = bytes.startsWith(byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte()))
-    val isXlsx = isZipMagic ||
-        fileName.endsWith(".xlsx") ||
-        mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    val isOldXls = isOle2Magic ||
-        (!isZipMagic && fileName.endsWith(".xls")) ||
-        (!isZipMagic && mimeType == "application/vnd.ms-excel")
-    debugImportLog("readImportFileAsCsv: isXlsx=$isXlsx isOldXls=$isOldXls isZipMagic=$isZipMagic isOle2Magic=$isOle2Magic")
-
-    if (isOldXls && !isXlsx) {
-        error("古い .xls 形式は未対応です。Excelで .xlsx または CSV として保存してから選択してください")
-    }
-
-    return if (isXlsx) {
-        debugImportLog("readImportFileAsCsv: parsing as XLSX")
-        parseXlsxRows(bytes).toCsvText()
-    } else {
-        debugImportLog("readImportFileAsCsv: parsing as CSV")
-        decodeCsvBytes(bytes)
-    }
-}
-
-internal fun Context.queryDisplayName(uri: Uri): String {
-    contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-        if (cursor.moveToFirst()) {
-            val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (index >= 0) return cursor.getString(index).orEmpty().sanitizeDisplayName()
-        }
-    }
-    return uri.lastPathSegment.orEmpty().sanitizeDisplayName()
-}
 
 internal fun decodeCsvBytes(bytes: ByteArray): String {
     val withoutBom = if (bytes.startsWith(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()))) {
