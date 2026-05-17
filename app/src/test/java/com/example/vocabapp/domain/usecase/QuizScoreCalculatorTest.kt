@@ -1,5 +1,6 @@
 package com.example.vocabapp.domain.usecase
 
+import com.example.vocabapp.domain.usecase.quiz.QuizScoreCalculator
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

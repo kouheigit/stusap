@@ -5,6 +5,15 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.dao.AppSettingsDao
+import com.example.vocabapp.data.local.dao.CustomContentDao
+import com.example.vocabapp.data.local.dao.LessonDao
+import com.example.vocabapp.data.local.dao.QuizDao
+import com.example.vocabapp.data.local.dao.ReviewDao
+import com.example.vocabapp.data.local.dao.StudyLogDao
+import com.example.vocabapp.data.local.dao.TrainingDao
+import com.example.vocabapp.data.local.dao.UserProgressDao
+import com.example.vocabapp.data.local.dao.WordDao
 import com.example.vocabapp.data.local.entity.AppSettingsEntity
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
@@ -42,6 +51,15 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
+    abstract fun wordDao(): WordDao
+    abstract fun lessonDao(): LessonDao
+    abstract fun trainingDao(): TrainingDao
+    abstract fun quizDao(): QuizDao
+    abstract fun reviewDao(): ReviewDao
+    abstract fun studyLogDao(): StudyLogDao
+    abstract fun userProgressDao(): UserProgressDao
+    abstract fun customContentDao(): CustomContentDao
+    abstract fun appSettingsDao(): AppSettingsDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {

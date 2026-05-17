@@ -29,7 +29,7 @@ import com.example.vocabapp.domain.model.WordChoice
 import com.example.vocabapp.domain.model.WordImportPreview
 import com.example.vocabapp.domain.model.WordImportResult
 import com.example.vocabapp.domain.model.WordRelation
-import com.example.vocabapp.domain.usecase.QuizScoreCalculator
+import com.example.vocabapp.domain.usecase.quiz.QuizScoreCalculator
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.ZoneId
@@ -46,10 +46,18 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 @Singleton
+/**
+ * 語彙学習データのRepository。
+ *
+ * Room DAO、SeedData、クイズ採点をまとめ、UI層からローカル永続化の詳細を隠蔽する。
+ */
 class VocabRepository @Inject constructor(
     private val dao: AppDao,
     private val quizScoreCalculator: QuizScoreCalculator
 ) {
+    /**
+     * 初回起動時に通常単語レッスンのSeedデータを投入する。
+     */
     suspend fun seedIfNeeded() {
         dao.seedIfNeeded(
             SeedData.lessons,
@@ -60,6 +68,9 @@ class VocabRepository @Inject constructor(
         )
     }
 
+    /**
+     * 初回起動時に英熟語レッスンのSeedデータを投入する。
+     */
     suspend fun seedIdiomsIfNeeded() {
         dao.seedIdiomsIfNeeded(
             IdiomSeedData.lessons,
@@ -71,6 +82,11 @@ class VocabRepository @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    /**
+     * ホーム画面に表示する学習サマリを監視する。
+     *
+     * @return DB変更と日付境界を反映するFlow
+     */
     fun observeHomeSummary(): Flow<HomeSummary> {
         val base = observeCurrentWeekStartMillis().flatMapLatest { weekStart ->
             combine(
@@ -114,6 +130,7 @@ class VocabRepository @Inject constructor(
             val now = ZonedDateTime.now(zoneId)
             emit(weekStartMillis(now))
             val nextDayStart = now.toLocalDate().plusDays(1).atStartOfDay(zoneId)
+            // 日付が変わった直後に週次学習時間と連続学習日数を再計算する。
             val delayMillis = Duration.between(now, nextDayStart).toMillis().coerceAtLeast(1_000L)
             delay(delayMillis)
         }
@@ -132,6 +149,12 @@ class VocabRepository @Inject constructor(
 
     private fun trainingCountForLesson(lessonId: Int) = if (lessonId >= 100) 3 else 10
 
+    /**
+     * 指定されたカスタム種別に対応するトレーニング一覧を監視する。
+     *
+     * @param type カスタムコンテンツ種別（word / idiom）
+     * @return 10件単位に分割したトレーニング一覧
+     */
     fun observeCustomTrainings(type: String): Flow<List<Training>> {
         val lessonId = customLessonId(type)
         return combine(observeCustomStudyWords(type), dao.observeProgress()) { words, progress ->
