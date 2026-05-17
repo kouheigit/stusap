@@ -175,7 +175,6 @@ import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.util.Date
 import java.util.Locale
-import android.util.Log
 import java.util.zip.ZipInputStream
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
@@ -240,20 +239,6 @@ internal fun InputStream.readBytesWithLimit(maxBytes: Int): ByteArray {
         output.write(buffer, 0, read)
     }
     return output.toByteArray()
-}
-
-internal fun debugImportLog(message: String) {
-    if (BuildConfig.DEBUG) Log.d(IMPORT_TAG, message)
-}
-
-internal fun warnImportLog(message: String) {
-    if (BuildConfig.DEBUG) Log.w(IMPORT_TAG, message)
-}
-
-internal fun errorImportLog(message: String, throwable: Throwable? = null) {
-    if (BuildConfig.DEBUG) {
-        if (throwable == null) Log.e(IMPORT_TAG, message) else Log.e(IMPORT_TAG, message, throwable)
-    }
 }
 
 internal fun decodeCsvBytes(bytes: ByteArray): String {
