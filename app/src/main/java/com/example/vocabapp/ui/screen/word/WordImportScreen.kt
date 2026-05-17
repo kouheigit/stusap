@@ -154,7 +154,6 @@ import com.example.vocabapp.viewmodel.TrainingListViewModel
 import com.example.vocabapp.viewmodel.WordDetailViewModel
 import com.example.vocabapp.viewmodel.WordImportViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -165,101 +164,6 @@ import androidx.compose.ui.draw.scale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
-import java.util.zip.ZipInputStream
-
-internal val XLSX_TARGET_ENTRIES = setOf(
-    "xl/sharedStrings.xml",
-    "xl/worksheets/sheet1.xml",
-    "xl/_rels/workbook.xml.rels",
-    "xl/workbook.xml"
-)
-
-internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
-    debugImportLog("parseXlsxRows: start, bytes=${bytes.size}")
-    if (bytes.size < 4 || !bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))) {
-        errorImportLog("parseXlsxRows: not a valid ZIP/XLSX file (magic bytes mismatch)")
-        error("選択されたファイルは有効なExcelファイル(.xlsx)ではありません。ファイル形式を確認してください。")
-    }
-    val entries = mutableMapOf<String, ByteArray>()
-    try {
-        ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
-            var entry = zip.nextEntry
-            while (entry != null) {
-                val name = entry.name
-                debugImportLog("parseXlsxRows: ZIP entry name=$name isDir=${entry.isDirectory}")
-                var entryBytes: ByteArray? = null
-                if (!entry.isDirectory && name in XLSX_TARGET_ENTRIES) {
-                    try {
-                        entryBytes = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
-                    } catch (e: Exception) {
-                        warnImportLog("parseXlsxRows: readBytes error on '$name': ${e.javaClass.simpleName}: ${e.message}")
-                    }
-                }
-                if (entryBytes != null) {
-                    entries[name] = entryBytes
-                    debugImportLog("parseXlsxRows: captured $name (${entryBytes.size} bytes)")
-                }
-                try {
-                    zip.closeEntry()
-                } catch (e: java.util.zip.ZipException) {
-                    warnImportLog("parseXlsxRows: closeEntry ZipException on '$name': ${e.message} (ignoring CRC issue)")
-                } catch (e: Exception) {
-                    warnImportLog("parseXlsxRows: closeEntry error on '$name': ${e.javaClass.simpleName}: ${e.message}")
-                }
-                entry = try { zip.nextEntry } catch (e: java.util.zip.ZipException) {
-                    warnImportLog("parseXlsxRows: ZipException advancing to next entry: ${e.message}")
-                    break
-                }
-            }
-        }
-    } catch (e: java.util.zip.ZipException) {
-        errorImportLog("parseXlsxRows: fatal ZipException reading XLSX ZIP: ${e.message}")
-        if (entries.isEmpty()) error("ZIPファイルの読み込みに失敗しました: ${e.message}")
-    }
-    debugImportLog("parseXlsxRows: captured entries=${entries.keys}")
-
-    val sheetPath = parseWorkbookSheetPath(entries["xl/_rels/workbook.xml.rels"])
-        ?: "xl/worksheets/sheet1.xml"
-    debugImportLog("parseXlsxRows: resolved sheetPath=$sheetPath")
-
-    if (!entries.containsKey(sheetPath) && sheetPath != "xl/worksheets/sheet1.xml") {
-        debugImportLog("parseXlsxRows: sheet at $sheetPath not captured, re-scanning ZIP")
-        try {
-            ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
-                var entry = zip.nextEntry
-                while (entry != null && !entries.containsKey(sheetPath)) {
-                    if (!entry.isDirectory && entry.name == sheetPath) {
-                        entries[sheetPath] = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
-                        debugImportLog("parseXlsxRows: re-scan captured $sheetPath")
-                    }
-                    try { zip.closeEntry() } catch (e: java.util.zip.ZipException) {
-                        warnImportLog("parseXlsxRows: re-scan closeEntry error: ${e.message}")
-                    }
-                    entry = try { zip.nextEntry } catch (e: java.util.zip.ZipException) { break }
-                }
-            }
-        } catch (e: Exception) {
-            warnImportLog("parseXlsxRows: re-scan failed: ${e.javaClass.simpleName}: ${e.message}")
-        }
-    }
-
-    val sheet = entries[sheetPath]
-        ?: error("Excelファイルの1枚目のシートを読み込めませんでした (パス: $sheetPath, 取得済みエントリ: ${entries.keys})")
-    val sharedStrings = entries["xl/sharedStrings.xml"]?.let(::parseSharedStrings).orEmpty()
-    debugImportLog("parseXlsxRows: sharedStrings.size=${sharedStrings.size}")
-    return parseWorksheetRows(sheet, sharedStrings)
-}
-
-internal fun List<List<String>>.toCsvText(): String {
-    debugImportLog("toCsvText: converting ${size} rows to CSV")
-    return joinToString("\n") { row ->
-        row.joinToString(",") { cell ->
-            val normalized = cell.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
-            val escaped = normalized.replace("\"", "\"\"")
-            if (escaped.any { it == ',' || it == '"' }) "\"$escaped\"" else escaped
-        }
-    }.also { debugImportLog("toCsvText: result length=${it.length}") }
-}
 
 @Composable
 internal fun WordImportScreen(navController: NavHostController, viewModel: WordImportViewModel = hiltViewModel()) {
