@@ -47,7 +47,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         AppSettingsEntity::class
     ],
     version = 10,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
