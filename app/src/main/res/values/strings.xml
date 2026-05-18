@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TOEIC Vocab</string>
-    <string name="home_title">TOEIC Vocab Trainer</string>
+    <string name="app_name">TOEIC英単語</string>
+    <string name="home_title">TOEIC英単語トレーナー</string>
     <string name="home_training_subtitle">目標スコア別に10問トレーニング</string>
     <string name="home_add_word_title">新規単語登録</string>
     <string name="home_add_word_subtitle">覚えたい英単語と日本語訳を追加</string>
