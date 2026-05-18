@@ -1,11 +1,12 @@
 package com.example.vocabapp.data.repository
 
+import com.example.vocabapp.data.local.dao.AppDao
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SettingsRepository @Inject constructor(
-    private val vocabRepository: VocabRepository
+    private val dao: AppDao
 ) {
-    suspend fun resetLearningData() = vocabRepository.resetLearningData()
+    suspend fun resetLearningData() = dao.resetLearningData()
 }
