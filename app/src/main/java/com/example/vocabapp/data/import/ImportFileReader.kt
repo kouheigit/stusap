@@ -14,7 +14,7 @@ internal fun Context.readImportFileAsCsv(uri: Uri): String {
 
     val fileName = queryDisplayName(uri).lowercase(Locale.ROOT)
     val mimeType = contentResolver.getType(uri).orEmpty().lowercase(Locale.ROOT)
-    debugImportLog("readImportFileAsCsv: mimeType=$mimeType size=${bytes.size}")
+    debugImportLog("readImportFileAsCsv: file metadata checked")
 
     val isZipMagic = bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))
     val isOle2Magic = bytes.startsWith(byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte()))
@@ -24,7 +24,7 @@ internal fun Context.readImportFileAsCsv(uri: Uri): String {
     val isOldXls = isOle2Magic ||
         (!isZipMagic && fileName.endsWith(".xls")) ||
         (!isZipMagic && mimeType == "application/vnd.ms-excel")
-    debugImportLog("readImportFileAsCsv: isXlsx=$isXlsx isOldXls=$isOldXls isZipMagic=$isZipMagic isOle2Magic=$isOle2Magic")
+    debugImportLog("readImportFileAsCsv: file type resolved")
 
     if (isOldXls && !isXlsx) {
         error("古い .xls 形式は未対応です。Excelで .xlsx または CSV として保存してから選択してください")
