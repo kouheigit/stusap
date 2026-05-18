@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
-import com.example.vocabapp.data.repository.VocabRepository
 import com.example.vocabapp.domain.model.HomeSummary
 import com.example.vocabapp.domain.model.SentenceQuizState
 import com.example.vocabapp.domain.model.Lesson

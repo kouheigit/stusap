@@ -14,7 +14,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.vocabapp.domain.model.ContentType
+import com.example.vocabapp.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -27,6 +29,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AppNav(navController: NavHostController = rememberNavController()) {
+    hiltViewModel<MainViewModel>()
     NavHost(navController = navController, startDestination = Route.Home.path) {
         composable(Route.Home.path) { HomeScreen(navController) }
         composable(Route.Lessons.path) { LessonListScreen(navController) }
