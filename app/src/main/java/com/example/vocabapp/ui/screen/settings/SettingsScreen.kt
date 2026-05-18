@@ -114,7 +114,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -146,7 +146,7 @@ import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
 import com.example.vocabapp.viewmodel.IdiomLessonListViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
-import com.example.vocabapp.viewmodel.MainViewModel
+import com.example.vocabapp.viewmodel.SettingsViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
 import com.example.vocabapp.viewmodel.RandomCustomQuizViewModel
 import com.example.vocabapp.viewmodel.ResultViewModel
@@ -181,7 +181,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 
 
 @Composable
-internal fun SettingsScreen(navController: NavHostController, viewModel: MainViewModel = hiltViewModel()) {
+internal fun SettingsScreen(navController: NavHostController, viewModel: SettingsViewModel = hiltViewModel()) {
     var showResetDialog by remember { mutableStateOf(false) }
     var showDeleteCustomWordsDialog by remember { mutableStateOf(false) }
     var showDeleteSentenceDialog by remember { mutableStateOf(false) }

@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.vocabapp.viewmodel.WordImportViewModel
@@ -56,8 +56,8 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
                 val result = runCatching { context.readImportFileAsCsv(uri) }
                 result.onSuccess { csvText ->
                     viewModel.loadCsv(csvText)
-                }.onFailure { error ->
-                    errorImportLog("File read error: ${error.javaClass.simpleName}: ${error.message}", error)
+                }.onFailure {
+                    errorImportLog("File read error")
                     viewModel.showMessage("ファイルの読み込みに失敗しました。形式とサイズを確認してください。")
                 }
             }
@@ -155,7 +155,7 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text("${error.rowNumber}行目", color = Danger, fontWeight = FontWeight.Bold)
                                 Text(error.reason, color = TextDark)
-                                Text(error.rawValues.joinToString(", "), color = TextMuted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text(error.rawValues.toMaskedPreview(), color = TextMuted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -164,3 +164,13 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
         }
     }
 }
+
+private fun List<String>.toMaskedPreview(): String =
+    take(4).joinToString(", ") { value ->
+        val trimmed = value.trim()
+        when {
+            trimmed.isBlank() -> "(空)"
+            trimmed.length <= 8 -> "${trimmed.take(2)}..."
+            else -> "${trimmed.take(4)}..."
+        }
+    }
