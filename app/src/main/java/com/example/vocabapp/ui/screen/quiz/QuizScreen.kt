@@ -183,6 +183,10 @@ import org.xmlpull.v1.XmlPullParserFactory
 @Composable
 internal fun QuizScreen(navController: NavHostController, viewModel: QuizViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    QuizTimerLifecycleEffect(
+        onStart = viewModel::onScreenStarted,
+        onStop = viewModel::onScreenStopped
+    )
     LaunchedEffect(state.finishedAttemptId) {
         state.finishedAttemptId?.let {
             navController.navigate(Route.result(it)) {

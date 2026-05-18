@@ -120,7 +120,7 @@ class AddSentenceViewModel @Inject constructor(
                 repository.addCustomSentence(sentence.trim(), meaning.trim())
             }.onSuccess {
                 _saved.value = true
-            }
+            }.onFailureUnlessCancellation {}
         }
     }
 

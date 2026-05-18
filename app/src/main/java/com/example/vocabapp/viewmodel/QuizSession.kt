@@ -16,12 +16,20 @@ internal class QuizSession(
     private val answers = mutableListOf<AnswerRecord>()
     private var questionStartedAt = System.currentTimeMillis()
     private var timerJob: Job? = null
+    private var isTimerActive = false
+    private var pausedAt: Long? = null
 
     fun resetQuestionTimer() {
         questionStartedAt = System.currentTimeMillis()
+        pausedAt = null
     }
 
     fun startTimer() {
+        isTimerActive = true
+        pausedAt?.let { paused ->
+            questionStartedAt += System.currentTimeMillis() - paused
+            pausedAt = null
+        }
         timerJob?.cancel()
         timerJob = scope.launch {
             while (true) {
@@ -33,6 +41,22 @@ internal class QuizSession(
                     if (next == 0L) submit(null)
                 }
             }
+        }
+    }
+
+    fun pauseTimer() {
+        isTimerActive = false
+        if (pausedAt == null) {
+            pausedAt = System.currentTimeMillis()
+        }
+        timerJob?.cancel()
+        timerJob = null
+    }
+
+    fun resumeTimerIfNeeded() {
+        val current = state.value
+        if (!isTimerActive && current.questions.isNotEmpty() && !current.isAnswered && !current.isFinished) {
+            startTimer()
         }
     }
 
@@ -67,7 +91,7 @@ internal class QuizSession(
     private suspend fun nextOrFinish() {
         val current = state.value
         if (current.currentIndex >= current.questions.lastIndex) {
-            timerJob?.cancel()
+            pauseTimer()
             onFinish(current, answers.toList())
         } else {
             resetQuestionTimer()

@@ -107,7 +107,7 @@ class AddIdiomViewModel @Inject constructor(
                 repository.addCustomIdiom(english.trim(), meaning.trim())
             }.onSuccess {
                 _saved.value = true
-            }
+            }.onFailureUnlessCancellation {}
         }
     }
 
@@ -161,11 +161,15 @@ class CustomTrainingQuizViewModel @Inject constructor(
                 _state.value
             }.onSuccess { quizState ->
                 _loadState.value = UiState.Success(quizState)
-            }.onFailure { throwable ->
+            }.onFailureUnlessCancellation { throwable ->
                 _loadState.value = UiState.Error("カスタムクイズの取得に失敗しました", throwable)
             }
         }
     }
+
+    fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
+
+    fun onScreenStopped() = quizSession.pauseTimer()
 
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
 
@@ -225,11 +229,15 @@ class RandomCustomQuizViewModel @Inject constructor(
                 _state.value
             }.onSuccess { quizState ->
                 _loadState.value = UiState.Success(quizState)
-            }.onFailure { throwable ->
+            }.onFailureUnlessCancellation { throwable ->
                 _loadState.value = UiState.Error("ランダムクイズの取得に失敗しました", throwable)
             }
         }
     }
+
+    fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
+
+    fun onScreenStopped() = quizSession.pauseTimer()
 
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
 
@@ -274,6 +282,10 @@ class CustomIdiomQuizViewModel @Inject constructor(
         }
     }
 
+    fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
+
+    fun onScreenStopped() = quizSession.pauseTimer()
+
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
 }
 
@@ -306,6 +318,10 @@ class CustomWordQuizViewModel @Inject constructor(
             if (questions.isNotEmpty()) quizSession.startTimer()
         }
     }
+
+    fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
+
+    fun onScreenStopped() = quizSession.pauseTimer()
 
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
 }

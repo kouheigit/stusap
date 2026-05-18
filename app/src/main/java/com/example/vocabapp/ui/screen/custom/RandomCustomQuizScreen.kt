@@ -224,6 +224,10 @@ internal fun RandomCustomQuizScreen(
     viewModel: RandomCustomQuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    QuizTimerLifecycleEffect(
+        onStart = viewModel::onScreenStarted,
+        onStop = viewModel::onScreenStopped
+    )
     val isIdiom = ContentType.fromRouteValue(viewModel.contentType) == ContentType.IDIOM
     val title = if (isIdiom) {
         stringResource(R.string.random_idiom_title)

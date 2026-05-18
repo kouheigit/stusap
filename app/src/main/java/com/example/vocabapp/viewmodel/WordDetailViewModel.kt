@@ -27,6 +27,7 @@ import com.example.vocabapp.domain.usecase.lesson.GetTrainingsUseCase
 import com.example.vocabapp.domain.usecase.quiz.StartQuizUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class WordDetailViewModel @Inject constructor(
@@ -88,7 +90,7 @@ class AddWordViewModel @Inject constructor(
                 }
             }.onSuccess {
                 _saved.value = true
-            }
+            }.onFailureUnlessCancellation {}
         }
     }
 
@@ -114,10 +116,12 @@ class WordImportViewModel @Inject constructor(
             _message.value = null
             _result.value = null
             runCatching {
-                repository.previewCustomWordCsv(csvText)
+                withContext(Dispatchers.Default) {
+                    repository.previewCustomWordCsv(csvText)
+                }
             }.onSuccess { loadedPreview ->
                 _preview.value = loadedPreview
-            }.onFailure { error ->
+            }.onFailureUnlessCancellation { error ->
                 _preview.value = null
                 _message.value = error.message ?: "CSVの読み込みに失敗しました"
             }
@@ -131,10 +135,12 @@ class WordImportViewModel @Inject constructor(
             _isLoading.value = true
             _message.value = null
             runCatching {
-                repository.importCustomWords(currentPreview)
+                withContext(Dispatchers.IO) {
+                    repository.importCustomWords(currentPreview)
+                }
             }.onSuccess { importResult ->
                 _result.value = importResult
-            }.onFailure { error ->
+            }.onFailureUnlessCancellation { error ->
                 _message.value = error.message ?: "登録に失敗しました"
             }
             _isLoading.value = false

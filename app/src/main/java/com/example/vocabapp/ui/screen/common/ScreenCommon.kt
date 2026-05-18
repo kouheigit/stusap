@@ -101,6 +101,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import com.example.vocabapp.R
 import androidx.compose.ui.viewinterop.AndroidView
@@ -606,6 +609,30 @@ internal fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) 
             ) {
                 Icon(if (state.isCorrect == true) Icons.Default.Check else Icons.Default.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(92.dp))
             }
+        }
+    }
+}
+
+@Composable
+internal fun QuizTimerLifecycleEffect(
+    onStart: () -> Unit,
+    onStop: () -> Unit
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentOnStart by rememberUpdatedState(onStart)
+    val currentOnStop by rememberUpdatedState(onStop)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> currentOnStart()
+                Lifecycle.Event.ON_STOP -> currentOnStop()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            currentOnStop()
         }
     }
 }

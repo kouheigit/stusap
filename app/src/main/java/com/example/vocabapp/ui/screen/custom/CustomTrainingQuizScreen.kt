@@ -188,6 +188,10 @@ internal fun CustomIdiomQuizScreen(
     viewModel: CustomIdiomQuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    QuizTimerLifecycleEffect(
+        onStart = viewModel::onScreenStarted,
+        onStop = viewModel::onScreenStopped
+    )
     if (state.finishedAttemptId != null) {
         val total = state.questions.size.coerceAtLeast(1)
         BlueScaffold(title = stringResource(R.string.custom_idiom_quiz)) { inner ->
@@ -230,6 +234,10 @@ internal fun CustomWordQuizScreen(
     viewModel: CustomWordQuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    QuizTimerLifecycleEffect(
+        onStart = viewModel::onScreenStarted,
+        onStop = viewModel::onScreenStopped
+    )
     if (state.finishedAttemptId != null) {
         val total = state.questions.size.coerceAtLeast(1)
         BlueScaffold(title = stringResource(R.string.custom_word_quiz)) { inner ->
@@ -273,6 +281,10 @@ internal fun CustomTrainingQuizScreen(
     viewModel: CustomTrainingQuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    QuizTimerLifecycleEffect(
+        onStart = viewModel::onScreenStarted,
+        onStop = viewModel::onScreenStopped
+    )
     val isIdiom = ContentType.fromRouteValue(viewModel.contentType) == ContentType.IDIOM
     val startQuestion = (viewModel.setNumber - 1).coerceAtLeast(0) * 10 + 1
     val endQuestion = viewModel.setNumber * 10

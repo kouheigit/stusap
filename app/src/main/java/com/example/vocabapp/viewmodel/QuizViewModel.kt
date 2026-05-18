@@ -66,7 +66,7 @@ class QuizViewModel @Inject constructor(
                 _state.value
             }.onSuccess { quizState ->
                 _loadState.value = UiState.Success(quizState)
-            }.onFailure { throwable ->
+            }.onFailureUnlessCancellation { throwable ->
                 _loadState.value = UiState.Error(
                     message = "クイズの取得に失敗しました",
                     throwable = throwable
@@ -74,6 +74,10 @@ class QuizViewModel @Inject constructor(
             }
         }
     }
+
+    fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
+
+    fun onScreenStopped() = quizSession.pauseTimer()
 
     /**
      * 選択した回答を現在の問題へ送信する。
@@ -112,7 +116,7 @@ class ResultViewModel @Inject constructor(
                 quizResult
             }.onSuccess { quizResult ->
                 _resultState.value = UiState.Success(quizResult)
-            }.onFailure { throwable ->
+            }.onFailureUnlessCancellation { throwable ->
                 _resultState.value = UiState.Error(
                     message = "クイズ結果の取得に失敗しました",
                     throwable = throwable
