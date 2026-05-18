@@ -116,7 +116,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -148,7 +148,6 @@ import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
 import com.example.vocabapp.viewmodel.IdiomLessonListViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
-import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
 import com.example.vocabapp.viewmodel.RandomCustomQuizViewModel
 import com.example.vocabapp.viewmodel.ResultViewModel
@@ -254,11 +253,13 @@ internal fun CustomWordQuizResultContent(
     var medalVisible by remember { mutableStateOf(false) }
     val medalScale = remember { Animatable(0f) }
     val medalAlpha = remember { Animatable(0f) }
+    val medalPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
     val context = LocalContext.current
+    val soundPlayer = rememberSoundPlayer()
 
     LaunchedEffect(Unit) {
         val animDuration = 1800
-        playSynthSound(
+        soundPlayer.playSequence(
             listOf(Pair(330f, 120), Pair(440f, 130), Pair(523f, 140), Pair(659f, 160), Pair(784f, 200), Pair(1047f, 280)),
             false
         )
@@ -286,13 +287,28 @@ internal fun CustomWordQuizResultContent(
             am.requestAudioFocus(req)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
             mp?.setVolume(1f, 1f)
-            mp?.setOnCompletionListener { it.release(); am.abandonAudioFocusRequest(req) }
+            mp?.setOnCompletionListener {
+                it.release()
+                medalPlayer.value = null
+                am.abandonAudioFocusRequest(req)
+            }
             mp?.start()
+            medalPlayer.value = mp
         } catch (_: Exception) {}
         launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
         medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
         medalScale.animateTo(0.95f, animationSpec = tween(120))
         medalScale.animateTo(1f, animationSpec = tween(100))
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            medalPlayer.value?.let { mp ->
+                if (mp.isPlaying) mp.stop()
+                mp.release()
+                medalPlayer.value = null
+            }
+        }
     }
 
     Column(

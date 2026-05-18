@@ -114,7 +114,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -148,7 +148,6 @@ import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
 import com.example.vocabapp.viewmodel.IdiomLessonListViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
-import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
 import com.example.vocabapp.viewmodel.RandomCustomQuizViewModel
 import com.example.vocabapp.viewmodel.ResultViewModel
@@ -884,10 +883,11 @@ internal fun SentenceResultContent(
     val medalScale = remember { Animatable(0f) }
     val medalAlpha = remember { Animatable(0f) }
     var medalVisible by remember { mutableStateOf(false) }
+    val soundPlayer = rememberSoundPlayer()
 
     LaunchedEffect(Unit) {
         val animDuration = 1200
-        playSynthSound(listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250)), false)
+        soundPlayer.playSequence(listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250)), false)
         launch {
             animProgress.animateTo(
                 targetValue = (result.accuracy / 100f).coerceIn(0f, 1f),
