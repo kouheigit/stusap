@@ -2,9 +2,7 @@ package com.example.vocabapp
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioFormat
 import android.media.AudioManager
-import android.media.AudioTrack
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
@@ -117,7 +115,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -133,6 +131,8 @@ import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.SentenceQuizResult
 import com.example.vocabapp.domain.model.SentenceQuizState
 import com.example.vocabapp.domain.model.Word
+import com.example.vocabapp.ui.audio.SoundPlayer
+import com.example.vocabapp.ui.audio.createSoundPlayer
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
@@ -149,7 +149,6 @@ import com.example.vocabapp.viewmodel.CustomWordQuizViewModel
 import com.example.vocabapp.viewmodel.FlashcardViewModel
 import com.example.vocabapp.viewmodel.IdiomLessonListViewModel
 import com.example.vocabapp.viewmodel.LessonListViewModel
-import com.example.vocabapp.viewmodel.MainViewModel
 import com.example.vocabapp.viewmodel.QuizViewModel
 import com.example.vocabapp.viewmodel.RandomCustomQuizViewModel
 import com.example.vocabapp.viewmodel.ResultViewModel
@@ -185,103 +184,13 @@ import org.xmlpull.v1.XmlPullParserFactory
 
 internal const val IMPORT_TAG = "ExcelImport"
 
-internal val activeSynthTrack = java.util.concurrent.atomic.AtomicReference<AudioTrack?>(null)
-
-
-internal fun playSynthBuffer(buffer: ShortArray) {
-    Thread {
-        // 前の効果音を停止してから新しい音を再生
-        activeSynthTrack.getAndSet(null)?.runCatching { stop(); flush(); release() }
-        try {
-            val sampleRate = 44100
-            val trackBuf = buffer.size * 2 // MODE_STATICはデータサイズ分のバッファで十分
-            val track = AudioTrack.Builder()
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_GAME)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setSampleRate(sampleRate)
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                        .build()
-                )
-                .setBufferSizeInBytes(trackBuf)
-                .setTransferMode(AudioTrack.MODE_STATIC)
-                .build()
-            track.write(buffer, 0, buffer.size)
-            track.setVolume(AudioTrack.getMaxVolume()) // 必ず最大音量で再生
-            activeSynthTrack.set(track)
-            track.play()
-            Thread.sleep(buffer.size * 1000L / sampleRate + 80)
-            activeSynthTrack.compareAndSet(track, null)
-            track.stop()
-            track.release()
-        } catch (_: Exception) {}
-    }.start()
-}
-
-internal fun playSynthSound(segments: List<Pair<Float, Int>>, interrupt: Boolean = true) {
-    val buffer = buildSynthBuffer(segments)
-    if (interrupt) {
-        playSynthBuffer(buffer)
-    } else {
-        Thread {
-            try {
-                Thread.sleep(40)
-                playSynthBuffer(buffer)
-            } catch (_: Exception) {}
-        }.start()
-    }
-}
-
-internal data class SoundPlayer(
-    val playCorrect: () -> Unit,
-    val playWrong: () -> Unit
-)
-
-// 起動時に一度だけ音声バッファを計算してキャッシュする（解答時の遅延を排除）
-internal val correctSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(698f to 140, 880f to 260)) }
-internal val wrongSoundBuffer: ShortArray by lazy { buildSynthBuffer(listOf(280f to 190, 0f to 45, 220f to 230)) }
-
-internal fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
-    val sampleRate = 44100
-    val totalSamples = segments.sumOf { (_, ms) -> sampleRate * ms / 1000 }
-    val buffer = ShortArray(totalSamples)
-    var pos = 0
-    for ((freq, durationMs) in segments) {
-        val numSamples = sampleRate * durationMs / 1000
-        for (i in 0 until numSamples) {
-            if (freq == 0f) { buffer[pos++] = 0; continue }
-            val envelope = when {
-                i < numSamples * 0.10 -> i / (numSamples * 0.10)
-                i > numSamples * 0.65 -> (numSamples - i).toDouble() / (numSamples * 0.35)
-                else -> 1.0
-            }.coerceIn(0.0, 1.0)
-            val wave = kotlin.math.sin(2 * Math.PI * freq * i / sampleRate)
-            val sample = (wave * Short.MAX_VALUE * 0.95 * envelope).toInt()
-                .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
-            buffer[pos++] = sample.toShort()
-        }
-    }
-    return buffer
-}
-
 @Composable
-internal fun rememberSoundPlayer(): SoundPlayer = remember {
-    SoundPlayer(
-        playCorrect = {
-            // ピンポン: E5(659Hz) → A5(880Hz) の二音上昇チャイム（バッファ事前計算済み）
-            playSynthBuffer(correctSoundBuffer)
-        },
-        playWrong = {
-            // ブッブー: 低音バズ×2（バッファ事前計算済み）
-            playSynthBuffer(wrongSoundBuffer)
-        }
-    )
+internal fun rememberSoundPlayer(): SoundPlayer {
+    val player = remember { createSoundPlayer() }
+    DisposableEffect(player) {
+        onDispose { player.dispose() }
+    }
+    return player
 }
 
 internal data class Speaker(
@@ -644,17 +553,19 @@ internal fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () -
     val resId = medalResId(result.correctCount, result.totalQuestions)
     val title = medalTitle(result.correctCount, result.totalQuestions)
     val message = medalMessage(result.correctCount, result.totalQuestions)
+    val soundPlayer = rememberSoundPlayer()
 
     val animProgress = remember { Animatable(0f) }
     var displayedAccuracy by remember { mutableStateOf(0) }
     var medalVisible by remember { mutableStateOf(false) }
     val medalScale = remember { Animatable(0f) }
     val medalAlpha = remember { Animatable(0f) }
+    val medalPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
     val perfectPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
 
     LaunchedEffect(Unit) {
         val animDuration = 1800
-        playSynthSound(
+        soundPlayer.playSequence(
             listOf(Pair(440f, 150), Pair(523f, 150), Pair(659f, 200), Pair(784f, 250), Pair(1047f, 350)),
             false
         )
@@ -682,8 +593,13 @@ internal fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () -
             am.requestAudioFocus(medalFocusReq)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
             mp?.setVolume(1f, 1f)
-            mp?.setOnCompletionListener { it.release(); am.abandonAudioFocusRequest(medalFocusReq) }
+            mp?.setOnCompletionListener {
+                it.release()
+                medalPlayer.value = null
+                am.abandonAudioFocusRequest(medalFocusReq)
+            }
             mp?.start()
+            medalPlayer.value = mp
         } catch (_: Exception) { am.abandonAudioFocusRequest(medalFocusReq) }
         if (isPerfect) {
             try {
@@ -701,6 +617,11 @@ internal fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () -
 
     DisposableEffect(Unit) {
         onDispose {
+            medalPlayer.value?.let { mp ->
+                if (mp.isPlaying) mp.stop()
+                mp.release()
+                medalPlayer.value = null
+            }
             perfectPlayer.value?.let { mp ->
                 if (mp.isPlaying) mp.stop()
                 mp.release()
