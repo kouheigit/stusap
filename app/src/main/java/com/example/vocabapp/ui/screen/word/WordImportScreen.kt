@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.screen.common.*
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background

@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.screen.common.*
+
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText

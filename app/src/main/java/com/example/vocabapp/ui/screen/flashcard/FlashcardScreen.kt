@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.screen.common.*
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

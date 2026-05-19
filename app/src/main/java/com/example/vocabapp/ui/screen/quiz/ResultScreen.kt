@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.screen.common.*
+
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager

@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.screen.common.*
+
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
