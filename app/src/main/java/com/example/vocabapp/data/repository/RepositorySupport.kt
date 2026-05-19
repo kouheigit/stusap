@@ -1,31 +1,29 @@
 package com.example.vocabapp.data.repository
 
+import com.example.vocabapp.domain.model.ContentType
+
 const val MAX_CUSTOM_ENGLISH_CHARS = 200
 const val MAX_CUSTOM_MEANING_CHARS = 500
 const val MAX_CUSTOM_EXAMPLE_CHARS = 1_000
 const val MAX_CUSTOM_SENTENCE_CHARS = 1_000
 const val MAX_CUSTOM_CONTENT_ITEMS = 2_000
 
-internal const val CUSTOM_TYPE_WORD = "word"
-internal const val CUSTOM_TYPE_IDIOM = "idiom"
-internal const val CUSTOM_WORD_LESSON_ID = -10_000
-internal const val CUSTOM_IDIOM_LESSON_ID = -20_000
 internal const val CUSTOM_SENTENCE_LESSON_ID = -30_000
 
 internal fun customLessonId(type: String): Int =
-    if (type == CUSTOM_TYPE_IDIOM) CUSTOM_IDIOM_LESSON_ID else CUSTOM_WORD_LESSON_ID
+    ContentType.fromRouteValue(type).lessonId
 
 internal fun customTrainingId(type: String, setNumber: Int): Int =
-    customLessonId(type) - setNumber
+    ContentType.fromRouteValue(type).trainingId(setNumber)
 
 internal fun randomCustomTrainingId(type: String): Int =
-    customLessonId(type) - 999
+    ContentType.fromRouteValue(type).randomTrainingId
 
 internal fun customWordDomainId(type: String, sourceId: Int): Int =
-    (if (type == CUSTOM_TYPE_IDIOM) -200_000 else -100_000) - sourceId
+    ContentType.fromRouteValue(type).wordDomainId(sourceId)
 
 internal fun customTitle(type: String): String =
-    if (type == CUSTOM_TYPE_IDIOM) "カスタム英熟語" else "カスタム英単語"
+    ContentType.fromRouteValue(type).customTitle
 
 internal fun List<String>.getOrEmpty(index: Int): String =
     if (index >= 0 && index < size) this[index] else ""

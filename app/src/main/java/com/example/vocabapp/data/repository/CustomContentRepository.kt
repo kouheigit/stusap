@@ -10,6 +10,7 @@ import com.example.vocabapp.data.local.dao.AppDao
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
+import com.example.vocabapp.domain.model.ContentType
 import com.example.vocabapp.domain.model.ImportErrorRow
 import com.example.vocabapp.domain.model.QuizConstants
 import com.example.vocabapp.domain.model.ImportedWord
@@ -316,8 +317,9 @@ class CustomContentRepository @Inject constructor(
         }
     }
 
-    private fun observeCustomStudyWords(type: String): Flow<List<CustomStudyWord>> =
-        if (type == CUSTOM_TYPE_IDIOM) {
+    private fun observeCustomStudyWords(type: String): Flow<List<CustomStudyWord>> {
+        val contentType = ContentType.fromRouteValue(type)
+        return if (contentType == ContentType.IDIOM) {
             dao.observeCustomIdiomsInStudyOrder().map { items ->
                 items.map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
             }
@@ -327,15 +329,18 @@ class CustomContentRepository @Inject constructor(
                     .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
             }
         }
+    }
 
-    private suspend fun getCustomStudyWords(type: String): List<CustomStudyWord> =
-        if (type == CUSTOM_TYPE_IDIOM) {
+    private suspend fun getCustomStudyWords(type: String): List<CustomStudyWord> {
+        val contentType = ContentType.fromRouteValue(type)
+        return if (contentType == ContentType.IDIOM) {
             dao.getCustomIdiomsInStudyOrder().map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
         } else {
             dao.getCustomWordsInStudyOrder()
                 .filter { it.wordType != "phrase" }
                 .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
         }
+    }
 
     private fun buildCustomQuizQuestions(
         type: String,
@@ -344,14 +349,13 @@ class CustomContentRepository @Inject constructor(
         all: List<CustomStudyWord>,
         displayOffset: Int
     ): List<QuizQuestion> {
-        val idMultiplier = if (type == CUSTOM_TYPE_IDIOM) -200 else -100
-        val partOfSpeech = if (type == CUSTOM_TYPE_IDIOM) "英熟語" else "単語"
+        val contentType = ContentType.fromRouteValue(type)
         return targets.mapIndexed { questionIndex, target ->
             val wrongPool = runtime.shuffled(all.filter { it.id != target.id }).take(3)
-            val domainWordId = customWordDomainId(type, target.id)
-            val correct = WordChoice(id = target.id * idMultiplier, wordId = domainWordId, choiceText = target.meaning, isCorrect = true, displayOrder = 0)
+            val domainWordId = contentType.wordDomainId(target.id)
+            val correct = WordChoice(id = target.id * contentType.choiceIdMultiplier, wordId = domainWordId, choiceText = target.meaning, isCorrect = true, displayOrder = 0)
             val wrongs = wrongPool.mapIndexed { index, wrong ->
-                WordChoice(id = wrong.id * idMultiplier - index - 1, wordId = domainWordId, choiceText = wrong.meaning, isCorrect = false, displayOrder = index + 1)
+                WordChoice(id = wrong.id * contentType.choiceIdMultiplier - index - 1, wordId = domainWordId, choiceText = wrong.meaning, isCorrect = false, displayOrder = index + 1)
             }
             QuizQuestion(
                 word = Word(
@@ -360,7 +364,7 @@ class CustomContentRepository @Inject constructor(
                     english = target.english,
                     meaning = target.meaning,
                     phonetic = "",
-                    partOfSpeech = partOfSpeech,
+                    partOfSpeech = contentType.partOfSpeech,
                     exampleSentence = target.exampleSentence,
                     exampleTranslation = target.exampleTranslation,
                     audioUrl = null,

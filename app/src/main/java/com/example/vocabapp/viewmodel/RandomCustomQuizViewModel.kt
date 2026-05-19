@@ -26,11 +26,11 @@ class RandomCustomQuizViewModel @Inject constructor(
     private val quizRepository: QuizRepository
 ) : ViewModel() {
     val contentType: String = checkNotNull(savedStateHandle["type"])
-    private val customContentType = ContentType.fromRouteValue(contentType)
+    private val contentTypeEnum = ContentType.fromRouteValue(contentType)
     private val _state = MutableStateFlow(
         QuizState(
-            trainingId = randomTrainingId(customContentType),
-            lessonId = customLessonId(customContentType)
+            trainingId = contentTypeEnum.randomTrainingId,
+            lessonId = contentTypeEnum.lessonId
         )
     )
     val state: StateFlow<QuizState> = _state.asStateFlow()
@@ -72,15 +72,4 @@ class RandomCustomQuizViewModel @Inject constructor(
     fun onScreenStopped() = quizSession.pauseTimer()
 
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
-
-    private fun customLessonId(contentType: ContentType): Int =
-        if (contentType == ContentType.IDIOM) {
-            CUSTOM_IDIOM_LESSON_ID
-        } else {
-            CUSTOM_WORD_LESSON_ID
-        }
-
-    private fun randomTrainingId(contentType: ContentType): Int =
-        customLessonId(contentType) - RANDOM_TRAINING_OFFSET
 }
-
