@@ -11,6 +11,7 @@ import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.domain.model.ImportErrorRow
+import com.example.vocabapp.domain.model.QuizConstants
 import com.example.vocabapp.domain.model.ImportedWord
 import com.example.vocabapp.domain.model.QuizQuestion
 import com.example.vocabapp.domain.model.Training
@@ -45,7 +46,7 @@ class CustomContentRepository @Inject constructor(
     fun observeCustomTrainings(type: String): Flow<List<Training>> {
         val lessonId = customLessonId(type)
         return combine(observeCustomStudyWords(type), dao.observeProgress()) { words, progress ->
-            words.chunked(10).mapIndexed { index, chunk ->
+            words.chunked(QuizConstants.QUESTION_COUNT).mapIndexed { index, chunk ->
                 val setNumber = index + 1
                 val trainingId = customTrainingId(type, setNumber)
                 val item = progress.firstOrNull { it.trainingId == trainingId }
@@ -53,8 +54,8 @@ class CustomContentRepository @Inject constructor(
                     id = trainingId,
                     lessonId = lessonId,
                     title = customTitle(type),
-                    wordStartNumber = index * 10 + 1,
-                    wordEndNumber = index * 10 + chunk.size,
+                    wordStartNumber = index * QuizConstants.QUESTION_COUNT + 1,
+                    wordEndNumber = index * QuizConstants.QUESTION_COUNT + chunk.size,
                     studyCount = item?.studyCount ?: 0,
                     bestAccuracy = item?.bestAccuracy ?: 0f,
                     bestStarCount = item?.bestStarCount ?: 0,
@@ -269,8 +270,8 @@ class CustomContentRepository @Inject constructor(
 
     suspend fun buildCustomIdiomQuiz(): List<QuizQuestion> {
         val all = dao.getAllCustomIdioms()
-        if (all.size < 4) return emptyList()
-        return runtime.shuffled(all).take(minOf(10, all.size)).map { idiom ->
+        if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
+        return runtime.shuffled(all).take(minOf(QuizConstants.QUESTION_COUNT, all.size)).map { idiom ->
             val wrongPool = runtime.shuffled(all.filter { it.id != idiom.id }).take(3)
             val correct = WordChoice(id = idiom.id * -200, wordId = idiom.id, choiceText = idiom.meaning, isCorrect = true, displayOrder = 0)
             val wrongs = wrongPool.mapIndexed { index, wrong ->
@@ -285,24 +286,24 @@ class CustomContentRepository @Inject constructor(
 
     suspend fun buildCustomTrainingQuiz(type: String, setNumber: Int): List<QuizQuestion> {
         val all = getCustomStudyWords(type)
-        if (all.size < 4) return emptyList()
-        val startIndex = (setNumber - 1).coerceAtLeast(0) * 10
-        val targets = all.drop(startIndex).take(10)
+        if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
+        val startIndex = (setNumber - 1).coerceAtLeast(0) * QuizConstants.QUESTION_COUNT
+        val targets = all.drop(startIndex).take(QuizConstants.QUESTION_COUNT)
         if (targets.isEmpty()) return emptyList()
         return buildCustomQuizQuestions(type, customTrainingId(type, setNumber), targets, all, startIndex)
     }
 
     suspend fun buildRandomCustomQuiz(type: String): List<QuizQuestion> {
         val all = getCustomStudyWords(type)
-        if (all.size < 4) return emptyList()
-        val targets = runtime.shuffled(all).take(minOf(10, all.size))
+        if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
+        val targets = runtime.shuffled(all).take(minOf(QuizConstants.QUESTION_COUNT, all.size))
         return buildCustomQuizQuestions(type, randomCustomTrainingId(type), targets, all, 0)
     }
 
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
         val all = dao.getAllCustomWords().filter { it.wordType != "phrase" }
-        if (all.size < 4) return emptyList()
-        return runtime.shuffled(all).take(minOf(10, all.size)).map { word ->
+        if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
+        return runtime.shuffled(all).take(minOf(QuizConstants.QUESTION_COUNT, all.size)).map { word ->
             val wrongPool = runtime.shuffled(all.filter { it.id != word.id }).take(3)
             val correct = WordChoice(id = word.id * -100, wordId = word.id, choiceText = word.meaning, isCorrect = true, displayOrder = 0)
             val wrongs = wrongPool.mapIndexed { index, wrong ->

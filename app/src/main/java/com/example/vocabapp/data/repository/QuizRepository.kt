@@ -15,6 +15,7 @@ import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.SentenceQuestion
 import com.example.vocabapp.domain.model.SentenceQuizResult
 import com.example.vocabapp.domain.model.WordChoice
+import com.example.vocabapp.domain.model.QuizConstants
 import com.example.vocabapp.domain.usecase.quiz.QuizScoreCalculator
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,7 +30,7 @@ class QuizRepository @Inject constructor(
 
     suspend fun buildTrainingQuiz(trainingId: Int): Pair<Int?, List<QuizQuestion>> {
         val training = dao.getTraining(trainingId)
-        val words = dao.getWordsByTraining(trainingId).take(10)
+        val words = dao.getWordsByTraining(trainingId).take(QuizConstants.QUESTION_COUNT)
         return training?.lessonId to words.map { word ->
             QuizQuestion(
                 word = word.toDomain(),
@@ -39,7 +40,7 @@ class QuizRepository @Inject constructor(
     }
 
     suspend fun buildReviewQuiz(): List<QuizQuestion> {
-        val words = dao.getReviewQuizWords(10)
+        val words = dao.getReviewQuizWords(QuizConstants.QUESTION_COUNT)
         return words.mapNotNull { word ->
             val savedChoices = dao.getChoices(word.id).map { it.toDomain() }
             val choices = runtime.shuffled(savedChoices.ifEmpty { buildReviewFallbackChoices(word, words) })
@@ -142,9 +143,9 @@ class QuizRepository @Inject constructor(
         val all = dao.getAllCustomSentences()
         if (all.isEmpty()) return emptyList()
         val targets = if (setNumber != null) {
-            all.drop((setNumber - 1).coerceAtLeast(0) * 10).take(10)
+            all.drop((setNumber - 1).coerceAtLeast(0) * QuizConstants.QUESTION_COUNT).take(QuizConstants.QUESTION_COUNT)
         } else {
-            runtime.shuffled(all).take(minOf(10, all.size))
+            runtime.shuffled(all).take(minOf(QuizConstants.QUESTION_COUNT, all.size))
         }
         return targets.mapNotNull { buildSentenceQuestion(it) }
     }
@@ -285,7 +286,7 @@ class QuizRepository @Inject constructor(
             current.copy(
                 lastReviewedAt = reviewedAt,
                 correctCount = current.correctCount + 1,
-                isActive = current.correctCount + 1 < 2
+                isActive = current.correctCount + 1 < QuizConstants.REVIEW_CORRECT_TO_GRADUATE
             )
         )
     }
@@ -338,25 +339,25 @@ class QuizRepository @Inject constructor(
         val sentence = entity.sentence.trim()
         val bracketPattern = Regex("\\[([^\\]]+)\\]")
         val matches = bracketPattern.findAll(sentence).toList()
-        if (matches.size >= 4) {
-            val answers = matches.take(4).map { it.groupValues[1] }
+        if (matches.size >= QuizConstants.SENTENCE_ANSWER_COUNT) {
+            val answers = matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).map { it.groupValues[1] }
             val markers = listOf("①", "②", "③", "④")
             var template = sentence
-            matches.take(4).forEachIndexed { index, match ->
+            matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).forEachIndexed { index, match ->
                 template = template.replace(match.value, markers[index])
             }
             return SentenceQuestion(entity.id, template, answers, runtime.shuffled(answers), entity.meaning)
         }
         val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
-        if (rawWords.size < 6) return null
-        val maxStart = rawWords.size - 4
-        val minStart = if (rawWords.size >= 7) 1 else 0
+        if (rawWords.size < QuizConstants.SENTENCE_MIN_WORD_COUNT) return null
+        val maxStart = rawWords.size - QuizConstants.SENTENCE_ANSWER_COUNT
+        val minStart = if (rawWords.size >= QuizConstants.SENTENCE_MIN_WORD_COUNT + 1) 1 else 0
         val start = if (maxStart > minStart) runtime.randomInt(minStart, maxStart) else minStart.coerceAtMost(maxStart)
-        val answerSlice = rawWords.subList(start, start + 4)
+        val answerSlice = rawWords.subList(start, start + QuizConstants.SENTENCE_ANSWER_COUNT)
         val answers = answerSlice.map { it.trimEnd('.', ',', '!', '?', ';', ':') }
         val markers = listOf("①", "②", "③", "④")
         val templateWords = rawWords.mapIndexed { index, word ->
-            if (index in start until start + 4) {
+            if (index in start until start + QuizConstants.SENTENCE_ANSWER_COUNT) {
                 val marker = markers[index - start]
                 val trailing = word.drop(word.trimEnd('.', ',', '!', '?', ';', ':').length)
                 if (trailing.isNotEmpty()) "$marker$trailing" else marker

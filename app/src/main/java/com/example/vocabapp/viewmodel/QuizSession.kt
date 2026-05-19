@@ -1,6 +1,7 @@
 package com.example.vocabapp.viewmodel
 
 import com.example.vocabapp.domain.model.AnswerRecord
+import com.example.vocabapp.domain.model.QuizConstants
 import com.example.vocabapp.domain.model.QuizState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -100,7 +101,7 @@ internal class QuizSession(
                 selectedChoiceId = null,
                 isAnswered = false,
                 isCorrect = null,
-                remainingMillis = 30000L
+                remainingMillis = QuizConstants.TIMER_MILLIS
             )
         }
     }
