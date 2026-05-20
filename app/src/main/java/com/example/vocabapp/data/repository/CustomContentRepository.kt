@@ -12,9 +12,12 @@ import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.domain.model.ContentType
 import com.example.vocabapp.domain.model.ImportErrorRow
+import com.example.vocabapp.domain.model.ImportedSentence
 import com.example.vocabapp.domain.model.QuizConstants
 import com.example.vocabapp.domain.model.ImportedWord
 import com.example.vocabapp.domain.model.QuizQuestion
+import com.example.vocabapp.domain.model.SentenceImportPreview
+import com.example.vocabapp.domain.model.SentenceImportResult
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.domain.model.Word
 import com.example.vocabapp.domain.model.WordChoice
@@ -152,18 +155,14 @@ class CustomContentRepository @Inject constructor(
 
             val wordType = when {
                 rawType.isBlank() -> if (english.contains(Regex("\\s"))) "phrase" else "word"
-                rawType == "word" || rawType == "sentence" -> rawType
+                rawType == "word" -> rawType
                 rawType in CSV_IDIOM_TYPES -> "phrase"
                 else -> {
-                    addError(rowNumber, "type は word / phrase / idiom / custom_idioms / sentence のみ指定できます", row)
+                    addError(rowNumber, "type は word / phrase / idiom / custom_idioms のみ指定できます。文章は文章インポートから取り込んでください", row)
                     return@forEachIndexed
                 }
             }
-            if (wordType == "sentence" && english.length > MAX_CUSTOM_SENTENCE_CHARS) {
-                addError(rowNumber, "sentence は${MAX_CUSTOM_SENTENCE_CHARS}文字以内にしてください", row)
-                return@forEachIndexed
-            }
-            if (wordType != "sentence" && english.length > MAX_CUSTOM_ENGLISH_CHARS) {
+            if (english.length > MAX_CUSTOM_ENGLISH_CHARS) {
                 addError(rowNumber, "english は${MAX_CUSTOM_ENGLISH_CHARS}文字以内にしてください", row)
                 return@forEachIndexed
             }
@@ -217,21 +216,136 @@ class CustomContentRepository @Inject constructor(
                 addedAt = now
             )
         }
-        val sentenceItems = eligible.filter { it.type == "sentence" }.map { word ->
-            CustomSentenceEntity(
-                sentence = word.english.trim().take(MAX_CUSTOM_SENTENCE_CHARS),
-                meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
-                addedAt = now
-            )
-        }
         wordItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomWords(it) }
         idiomItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomIdioms(it) }
-        sentenceItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomSentences(it) }
         val lateDuplicates = preview.newWords.size - eligible.size
         WordImportResult(
             totalRows = preview.totalRows,
             insertedCount = wordItems.size,
-            insertedIdiomCount = idiomItems.size + sentenceItems.size,
+            insertedIdiomCount = idiomItems.size,
+            duplicateCount = preview.duplicateCount + lateDuplicates,
+            errorCount = preview.errorCount
+        )
+    }
+
+    suspend fun previewCustomSentenceCsv(csvText: String): SentenceImportPreview {
+        val rows = parseCsvRows(csvText)
+        if (rows.isEmpty()) {
+            return SentenceImportPreview(errors = listOf(ImportErrorRow(1, "CSVが空です", emptyList())))
+        }
+
+        val header = rows.first().map { it.trim() }
+        val headerLower = header.map { it.lowercase() }
+        fun findIndex(aliases: Set<String>): Int = headerLower.indexOfFirst { it in aliases }
+
+        val sentenceIndex = findIndex(setOf("sentence", "english", "英文", "文章", "例文", "英語"))
+        val meaningIndex = findIndex(setOf("meaning", "japanese meaning", "日本語の意味", "意味", "japanese", "訳", "和訳", "日本語"))
+        if (sentenceIndex == -1 || meaningIndex == -1) {
+            val missing = buildList {
+                if (sentenceIndex == -1) add("文章(例: sentence, 英文, 文章)")
+                if (meaningIndex == -1) add("意味(例: meaning, 日本語の意味, 意味)")
+            }.joinToString(", ")
+            return SentenceImportPreview(
+                totalRows = rows.drop(1).size,
+                errors = listOf(
+                    ImportErrorRow(
+                        1,
+                        "必須ヘッダーが見つかりません: $missing\n検出されたヘッダー: ${rows.first().joinToString(", ")}",
+                        rows.first()
+                    )
+                )
+            )
+        }
+
+        val existing = dao.getNormalizedCustomSentences().toMutableSet()
+        val seenInCsv = mutableSetOf<String>()
+        val newSentences = mutableListOf<ImportedSentence>()
+        val duplicateSentences = mutableListOf<ImportedSentence>()
+        val errors = mutableListOf<ImportErrorRow>()
+        var omittedDuplicateCount = 0
+        var omittedErrorCount = 0
+
+        fun addError(rowNumber: Int, reason: String, row: List<String>) {
+            if (errors.size < MAX_PREVIEW_ERRORS) {
+                errors += ImportErrorRow(rowNumber, reason, row.take(MAX_IMPORT_COLUMNS))
+            } else {
+                omittedErrorCount++
+            }
+        }
+
+        fun addDuplicate(sentence: ImportedSentence) {
+            if (duplicateSentences.size < MAX_PREVIEW_DUPLICATES) {
+                duplicateSentences += sentence
+            } else {
+                omittedDuplicateCount++
+            }
+        }
+
+        val dataRows = rows.drop(1)
+        val currentCustomCount = dao.customWordCount() + dao.customIdiomCount() + dao.customSentenceCount()
+        val availableSlots = (MAX_CUSTOM_CONTENT_ITEMS - currentCustomCount).coerceAtLeast(0)
+
+        dataRows.forEachIndexed { index, row ->
+            val rowNumber = index + 2
+            val sentence = row.getOrEmpty(sentenceIndex).trim()
+            val meaning = row.getOrEmpty(meaningIndex).trim()
+
+            if (sentence.isBlank() || meaning.isBlank()) {
+                addError(rowNumber, "sentence と meaning は必須です", row)
+                return@forEachIndexed
+            }
+            if (sentence.length > MAX_CUSTOM_SENTENCE_CHARS) {
+                addError(rowNumber, "sentence は${MAX_CUSTOM_SENTENCE_CHARS}文字以内にしてください", row)
+                return@forEachIndexed
+            }
+            if (meaning.length > MAX_CUSTOM_MEANING_CHARS) {
+                addError(rowNumber, "meaning は${MAX_CUSTOM_MEANING_CHARS}文字以内にしてください", row)
+                return@forEachIndexed
+            }
+
+            val imported = ImportedSentence(sentence, meaning)
+            val normalized = sentence.normalizeEnglish()
+            when {
+                normalized in existing || normalized in seenInCsv -> addDuplicate(imported)
+                newSentences.size >= availableSlots -> addError(rowNumber, "登録上限（${MAX_CUSTOM_CONTENT_ITEMS}件）を超えています", row)
+                else -> {
+                    seenInCsv += normalized
+                    newSentences += imported
+                }
+            }
+        }
+
+        return SentenceImportPreview(
+            totalRows = dataRows.size,
+            newSentences = newSentences,
+            duplicateSentences = duplicateSentences,
+            errors = errors,
+            omittedDuplicateCount = omittedDuplicateCount,
+            omittedErrorCount = omittedErrorCount
+        )
+    }
+
+    suspend fun importCustomSentences(preview: SentenceImportPreview): SentenceImportResult = database.withTransaction {
+        val now = runtime.nowMillis()
+        ensureCustomContentCapacity(preview.newSentences.size)
+        val existing = dao.getNormalizedCustomSentences().toSet()
+        val seen = mutableSetOf<String>()
+        val eligible = preview.newSentences.filter { sentence ->
+            val normalized = sentence.sentence.normalizeEnglish()
+            normalized !in existing && seen.add(normalized)
+        }
+        val sentenceItems = eligible.map { sentence ->
+            CustomSentenceEntity(
+                sentence = sentence.sentence.trim().take(MAX_CUSTOM_SENTENCE_CHARS),
+                meaning = sentence.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
+                addedAt = now
+            )
+        }
+        sentenceItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomSentences(it) }
+        val lateDuplicates = preview.newSentences.size - eligible.size
+        SentenceImportResult(
+            totalRows = preview.totalRows,
+            insertedCount = sentenceItems.size,
             duplicateCount = preview.duplicateCount + lateDuplicates,
             errorCount = preview.errorCount
         )
