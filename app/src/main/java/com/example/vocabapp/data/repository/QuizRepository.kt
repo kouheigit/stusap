@@ -356,14 +356,26 @@ class QuizRepository @Inject constructor(
         val matches = bracketPattern.findAll(sentence).toList()
         // ユーザーが答えを明示している場合はその意図を最優先で使用する
         if (matches.size >= QuizConstants.SENTENCE_ANSWER_COUNT) {
-            val answers = matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).map { it.groupValues[1] }
-            val markers = listOf("①", "②", "③", "④")
-            var template = sentence
-            matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).forEachIndexed { index, match ->
-                template = template.replace(match.value, markers[index])
-            }
-            return SentenceQuestion(entity.id, template, answers, runtime.shuffled(answers), entity.meaning)
+            return buildBracketQuestion(entity, sentence, matches)
         }
+        return buildSliceQuestion(entity, sentence)
+    }
+
+    private fun buildBracketQuestion(
+        entity: CustomSentenceEntity,
+        sentence: String,
+        matches: List<MatchResult>
+    ): SentenceQuestion {
+        val answers = matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).map { it.groupValues[1] }
+        val markers = listOf("①", "②", "③", "④")
+        var template = sentence
+        matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).forEachIndexed { index, match ->
+            template = template.replace(match.value, markers[index])
+        }
+        return SentenceQuestion(entity.id, template, answers, runtime.shuffled(answers), entity.meaning)
+    }
+
+    private fun buildSliceQuestion(entity: CustomSentenceEntity, sentence: String): SentenceQuestion? {
         val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
         if (rawWords.size < QuizConstants.SENTENCE_MIN_WORD_COUNT) return null
         val maxStart = rawWords.size - QuizConstants.SENTENCE_ANSWER_COUNT
