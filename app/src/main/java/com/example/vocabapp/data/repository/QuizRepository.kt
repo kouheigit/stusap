@@ -93,7 +93,7 @@ class QuizRepository @Inject constructor(
             updateLessonMaster(lessonId, finishedAt)
         }
         answers.filter { !it.isCorrect || it.selectedUnknown }.forEach {
-            addReviewWord(it.wordId, if (it.selectedUnknown) "unknown" else "wrong")
+            addReviewWord(it.wordId, if (it.selectedUnknown) ReviewReason.UNKNOWN else ReviewReason.WRONG)
         }
         answers.filter { isReview && it.isCorrect }.forEach {
             markReviewCorrect(it.wordId, finishedAt)
