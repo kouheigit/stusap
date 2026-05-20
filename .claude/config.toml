@@ -1,0 +1,7 @@
+[prompts]
+review = ".claude/prompts/review.md"
+test = ".claude/prompts/test.md"
+deploy = ".claude/prompts/deploy.md"
+
+[agents]
+reviewer = ".claude/agents/reviewer.md"
