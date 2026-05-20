@@ -361,6 +361,7 @@ class QuizRepository @Inject constructor(
         return buildSliceQuestion(entity, sentence)
     }
 
+    /** ユーザーが `[word]` で明示した箇所を空欄として問題を生成する。 */
     private fun buildBracketQuestion(
         entity: CustomSentenceEntity,
         sentence: String,
@@ -375,6 +376,7 @@ class QuizRepository @Inject constructor(
         return SentenceQuestion(entity.id, template, answers, runtime.shuffled(answers), entity.meaning)
     }
 
+    /** ブラケットのない文章から連続4単語をランダムに空欄として問題を生成する。 */
     private fun buildSliceQuestion(entity: CustomSentenceEntity, sentence: String): SentenceQuestion? {
         val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
         if (rawWords.size < QuizConstants.SENTENCE_MIN_WORD_COUNT) return null
