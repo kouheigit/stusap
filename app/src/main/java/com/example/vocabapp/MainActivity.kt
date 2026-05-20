@@ -100,6 +100,7 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         ) { FlashcardScreen(navController) }
         composable(Route.SentenceMenu.path) { SentenceMenuScreen(navController) }
         composable(Route.AddSentence.path) { AddSentenceScreen(navController) }
+        composable(Route.SentenceImport.path) { SentenceImportScreen(navController) }
         composable(Route.CustomSentenceList.path) { CustomSentenceListScreen(navController) }
         composable(Route.SentenceQuiz.path) { SentenceQuizScreen(navController) }
     }
