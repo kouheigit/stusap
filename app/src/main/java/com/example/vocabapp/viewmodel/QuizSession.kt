@@ -48,6 +48,7 @@ internal class QuizSession(
 
     fun pauseTimer() {
         isTimerActive = false
+        // 既に pausedAt が記録されている場合は上書きしない（二重停止で開始時刻がずれるのを防ぐ）
         if (pausedAt == null) {
             pausedAt = System.currentTimeMillis()
         }
