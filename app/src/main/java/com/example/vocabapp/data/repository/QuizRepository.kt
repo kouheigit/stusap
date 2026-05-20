@@ -367,6 +367,7 @@ class QuizRepository @Inject constructor(
         val rawWords = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
         if (rawWords.size < QuizConstants.SENTENCE_MIN_WORD_COUNT) return null
         val maxStart = rawWords.size - QuizConstants.SENTENCE_ANSWER_COUNT
+        // 先頭1語（minStart=1）を除外することで文脈なしの空欄を防ぐ。単語数が少ない場合はやむを得ず先頭から取る
         val minStart = if (rawWords.size >= QuizConstants.SENTENCE_MIN_WORD_COUNT + 1) 1 else 0
         val start = if (maxStart > minStart) runtime.randomInt(minStart, maxStart) else minStart.coerceAtMost(maxStart)
         val answerSlice = rawWords.subList(start, start + QuizConstants.SENTENCE_ANSWER_COUNT)
