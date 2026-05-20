@@ -12,6 +12,7 @@ import com.example.vocabapp.data.local.entity.WordEntity
 import com.example.vocabapp.domain.model.AnswerRecord
 import com.example.vocabapp.domain.model.QuizQuestion
 import com.example.vocabapp.domain.model.QuizResult
+import com.example.vocabapp.domain.model.ReviewReason
 import com.example.vocabapp.domain.model.SentenceQuestion
 import com.example.vocabapp.domain.model.SentenceQuizResult
 import com.example.vocabapp.domain.model.WordChoice
@@ -254,27 +255,28 @@ class QuizRepository @Inject constructor(
         return listOf(correct) + wrongs
     }
 
-    private suspend fun addReviewWord(wordId: Int, reason: String) {
+    private suspend fun addReviewWord(wordId: Int, reason: ReviewReason) {
         val now = runtime.nowMillis()
         val current = dao.getReviewByWordId(wordId)
+        val wrongIncrement = if (reason == ReviewReason.CHECKED) 0 else 1
         if (current == null) {
             dao.insertReviewWord(
                 ReviewWordEntity(
                     wordId = wordId,
-                    addedReason = reason,
+                    addedReason = reason.dbValue,
                     isActive = true,
                     addedAt = now,
                     lastReviewedAt = null,
-                    wrongCount = if (reason == "checked") 0 else 1,
+                    wrongCount = wrongIncrement,
                     correctCount = 0
                 )
             )
         } else {
             dao.updateReviewWord(
                 current.copy(
-                    addedReason = reason,
+                    addedReason = reason.dbValue,
                     isActive = true,
-                    wrongCount = current.wrongCount + if (reason == "checked") 0 else 1
+                    wrongCount = current.wrongCount + wrongIncrement
                 )
             )
         }
