@@ -58,6 +58,8 @@ internal class QuizSession(
 
     fun resumeTimerIfNeeded() {
         val current = state.value
+        // 停止中 かつ 問題が存在 かつ 未回答 かつ 未完了 のときだけ再開する
+        // 画面復帰時に回答済み・終了済みの状態でタイマーが誤起動するのを防ぐ
         if (!isTimerActive && current.questions.isNotEmpty() && !current.isAnswered && !current.isFinished) {
             startTimer()
         }
