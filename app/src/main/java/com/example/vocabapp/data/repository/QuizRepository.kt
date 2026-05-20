@@ -342,6 +342,13 @@ class QuizRepository @Inject constructor(
         )
     }
 
+    /**
+     * 文章エンティティから穴埋めクイズ問題を生成する。
+     *
+     * 生成戦略は2種類あり、ブラケット方式を優先する:
+     * 1. ブラケット方式: ユーザーが `[word]` 形式で答え箇所を明示している場合。
+     * 2. スライス方式: ブラケットがない場合、先頭・末尾を除いた連続4単語を自動で空欄にする。
+     */
     private fun buildSentenceQuestion(entity: CustomSentenceEntity): SentenceQuestion? {
         val sentence = entity.sentence.trim()
         val bracketPattern = Regex("\\[([^\\]]+)\\]")
