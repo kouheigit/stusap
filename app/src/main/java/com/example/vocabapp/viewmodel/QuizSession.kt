@@ -9,6 +9,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * クイズの進行制御（タイマー・回答受付・次問移行・終了処理）を担う内部クラス。
+ *
+ * ViewModel から切り出すことで、クイズ種別をまたいで同一のタイマーロジックを再利用できる。
+ * タイマーは画面の onStop/onStart に連動して一時停止・再開し、応答時間を正確に計測する。
+ */
 internal class QuizSession(
     private val scope: CoroutineScope,
     private val state: MutableStateFlow<QuizState>,
