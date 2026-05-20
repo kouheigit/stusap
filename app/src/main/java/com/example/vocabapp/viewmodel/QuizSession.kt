@@ -28,6 +28,7 @@ internal class QuizSession(
     fun startTimer() {
         isTimerActive = true
         pausedAt?.let { paused ->
+            // 一時停止していた時間だけ開始時刻を後ろにずらし、応答時間の計測を正確に保つ
             questionStartedAt += System.currentTimeMillis() - paused
             pausedAt = null
         }
