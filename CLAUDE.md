@@ -15,7 +15,25 @@ Use:
 - MVVM architecture
 - Gradle Kotlin DSL
 
-Do not use Flutter, React Native, or web technologies unless explicitly requested.
+---
+
+## Project Claude Rules
+
+このプロジェクトでは、以下の補助ファイルを必ず参照してください。
+
+- `.claude/prompts/review.md`
+- `.claude/prompts/test.md`
+- `.claude/prompts/deploy.md`
+- `.claude/agents/reviewer.md`
+
+作業後は必ず `.claude/prompts/test.md` に従って、必要なテストとビルド確認を行ってください。
+
+保守性レビューを依頼された場合は、`.claude/prompts/review.md` または `.claude/agents/reviewer.md` に従ってください。
+
+Android のビルド、APK インストール、ADB 起動確認が必要な場合は `.claude/prompts/deploy.md` に従ってください。
+
+このプロジェクトは Kotlin + Jetpack Compose + Room + Hilt + MVVM 構成の Android ネイティブアプリです。
+Flutter / React Native / Web へ変換しないでください。
 
 ---
 
@@ -209,3 +227,24 @@ Before completing a task:
 
 Never mark work as complete before verification.
 
+---
+
+## Claude Configuration Files
+
+- `touch .claude/config.toml`
+  - `.claude/config.toml` を作成、または更新日時を変更する
+  - Claude 用の設定ファイル置き場として使う想定
+- `touch .claude/prompts/review.md`
+  - review 用のプロンプトファイルを作成、または更新する
+  - レビュー用の指示文を入れる場所
+- `touch .claude/prompts/test.md`
+  - test 用のプロンプトファイルを作成、または更新する
+  - テスト実行用の指示文を入れる場所
+- `touch .claude/prompts/deploy.md`
+  - deploy 用のプロンプトファイルを作成、または更新する
+  - デプロイ用の指示文を入れる場所
+- `touch .claude/agents/reviewer.md`
+  - reviewer エージェント定義ファイルを作成、または更新する
+  - 自動レビュー担当のエージェント設定を書く場所
+
+注意点として、`touch` は中身は書きません。空ファイルを作るだけなので、実際に使えるようにするには後で各ファイルへ内容を入れる必要があります。
