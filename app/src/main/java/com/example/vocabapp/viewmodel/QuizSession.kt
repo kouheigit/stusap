@@ -88,6 +88,7 @@ internal class QuizSession(
             wrongCount = current.wrongCount + if (isCorrect) 0 else 1
         )
         scope.launch {
+            // 正誤フィードバックをユーザーが視認できる時間（900ms）を確保してから次へ進む
             delay(900)
             nextOrFinish()
         }
