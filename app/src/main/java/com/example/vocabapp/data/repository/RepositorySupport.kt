@@ -8,7 +8,7 @@ const val MAX_CUSTOM_EXAMPLE_CHARS = 1_000
 const val MAX_CUSTOM_SENTENCE_CHARS = 1_000
 const val MAX_CUSTOM_CONTENT_ITEMS = 2_000
 
-internal const val IDIOM_LESSON_START_ID = 100
+internal const val IDIOM_LESSON_START_ID = 100  // review_words テーブルの熟語レッスン先頭ID
 internal const val CUSTOM_SENTENCE_LESSON_ID = -30_000
 
 internal fun customLessonId(type: String): Int =
