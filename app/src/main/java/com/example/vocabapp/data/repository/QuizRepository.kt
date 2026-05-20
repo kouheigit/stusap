@@ -255,6 +255,11 @@ class QuizRepository @Inject constructor(
         return listOf(correct) + wrongs
     }
 
+    /**
+     * 単語を復習リストへ追加または更新する。
+     *
+     * @param reason [ReviewReason.CHECKED] の場合は wrongCount を増やさない。
+     */
     private suspend fun addReviewWord(wordId: Int, reason: ReviewReason) {
         val now = runtime.nowMillis()
         val current = dao.getReviewByWordId(wordId)
