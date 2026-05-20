@@ -79,6 +79,18 @@ internal fun SentenceMenuScreen(
             }
             item {
                 Button(
+                    onClick = { navController.navigate(Route.SentenceImport.path) },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
+                    Spacer(Modifier.width(8.dp))
+                    Text("文章Excel / CSV取込", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            item {
+                Button(
                     onClick = { navController.navigate(Route.SentenceQuiz.path) },
                     enabled = sentences.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth().height(56.dp),
