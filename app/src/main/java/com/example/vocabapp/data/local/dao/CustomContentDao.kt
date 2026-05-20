@@ -96,6 +96,9 @@ interface CustomContentDao {
     @Insert
     suspend fun insertCustomSentences(items: List<CustomSentenceEntity>): List<Long>
 
+    @Query("SELECT lower(trim(sentence)) FROM custom_sentences")
+    suspend fun getNormalizedCustomSentences(): List<String>
+
     @Query("SELECT * FROM custom_sentences ORDER BY addedAt DESC")
     fun observeCustomSentences(): Flow<List<CustomSentenceEntity>>
 
