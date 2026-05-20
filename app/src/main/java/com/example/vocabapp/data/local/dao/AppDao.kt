@@ -20,6 +20,7 @@ import com.example.vocabapp.data.local.entity.WordChoiceEntity
 import com.example.vocabapp.data.local.entity.WordEntity
 import com.example.vocabapp.data.local.entity.TrainingFirstWordRow
 import com.example.vocabapp.data.local.entity.WordRelationEntity
+import com.example.vocabapp.data.repository.IDIOM_LESSON_START_ID
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -59,7 +60,7 @@ interface AppDao :
         choices: List<WordChoiceEntity>,
         relations: List<WordRelationEntity>
     ) {
-        if (getLesson(100) == null) {
+        if (getLesson(IDIOM_LESSON_START_ID) == null) {
             insertLessons(lessons)
             insertTrainings(trainings)
             insertWords(words)
