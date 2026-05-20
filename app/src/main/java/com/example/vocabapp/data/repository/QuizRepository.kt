@@ -351,8 +351,10 @@ class QuizRepository @Inject constructor(
      */
     private fun buildSentenceQuestion(entity: CustomSentenceEntity): SentenceQuestion? {
         val sentence = entity.sentence.trim()
+        // `[word]` 形式にマッチする正規表現: [ から ] の間の1文字以上を捕捉グループで取得する
         val bracketPattern = Regex("\\[([^\\]]+)\\]")
         val matches = bracketPattern.findAll(sentence).toList()
+        // ユーザーが答えを明示している場合はその意図を最優先で使用する
         if (matches.size >= QuizConstants.SENTENCE_ANSWER_COUNT) {
             val answers = matches.take(QuizConstants.SENTENCE_ANSWER_COUNT).map { it.groupValues[1] }
             val markers = listOf("①", "②", "③", "④")
