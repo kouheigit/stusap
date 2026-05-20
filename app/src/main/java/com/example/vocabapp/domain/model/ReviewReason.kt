@@ -14,5 +14,11 @@ enum class ReviewReason(val dbValue: String) {
     UNKNOWN("unknown"),
 
     /** 単語詳細画面などで手動チェックした単語。wrongCount は変更しない。 */
-    CHECKED("checked")
+    CHECKED("checked");
+
+    companion object {
+        /** DB から読み出した文字列を enum へ変換する。未知の値は [CHECKED] として扱う。 */
+        fun fromDbValue(value: String): ReviewReason =
+            entries.firstOrNull { it.dbValue == value } ?: CHECKED
+    }
 }
