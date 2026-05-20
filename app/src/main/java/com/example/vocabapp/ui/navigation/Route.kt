@@ -17,6 +17,7 @@ internal sealed class Route(val path: String) {
     object RandomCustomMenu : Route("random-custom-menu")
     object SentenceMenu : Route("sentence-menu")
     object AddSentence : Route("add-sentence")
+    object SentenceImport : Route("sentence-import")
     object CustomSentenceList : Route("custom-sentence-list")
     object SentenceQuiz : Route("sentence-quiz")
 
