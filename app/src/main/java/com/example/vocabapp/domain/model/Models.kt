@@ -153,6 +153,31 @@ data class WordImportResult(
     val errorCount: Int = 0
 )
 
+data class ImportedSentence(
+    val sentence: String,
+    val meaning: String
+)
+
+data class SentenceImportPreview(
+    val totalRows: Int = 0,
+    val newSentences: List<ImportedSentence> = emptyList(),
+    val duplicateSentences: List<ImportedSentence> = emptyList(),
+    val errors: List<ImportErrorRow> = emptyList(),
+    val omittedDuplicateCount: Int = 0,
+    val omittedErrorCount: Int = 0
+) {
+    val newCount: Int get() = newSentences.size
+    val duplicateCount: Int get() = duplicateSentences.size + omittedDuplicateCount
+    val errorCount: Int get() = errors.size + omittedErrorCount
+}
+
+data class SentenceImportResult(
+    val totalRows: Int = 0,
+    val insertedCount: Int = 0,
+    val duplicateCount: Int = 0,
+    val errorCount: Int = 0
+)
+
 data class SentenceQuestion(
     val id: Int,
     val template: String,
