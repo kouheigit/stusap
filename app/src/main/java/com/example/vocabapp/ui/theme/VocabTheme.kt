@@ -1,4 +1,4 @@
-package com.example.vocabapp
+package com.example.vocabapp.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable

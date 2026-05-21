@@ -32,11 +32,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.example.vocabapp.BrightBlue
-import com.example.vocabapp.Danger
-import com.example.vocabapp.Gold
-import com.example.vocabapp.SoftBlue
-import com.example.vocabapp.Success
+import com.example.vocabapp.ui.theme.BrightBlue
+import com.example.vocabapp.ui.theme.Danger
+import com.example.vocabapp.ui.theme.Gold
+import com.example.vocabapp.ui.theme.SoftBlue
+import com.example.vocabapp.ui.theme.Success
 import com.example.vocabapp.errorImportLog
 import com.example.vocabapp.queryDisplayName
 import com.example.vocabapp.readImportFileAsCsv

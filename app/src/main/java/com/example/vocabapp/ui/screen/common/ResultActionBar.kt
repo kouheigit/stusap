@@ -1,6 +1,6 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.*
+import com.example.vocabapp.ui.theme.AccentBlue
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

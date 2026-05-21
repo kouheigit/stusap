@@ -1,6 +1,14 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.*
+import com.example.vocabapp.ui.theme.Teal
+
+import com.example.vocabapp.ui.theme.Gold
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.DeepBlue
+
+import com.example.vocabapp.R
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -84,4 +92,3 @@ internal fun ResultAccuracyCard(
         )
     }
 }
-

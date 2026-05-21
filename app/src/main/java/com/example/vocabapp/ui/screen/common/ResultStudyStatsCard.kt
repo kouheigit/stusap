@@ -1,6 +1,14 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.*
+import com.example.vocabapp.ui.theme.Danger
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.TextDark
+
+import com.example.vocabapp.ui.theme.SoftBlue
+
+import com.example.vocabapp.ui.theme.DeepBlue
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement

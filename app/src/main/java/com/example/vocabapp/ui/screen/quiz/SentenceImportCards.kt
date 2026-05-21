@@ -27,15 +27,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vocabapp.AccentBlue
-import com.example.vocabapp.BrightBlue
-import com.example.vocabapp.Danger
-import com.example.vocabapp.DeepBlue
-import com.example.vocabapp.Gold
-import com.example.vocabapp.SoftBlue
-import com.example.vocabapp.Success
-import com.example.vocabapp.TextDark
-import com.example.vocabapp.TextMuted
+import com.example.vocabapp.ui.theme.AccentBlue
+import com.example.vocabapp.ui.theme.BrightBlue
+import com.example.vocabapp.ui.theme.Danger
+import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.Gold
+import com.example.vocabapp.ui.theme.SoftBlue
+import com.example.vocabapp.ui.theme.Success
+import com.example.vocabapp.ui.theme.TextDark
+import com.example.vocabapp.ui.theme.TextMuted
 import com.example.vocabapp.data.repository.CAPACITY_LOW_THRESHOLD
 
 @Composable

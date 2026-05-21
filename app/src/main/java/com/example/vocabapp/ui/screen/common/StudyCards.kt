@@ -1,6 +1,16 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.*
+import com.example.vocabapp.ui.theme.Teal
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.SoftBlue
+
+import com.example.vocabapp.ui.theme.AccentBlue
+
+import com.example.vocabapp.ui.theme.BrightBlue
+
+import com.example.vocabapp.ui.theme.DeepBlue
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

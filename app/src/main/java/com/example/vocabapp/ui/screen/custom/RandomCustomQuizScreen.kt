@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.theme.BrightBlue
+
 import com.example.vocabapp.ui.navigation.Route
 
 import com.example.vocabapp.ui.screen.common.*

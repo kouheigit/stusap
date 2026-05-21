@@ -1,6 +1,8 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.*
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.TextDark
 
 import android.content.Context
 import android.text.Editable

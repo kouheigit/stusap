@@ -1,5 +1,23 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.theme.Teal
+
+import com.example.vocabapp.ui.theme.Gold
+
+import com.example.vocabapp.ui.theme.Danger
+
+import com.example.vocabapp.ui.theme.Success
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.TextDark
+
+import com.example.vocabapp.ui.theme.AccentBlue
+
+import com.example.vocabapp.ui.theme.BrightBlue
+
+import com.example.vocabapp.ui.theme.DeepBlue
+
 import com.example.vocabapp.ui.screen.common.*
 
 import androidx.compose.animation.core.Animatable

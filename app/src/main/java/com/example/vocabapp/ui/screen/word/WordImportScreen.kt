@@ -1,5 +1,17 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.theme.Danger
+
+import com.example.vocabapp.ui.theme.Success
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.TextDark
+
+import com.example.vocabapp.ui.theme.SoftBlue
+
+import com.example.vocabapp.ui.theme.BrightBlue
+
 import com.example.vocabapp.ui.screen.common.*
 
 import androidx.activity.compose.rememberLauncherForActivityResult

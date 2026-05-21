@@ -1,5 +1,15 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.theme.Danger
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.SoftBlue
+
+import com.example.vocabapp.ui.theme.BrightBlue
+
+import com.example.vocabapp.ui.theme.DeepBlue
+
 import com.example.vocabapp.ui.screen.common.*
 
 import android.text.InputType

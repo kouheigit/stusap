@@ -1,6 +1,20 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.*
+import com.example.vocabapp.ui.theme.Danger
+
+import com.example.vocabapp.ui.theme.Success
+
+import com.example.vocabapp.ui.theme.TextMuted
+
+import com.example.vocabapp.ui.theme.TextDark
+
+import com.example.vocabapp.ui.theme.SoftBlue
+
+import com.example.vocabapp.ui.theme.AccentBlue
+
+import com.example.vocabapp.ui.theme.BrightBlue
+
+import com.example.vocabapp.ui.theme.DeepBlue
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background

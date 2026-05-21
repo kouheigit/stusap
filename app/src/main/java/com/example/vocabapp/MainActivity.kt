@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.ui.theme.VocabTheme
+
 import com.example.vocabapp.ui.navigation.Route
 
 import android.os.Bundle
