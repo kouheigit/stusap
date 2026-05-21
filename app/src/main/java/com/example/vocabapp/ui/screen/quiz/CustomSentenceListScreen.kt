@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,25 +58,62 @@ internal fun CustomSentenceListScreen(
     viewModel: CustomSentenceListViewModel = hiltViewModel()
 ) {
     val sentences by viewModel.sentences.collectAsStateWithLifecycle()
-    BlueScaffold(title = "登録文章一覧", onBack = { navController.popBackStack() }) { inner ->
+    var query by rememberSaveable { mutableStateOf("") }
+    val displayed = remember(sentences, query) {
+        if (query.isBlank()) sentences
+        else sentences.filter {
+            it.sentence.contains(query, ignoreCase = true) ||
+            it.meaning.contains(query, ignoreCase = true)
+        }
+    }
+    BlueScaffold(title = "登録文章一覧 (${sentences.size})", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
-                Button(
-                    onClick = { navController.navigate(Route.AddSentence.path) },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
-                    Spacer(Modifier.width(4.dp))
-                    Text("文章を追加", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { navController.navigate(Route.AddSentence.path) },
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text("文章を追加", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
-            if (sentences.isEmpty()) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Search, contentDescription = null, tint = TextMuted, modifier = Modifier.size(18.dp))
+                        BasicTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { inner ->
+                                if (query.isEmpty()) {
+                                    Text("文章・意味を検索...", color = TextMuted, fontSize = 14.sp)
+                                }
+                                inner()
+                            }
+                        )
+                    }
+                }
+            }
+            if (displayed.isEmpty()) {
                 item {
                     Card(
                         shape = RoundedCornerShape(8.dp),
@@ -91,13 +131,18 @@ internal fun CustomSentenceListScreen(
                                 tint = AccentBlue.copy(alpha = 0.5f),
                                 modifier = Modifier.size(36.dp)
                             )
-                            Text("登録済みの文章はまだありません", color = TextMuted, fontSize = 15.sp)
-                            Text("上のボタンから英文を追加してください", color = TextMuted, fontSize = 13.sp)
+                            Text(
+                                if (query.isBlank()) "登録済みの文章はまだありません" else "「$query」に一致する文章がありません",
+                                color = TextMuted, fontSize = 15.sp
+                            )
+                            if (query.isBlank()) {
+                                Text("上のボタンから英文を追加してください", color = TextMuted, fontSize = 13.sp)
+                            }
                         }
                     }
                 }
             } else {
-                itemsIndexed(sentences) { idx, s ->
+                itemsIndexed(displayed) { idx, s ->
                     SentenceRow(index = idx + 1, sentence = s, onDelete = { viewModel.delete(s.id) })
                 }
             }
