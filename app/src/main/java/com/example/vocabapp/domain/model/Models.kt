@@ -165,7 +165,8 @@ data class SentenceImportPreview(
     val duplicateSentences: List<ImportedSentence> = emptyList(),
     val errors: List<ImportErrorRow> = emptyList(),
     val omittedDuplicateCount: Int = 0,
-    val omittedErrorCount: Int = 0
+    val omittedErrorCount: Int = 0,
+    val sourceFileName: String? = null
 ) {
     val newCount: Int get() = newSentences.size
     val duplicateCount: Int get() = duplicateSentences.size + omittedDuplicateCount

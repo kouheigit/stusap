@@ -338,7 +338,8 @@ class CustomContentRepository @Inject constructor(
             CustomSentenceEntity(
                 sentence = sentence.sentence.trim().take(MAX_CUSTOM_SENTENCE_CHARS),
                 meaning = sentence.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
-                addedAt = now
+                addedAt = now,
+                importedFromFile = preview.sourceFileName?.take(128)
             )
         }
         sentenceItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomSentences(it) }

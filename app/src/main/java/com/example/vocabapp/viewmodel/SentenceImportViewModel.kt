@@ -42,7 +42,7 @@ class SentenceImportViewModel @Inject constructor(
                     repository.previewCustomSentenceCsv(csvText)
                 }
             }.onSuccess { loadedPreview ->
-                _preview.value = loadedPreview
+                _preview.value = loadedPreview.copy(sourceFileName = _fileName.value)
             }.onFailureUnlessCancellation { error ->
                 _preview.value = null
                 _message.value = error.message ?: "文章ファイルの読み込みに失敗しました"
