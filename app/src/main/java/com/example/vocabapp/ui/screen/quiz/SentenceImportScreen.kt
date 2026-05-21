@@ -180,6 +180,23 @@ internal fun SentenceImportScreen(
                 }
 
                 if (result == null) {
+                    if (currentPreview.quizIncompatibleCount > 0) {
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(containerColor = Gold.copy(alpha = 0.12f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    "⚠️ ${currentPreview.quizIncompatibleCount}件はクイズ非対応（語数不足 or [語句]数が4以外）。登録はできますがクイズには出題されません。",
+                                    color = Gold,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+                    }
                     item {
                         Button(
                             onClick = { viewModel.registerPreview() },
