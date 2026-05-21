@@ -155,7 +155,8 @@ data class WordImportResult(
 
 data class ImportedSentence(
     val sentence: String,
-    val meaning: String
+    val meaning: String,
+    val isQuizReady: Boolean = false
 )
 
 data class SentenceImportPreview(
