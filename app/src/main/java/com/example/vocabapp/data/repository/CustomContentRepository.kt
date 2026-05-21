@@ -290,16 +290,20 @@ class CustomContentRepository @Inject constructor(
             val sentence = row.getOrEmpty(sentenceIndex).trim()
             val meaning = row.getOrEmpty(meaningIndex).trim()
 
-            if (sentence.isBlank() || meaning.isBlank()) {
-                addError(rowNumber, "sentence と meaning は必須です", row)
+            if (sentence.isBlank()) {
+                addError(rowNumber, "sentence 列が空です。英文を入力してください", row)
+                return@forEachIndexed
+            }
+            if (meaning.isBlank()) {
+                addError(rowNumber, "meaning 列が空です。日本語の意味を入力してください", row)
                 return@forEachIndexed
             }
             if (sentence.length > MAX_CUSTOM_SENTENCE_CHARS) {
-                addError(rowNumber, "sentence は${MAX_CUSTOM_SENTENCE_CHARS}文字以内にしてください", row)
+                addError(rowNumber, "sentence は${MAX_CUSTOM_SENTENCE_CHARS}文字以内にしてください（現在${sentence.length}文字）", row)
                 return@forEachIndexed
             }
             if (meaning.length > MAX_CUSTOM_MEANING_CHARS) {
-                addError(rowNumber, "meaning は${MAX_CUSTOM_MEANING_CHARS}文字以内にしてください", row)
+                addError(rowNumber, "meaning は${MAX_CUSTOM_MEANING_CHARS}文字以内にしてください（現在${meaning.length}文字）", row)
                 return@forEachIndexed
             }
 
