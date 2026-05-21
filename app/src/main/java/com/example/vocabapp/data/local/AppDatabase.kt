@@ -46,7 +46,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         UserProgressEntity::class,
         AppSettingsEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -130,6 +130,11 @@ abstract class AppDatabase : RoomDatabase() {
                         PRIMARY KEY(`id`)
                     )
                 """)
+            }
+        }
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE custom_sentences ADD COLUMN importedFromFile TEXT")
             }
         }
         val MIGRATION_9_10 = object : Migration(9, 10) {
