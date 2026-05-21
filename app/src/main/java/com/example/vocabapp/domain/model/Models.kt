@@ -179,7 +179,8 @@ data class SentenceImportResult(
     val totalRows: Int = 0,
     val insertedCount: Int = 0,
     val duplicateCount: Int = 0,
-    val errorCount: Int = 0
+    val errorCount: Int = 0,
+    val quizReadyInsertedCount: Int = 0
 )
 
 data class SentenceQuestion(

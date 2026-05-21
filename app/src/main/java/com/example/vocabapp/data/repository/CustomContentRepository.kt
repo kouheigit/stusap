@@ -354,9 +354,11 @@ class CustomContentRepository @Inject constructor(
         }
         sentenceItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomSentences(it) }
         val lateDuplicates = preview.newSentences.size - eligible.size
+        val quizReadyInserted = eligible.count { it.isQuizReady }
         SentenceImportResult(
             totalRows = preview.totalRows,
             insertedCount = sentenceItems.size,
+            quizReadyInsertedCount = quizReadyInserted,
             duplicateCount = preview.duplicateCount + lateDuplicates,
             errorCount = preview.errorCount
         )

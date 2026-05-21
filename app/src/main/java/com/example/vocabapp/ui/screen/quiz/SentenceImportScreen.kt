@@ -161,6 +161,7 @@ internal fun SentenceImportScreen(
                 item {
                     SentenceImportSuccessCard(
                         insertedCount = importResult.insertedCount,
+                        quizReadyCount = importResult.quizReadyInsertedCount,
                         onViewList = { navController.navigate(Route.CustomSentenceList.path) }
                     )
                 }
@@ -334,7 +335,7 @@ private fun SentenceImportFormatCard() {
 }
 
 @Composable
-private fun SentenceImportSuccessCard(insertedCount: Int, onViewList: () -> Unit) {
+private fun SentenceImportSuccessCard(insertedCount: Int, quizReadyCount: Int, onViewList: () -> Unit) {
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Success),
@@ -347,7 +348,7 @@ private fun SentenceImportSuccessCard(insertedCount: Int, onViewList: () -> Unit
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("登録完了！", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Text("${insertedCount}件の文章を登録しました", color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
+                Text("${insertedCount}件登録（クイズ対応: ${quizReadyCount}件）", color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
             }
             TextButton(
                 onClick = onViewList,
