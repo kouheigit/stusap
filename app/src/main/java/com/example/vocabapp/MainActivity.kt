@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.vocabapp.domain.model.ContentType
+import com.example.vocabapp.ui.screen.quiz.SentenceImportScreen
 import com.example.vocabapp.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 

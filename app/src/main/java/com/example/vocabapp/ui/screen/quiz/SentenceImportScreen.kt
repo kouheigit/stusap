@@ -1,56 +1,47 @@
-package com.example.vocabapp
-
-import com.example.vocabapp.ui.screen.common.*
+package com.example.vocabapp.ui.screen.quiz
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.example.vocabapp.data.repository.CAPACITY_LOW_THRESHOLD
-import com.example.vocabapp.data.repository.isQuizReadySentence
-import com.example.vocabapp.data.repository.sentenceType
-import com.example.vocabapp.domain.model.ImportErrorRow
-import com.example.vocabapp.domain.model.ImportedSentence
+import com.example.vocabapp.BrightBlue
+import com.example.vocabapp.Danger
+import com.example.vocabapp.Gold
+import com.example.vocabapp.Route
+import com.example.vocabapp.SoftBlue
+import com.example.vocabapp.Success
+import com.example.vocabapp.errorImportLog
+import com.example.vocabapp.queryDisplayName
+import com.example.vocabapp.readImportFileAsCsv
+import com.example.vocabapp.ui.screen.common.BlueScaffold
 import com.example.vocabapp.viewmodel.SentenceImportViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,67 +83,19 @@ internal fun SentenceImportScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Button(
+                SentenceFilePickerButton(
+                    hasLoadedFile = preview != null || result != null,
                     onClick = {
-                        if (preview != null || result != null) {
-                            viewModel.resetForNewFile()
-                        }
-                        picker.launch(
-                            arrayOf(
-                                "text/*",
-                                "text/csv",
-                                "application/csv",
-                                "application/vnd.ms-excel",
-                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                "application/octet-stream",
-                                "*/*"
-                            )
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrightBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        if (preview != null || result != null) "別のファイルを選択" else "文章Excel / CSVを選択",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            fileName?.let { name ->
-                item { SentenceFileNameCard(name) }
-            }
-
-            remainingCapacity?.let { capacity ->
-                item { SentenceCapacityChip(capacity) }
-            }
-
-            item {
-                SentenceImportFormatCard()
-            }
-
-            if (isLoading) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(color = BrightBlue)
-                        Spacer(Modifier.width(12.dp))
-                        Text("処理中...", color = TextDark, fontWeight = FontWeight.Bold)
+                        if (preview != null || result != null) viewModel.resetForNewFile()
+                        picker.launch(IMPORT_MIME_TYPES)
                     }
-                }
+                )
             }
-
-            message?.let { text ->
-                item { Text(text, color = Danger, fontWeight = FontWeight.Bold) }
-            }
-
+            fileName?.let { name -> item { SentenceFileNameCard(name) } }
+            remainingCapacity?.let { capacity -> item { SentenceCapacityChip(capacity) } }
+            item { SentenceImportFormatCard() }
+            if (isLoading) item { SentenceImportLoadingRow() }
+            message?.let { text -> item { Text(text, color = Danger, fontWeight = FontWeight.Bold) } }
             result?.let { importResult ->
                 item {
                     SentenceImportSuccessCard(
@@ -162,7 +105,6 @@ internal fun SentenceImportScreen(
                     )
                 }
             }
-
             preview?.let { currentPreview ->
                 item {
                     SentenceImportSummaryCard(
@@ -175,78 +117,34 @@ internal fun SentenceImportScreen(
                         quizIncompatibleCount = if (result == null) currentPreview.quizIncompatibleCount else null
                     )
                 }
-
                 if (result == null) {
                     if (currentPreview.quizIncompatibleCount > 0) {
-                        item {
-                            Card(
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(containerColor = Gold.copy(alpha = 0.12f)),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    "⚠️ ${currentPreview.quizIncompatibleCount}件はクイズ非対応（語数不足 or [語句]数が4以外）。登録はできますがクイズには出題されません。",
-                                    color = Gold,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(12.dp)
-                                )
-                            }
-                        }
+                        item { SentenceQuizIncompatibleWarning(currentPreview.quizIncompatibleCount) }
                     }
                     item {
-                        Button(
-                            onClick = { viewModel.registerPreview() },
+                        SentenceRegisterButton(
+                            count = currentPreview.newCount,
                             enabled = currentPreview.newCount > 0 && !isLoading,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Success),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Icon(Icons.Default.Check, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("文章を登録する（${currentPreview.newCount}件）", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        }
+                            onClick = viewModel::registerPreview
+                        )
                     }
                 }
-
                 if (currentPreview.newSentences.isNotEmpty()) {
                     item { ImportSectionTitle("登録予定 (${currentPreview.newCount}件)", Success) }
-                    items(currentPreview.newSentences) { sentence ->
-                        SentenceImportRow(sentence)
-                    }
+                    items(currentPreview.newSentences) { sentence -> SentenceImportRow(sentence) }
                 }
-
                 if (currentPreview.duplicateSentences.isNotEmpty()) {
                     item { ImportSectionTitle("重複スキップ (${currentPreview.duplicateCount}件)", Gold) }
-                    items(currentPreview.duplicateSentences.take(20)) { sentence ->
-                        SentenceImportRow(sentence)
-                    }
+                    items(currentPreview.duplicateSentences.take(20)) { sentence -> SentenceImportRow(sentence) }
                     if (currentPreview.duplicateSentences.size > 20) {
-                        item {
-                            Text(
-                                "... 他${currentPreview.duplicateSentences.size - 20}件は省略",
-                                color = Gold.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        item { OmittedRowsText("... 他${currentPreview.duplicateSentences.size - 20}件は省略", Gold) }
                     }
                 }
-
                 if (currentPreview.errors.isNotEmpty()) {
                     item { ImportSectionTitle("エラー (${currentPreview.errorCount}件)", Danger) }
-                    items(currentPreview.errors.take(20)) { error ->
-                        SentenceImportErrorRow(error)
-                    }
+                    items(currentPreview.errors.take(20)) { error -> SentenceImportErrorRow(error) }
                     if (currentPreview.errors.size > 20) {
-                        item {
-                            Text(
-                                "... 他${currentPreview.errors.size - 20}件は省略",
-                                color = Danger.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        item { OmittedRowsText("... 他${currentPreview.errors.size - 20}件は省略", Danger) }
                     }
                 }
             }
@@ -255,229 +153,44 @@ internal fun SentenceImportScreen(
 }
 
 @Composable
-private fun SentenceFileNameCard(fileName: String) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = DeepBlue.copy(alpha = 0.08f)),
-        modifier = Modifier.fillMaxWidth()
+private fun SentenceFilePickerButton(hasLoadedFile: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = BrightBlue),
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.FormatListBulleted,
-                contentDescription = null,
-                tint = DeepBlue,
-                modifier = Modifier.size(18.dp)
-            )
-            Text(
-                fileName,
-                color = DeepBlue,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SentenceCapacityChip(remaining: Int) {
-    val isLow = remaining < CAPACITY_LOW_THRESHOLD
-    val chipColor = if (isLow) Danger.copy(alpha = 0.12f) else Success.copy(alpha = 0.12f)
-    val textColor = if (isLow) Danger else Success
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = chipColor),
-        modifier = Modifier
-    ) {
+        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
         Text(
-            if (isLow) "残り${remaining}件（上限に近づいています）" else "残り${remaining}件登録可能",
-            color = textColor,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            if (hasLoadedFile) "別のファイルを選択" else "文章Excel / CSVを選択",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
-private fun SentenceImportFormatCard() {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
+private fun SentenceRegisterButton(count: Int, enabled: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Success),
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("文章専用インポート", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
-            Text("1行目にヘッダー行を入れてください。", color = TextDark, fontSize = 14.sp)
-            Card(
-                shape = RoundedCornerShape(6.dp),
-                colors = CardDefaults.cardColors(containerColor = SoftBlue),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("CSVフォーマット例", color = DeepBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("sentence,meaning", color = AccentBlue, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Text("I might stay as well as join a tour,ツアーに参加するよりも家にいた方がいい", color = TextDark, fontSize = 11.sp)
-                    Text("I [might][stay][as][well] as join a tour,ツアーに...", color = TextDark, fontSize = 11.sp)
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                SentenceTypeBadge("A型", AccentBlue)
-                Text("6語以上でそのまま入力 → 自動で4語が空白に", color = TextMuted, fontSize = 12.sp)
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                SentenceTypeBadge("B型", Gold)
-                Text("[語句]で4つを囲む → その語句が並べ替え対象", color = TextMuted, fontSize = 12.sp)
-            }
-            androidx.compose.material3.HorizontalDivider(color = TextMuted.copy(alpha = 0.15f))
-            Text(
-                "対応ヘッダー名: sentence / english / 英文 / 文章 / 例文 / 英語",
-                color = TextMuted,
-                fontSize = 11.sp
-            )
-            Text(
-                "意味列: meaning / 日本語の意味 / 意味 / 訳 / 和訳 / 日本語",
-                color = TextMuted,
-                fontSize = 11.sp
-            )
-        }
+        Icon(Icons.Default.Check, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text("文章を登録する（${count}件）", fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
 }
 
-@Composable
-private fun SentenceImportSuccessCard(insertedCount: Int, quizReadyCount: Int, onViewList: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Success),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("登録完了！", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Text("${insertedCount}件登録（クイズ対応: ${quizReadyCount}件）", color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
-            }
-            TextButton(
-                onClick = onViewList,
-                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = Color.White)
-            ) {
-                Text("一覧へ", fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(4.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun SentenceImportSummaryCard(
-    title: String,
-    totalRows: Int,
-    newCount: Int,
-    duplicateCount: Int,
-    errorCount: Int,
-    quizReadyCount: Int?,
-    quizIncompatibleCount: Int?
-) {
-    Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, color = DeepBlue, fontSize = 22.sp, fontWeight = FontWeight.Black)
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                SummaryChip("読み込み", "${totalRows}件", Modifier.weight(1f))
-                SummaryChip("文章登録", "${newCount}件", Modifier.weight(1f))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                SummaryChip("重複", "${duplicateCount}件", Modifier.weight(1f))
-                SummaryChip("エラー", "${errorCount}件", Modifier.weight(1f))
-            }
-            if (quizReadyCount != null && quizIncompatibleCount != null && newCount > 0) {
-                val percent = if (newCount > 0) quizReadyCount * 100 / newCount else 0
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    SummaryChip("クイズ対応", "${quizReadyCount}件 (${percent}%)", Modifier.weight(1f))
-                    SummaryChip("対応外", "${quizIncompatibleCount}件", Modifier.weight(1f))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SentenceTypeBadge(label: String, color: Color) {
-    Card(
-        shape = RoundedCornerShape(4.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.15f))
-    ) {
-        Text(
-            label,
-            color = color,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Black,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-        )
-    }
-}
-
-@Composable
-private fun SentenceImportRow(sentence: ImportedSentence) {
-    val quizReady = sentence.sentence.isQuizReadySentence()
-    val type = sentence.sentence.sentenceType()
-    val badgeColor = if (type == "B") Gold else AccentBlue
-    Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(sentence.sentence, color = DeepBlue, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(sentence.meaning, color = TextDark, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                SentenceTypeBadge("${type}型", badgeColor)
-                if (quizReady) {
-                    SentenceTypeBadge("クイズ対応", Success)
-                } else {
-                    SentenceTypeBadge("語数不足", Danger)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SentenceImportErrorRow(error: ImportErrorRow) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Danger.copy(alpha = 0.05f)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                SentenceTypeBadge("${error.rowNumber}行", Danger)
-                Text("エラー", color = Danger, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-            }
-            Text(error.reason, color = TextDark, fontSize = 13.sp)
-            if (error.rawValues.isNotEmpty()) {
-                Text(error.rawValues.toSentenceMaskedPreview(), color = TextMuted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ImportSectionTitle(text: String, color: Color) {
-    Text(text, color = color, fontSize = 24.sp, fontWeight = FontWeight.Black)
-}
-
-private fun List<String>.toSentenceMaskedPreview(): String =
-    take(4).joinToString(", ") { value ->
-        val trimmed = value.trim()
-        when {
-            trimmed.isBlank() -> "(空)"
-            trimmed.length <= 8 -> "${trimmed.take(2)}..."
-            else -> "${trimmed.take(4)}..."
-        }
-    }
+private val IMPORT_MIME_TYPES = arrayOf(
+    "text/*",
+    "text/csv",
+    "application/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/octet-stream",
+    "*/*"
+)
