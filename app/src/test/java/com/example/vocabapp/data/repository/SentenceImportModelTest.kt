@@ -62,4 +62,27 @@ class SentenceImportModelTest {
         )
         assertEquals(4, preview.errorCount)
     }
+
+    @Test
+    fun sentenceImportResult_defaultQuizReadyInsertedCount_isZero() {
+        val result = com.example.vocabapp.domain.model.SentenceImportResult(
+            totalRows = 5,
+            insertedCount = 4,
+            duplicateCount = 1,
+            errorCount = 0
+        )
+        assertEquals(0, result.quizReadyInsertedCount)
+    }
+
+    @Test
+    fun sentenceImportResult_withQuizReadyCount_tracked() {
+        val result = com.example.vocabapp.domain.model.SentenceImportResult(
+            totalRows = 5,
+            insertedCount = 4,
+            duplicateCount = 1,
+            errorCount = 0,
+            quizReadyInsertedCount = 3
+        )
+        assertEquals(3, result.quizReadyInsertedCount)
+    }
 }
