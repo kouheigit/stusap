@@ -31,6 +31,10 @@ class SentenceImportViewModel @Inject constructor(
     private val _remainingCapacity = MutableStateFlow<Int?>(null)
     val remainingCapacity: StateFlow<Int?> = _remainingCapacity.asStateFlow()
 
+    init {
+        loadRemainingCapacity()
+    }
+
     fun loadCsv(csvText: String, fileName: String? = null) {
         viewModelScope.launch {
             _isLoading.value = true

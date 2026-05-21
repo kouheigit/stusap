@@ -33,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -68,10 +67,6 @@ internal fun SentenceImportScreen(
     val fileName by viewModel.fileName.collectAsStateWithLifecycle()
     val remainingCapacity by viewModel.remainingCapacity.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadRemainingCapacity()
-    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
