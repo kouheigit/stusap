@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.vocabapp.data.repository.CAPACITY_LOW_THRESHOLD
 import com.example.vocabapp.data.repository.isQuizReadySentence
 import com.example.vocabapp.data.repository.sentenceType
 import com.example.vocabapp.domain.model.ImportErrorRow
@@ -266,7 +267,7 @@ private fun SentenceFileNameCard(fileName: String) {
 
 @Composable
 private fun SentenceCapacityChip(remaining: Int) {
-    val isLow = remaining < 200
+    val isLow = remaining < CAPACITY_LOW_THRESHOLD
     val chipColor = if (isLow) Danger.copy(alpha = 0.12f) else Success.copy(alpha = 0.12f)
     val textColor = if (isLow) Danger else Success
     Card(
