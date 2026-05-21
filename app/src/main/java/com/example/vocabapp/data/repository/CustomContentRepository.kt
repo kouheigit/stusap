@@ -490,6 +490,11 @@ class CustomContentRepository @Inject constructor(
         }
     }
 
+    suspend fun remainingCustomContentCapacity(): Int {
+        val currentCount = dao.customWordCount() + dao.customIdiomCount() + dao.customSentenceCount()
+        return (MAX_CUSTOM_CONTENT_ITEMS - currentCount).coerceAtLeast(0)
+    }
+
     private suspend fun ensureCustomContentCapacity(additionalCount: Int) {
         val currentCount = dao.customWordCount() + dao.customIdiomCount() + dao.customSentenceCount()
         if (currentCount + additionalCount > MAX_CUSTOM_CONTENT_ITEMS) {

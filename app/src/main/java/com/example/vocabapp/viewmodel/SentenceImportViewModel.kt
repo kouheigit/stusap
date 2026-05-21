@@ -26,12 +26,17 @@ class SentenceImportViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+    private val _fileName = MutableStateFlow<String?>(null)
+    val fileName: StateFlow<String?> = _fileName.asStateFlow()
+    private val _remainingCapacity = MutableStateFlow<Int?>(null)
+    val remainingCapacity: StateFlow<Int?> = _remainingCapacity.asStateFlow()
 
-    fun loadCsv(csvText: String) {
+    fun loadCsv(csvText: String, fileName: String? = null) {
         viewModelScope.launch {
             _isLoading.value = true
             _message.value = null
             _result.value = null
+            if (fileName != null) _fileName.value = fileName
             runCatching {
                 withContext(Dispatchers.Default) {
                     repository.previewCustomSentenceCsv(csvText)
@@ -57,11 +62,31 @@ class SentenceImportViewModel @Inject constructor(
                 }
             }.onSuccess { importResult ->
                 _result.value = importResult
+                loadRemainingCapacity()
             }.onFailureUnlessCancellation { error ->
                 _message.value = error.message ?: "文章の登録に失敗しました"
             }
             _isLoading.value = false
         }
+    }
+
+    fun loadRemainingCapacity() {
+        viewModelScope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    repository.remainingCustomContentCapacity()
+                }
+            }.onSuccess { capacity ->
+                _remainingCapacity.value = capacity
+            }.onFailureUnlessCancellation {}
+        }
+    }
+
+    fun resetForNewFile() {
+        _preview.value = null
+        _result.value = null
+        _message.value = null
+        _fileName.value = null
     }
 
     fun showMessage(message: String) {
