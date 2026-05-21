@@ -52,4 +52,25 @@ class SentenceQuizCompatibilityTest {
     fun sentenceType_withBrackets_returnsB() {
         assertEquals("B", "I [might][stay][as][well] in a tour".sentenceType())
     }
+
+    @Test
+    fun isQuizReadySentence_singleWord_returnsFalse() {
+        assertFalse("hello".isQuizReadySentence())
+    }
+
+    @Test
+    fun isQuizReadySentence_multipleSpaces_countedCorrectly() {
+        assertTrue("one  two  three  four  five  six".isQuizReadySentence())
+    }
+
+    @Test
+    fun sentenceType_emptyString_returnsA() {
+        assertEquals("A", "".sentenceType())
+    }
+
+    @Test
+    fun isQuizReadySentence_bracketStyleMixedWithPlain_usesBracketCount() {
+        assertFalse("plain words [bracket1][bracket2][bracket3] only three".isQuizReadySentence())
+        assertTrue("plain words [bracket1][bracket2][bracket3][bracket4] four brackets".isQuizReadySentence())
+    }
 }
