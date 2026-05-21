@@ -295,10 +295,9 @@ private fun SentenceImportFormatCard() {
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("文章専用の取り込みです", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
-            Text("1行目に sentence と meaning のヘッダーを入れてください。", color = TextDark, fontSize = 14.sp)
-            Text("日本語ヘッダーは「文章」「意味」でも読み込めます。", color = TextMuted, fontSize = 13.sp)
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("文章専用インポート", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
+            Text("1行目にヘッダー行を入れてください。", color = TextDark, fontSize = 14.sp)
             Card(
                 shape = RoundedCornerShape(6.dp),
                 colors = CardDefaults.cardColors(containerColor = SoftBlue),
@@ -307,18 +306,29 @@ private fun SentenceImportFormatCard() {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("CSVフォーマット例", color = DeepBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text("sentence,meaning", color = AccentBlue, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Text("I might stay as well as join in a tour,ツアーに参加するよりも家にいた方がいい", color = TextDark, fontSize = 11.sp)
-                    Text("I [might][stay][as][well] as join in a tour,ツアーに参加するよりも...", color = TextDark, fontSize = 11.sp)
+                    Text("I might stay as well as join a tour,ツアーに参加するよりも家にいた方がいい", color = TextDark, fontSize = 11.sp)
+                    Text("I [might][stay][as][well] as join a tour,ツアーに...", color = TextDark, fontSize = 11.sp)
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 SentenceTypeBadge("A型", AccentBlue)
                 Text("6語以上でそのまま入力 → 自動で4語が空白に", color = TextMuted, fontSize = 12.sp)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 SentenceTypeBadge("B型", Gold)
                 Text("[語句]で4つを囲む → その語句が並べ替え対象", color = TextMuted, fontSize = 12.sp)
             }
+            androidx.compose.material3.HorizontalDivider(color = TextMuted.copy(alpha = 0.15f))
+            Text(
+                "対応ヘッダー名: sentence / english / 英文 / 文章 / 例文 / 英語",
+                color = TextMuted,
+                fontSize = 11.sp
+            )
+            Text(
+                "意味列: meaning / 日本語の意味 / 意味 / 訳 / 和訳 / 日本語",
+                color = TextMuted,
+                fontSize = 11.sp
+            )
         }
     }
 }
