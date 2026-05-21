@@ -170,6 +170,8 @@ data class SentenceImportPreview(
     val newCount: Int get() = newSentences.size
     val duplicateCount: Int get() = duplicateSentences.size + omittedDuplicateCount
     val errorCount: Int get() = errors.size + omittedErrorCount
+    val quizReadyCount: Int get() = newSentences.count { it.isQuizReady }
+    val quizIncompatibleCount: Int get() = newSentences.count { !it.isQuizReady }
 }
 
 data class SentenceImportResult(
