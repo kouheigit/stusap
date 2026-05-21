@@ -210,23 +210,43 @@ internal fun SentenceImportScreen(
                 }
 
                 if (currentPreview.newSentences.isNotEmpty()) {
-                    item { SectionTitle("登録予定 (${currentPreview.newCount}件)") }
+                    item { ImportSectionTitle("登録予定 (${currentPreview.newCount}件)", Success) }
                     items(currentPreview.newSentences) { sentence ->
                         SentenceImportRow(sentence)
                     }
                 }
 
                 if (currentPreview.duplicateSentences.isNotEmpty()) {
-                    item { SectionTitle("重複スキップ (${currentPreview.duplicateCount}件)") }
+                    item { ImportSectionTitle("重複スキップ (${currentPreview.duplicateCount}件)", Gold) }
                     items(currentPreview.duplicateSentences.take(20)) { sentence ->
                         SentenceImportRow(sentence)
+                    }
+                    if (currentPreview.duplicateSentences.size > 20) {
+                        item {
+                            Text(
+                                "... 他${currentPreview.duplicateSentences.size - 20}件は省略",
+                                color = Gold.copy(alpha = 0.7f),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
                 if (currentPreview.errors.isNotEmpty()) {
-                    item { SectionTitle("エラー (${currentPreview.errorCount}件)") }
+                    item { ImportSectionTitle("エラー (${currentPreview.errorCount}件)", Danger) }
                     items(currentPreview.errors.take(20)) { error ->
                         SentenceImportErrorRow(error)
+                    }
+                    if (currentPreview.errors.size > 20) {
+                        item {
+                            Text(
+                                "... 他${currentPreview.errors.size - 20}件は省略",
+                                color = Danger.copy(alpha = 0.7f),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -444,6 +464,11 @@ private fun SentenceImportErrorRow(error: ImportErrorRow) {
             }
         }
     }
+}
+
+@Composable
+private fun ImportSectionTitle(text: String, color: Color) {
+    Text(text, color = color, fontSize = 24.sp, fontWeight = FontWeight.Black)
 }
 
 private fun List<String>.toSentenceMaskedPreview(): String =
