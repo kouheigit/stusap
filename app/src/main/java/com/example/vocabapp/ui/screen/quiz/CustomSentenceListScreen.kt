@@ -161,7 +161,12 @@ internal fun SentenceRow(index: Int, sentence: CustomSentenceEntity, onDelete: (
                     val cal = java.util.Calendar.getInstance().apply { timeInMillis = sentence.addedAt }
                     "${cal.get(java.util.Calendar.YEAR)}/${cal.get(java.util.Calendar.MONTH) + 1}/${cal.get(java.util.Calendar.DAY_OF_MONTH)}"
                 }
-                Text(dateStr, color = TextMuted.copy(alpha = 0.6f), fontSize = 11.sp)
+                val metaLine = if (sentence.importedFromFile != null) {
+                    "$dateStr · ${sentence.importedFromFile}"
+                } else {
+                    dateStr
+                }
+                Text(metaLine, color = TextMuted.copy(alpha = 0.6f), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             IconButton(onClick = { showConfirm = true }) {
                 Icon(Icons.Default.Delete, contentDescription = "削除", tint = Danger)
