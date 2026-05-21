@@ -400,8 +400,9 @@ private fun SentenceImportSummaryCard(
                 SummaryChip("エラー", "${errorCount}件", Modifier.weight(1f))
             }
             if (quizReadyCount != null && quizIncompatibleCount != null && newCount > 0) {
+                val percent = if (newCount > 0) quizReadyCount * 100 / newCount else 0
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    SummaryChip("クイズ対応", "${quizReadyCount}件", Modifier.weight(1f))
+                    SummaryChip("クイズ対応", "${quizReadyCount}件 (${percent}%)", Modifier.weight(1f))
                     SummaryChip("対応外", "${quizIncompatibleCount}件", Modifier.weight(1f))
                 }
             }

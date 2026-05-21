@@ -85,4 +85,42 @@ class SentenceImportModelTest {
         )
         assertEquals(3, result.quizReadyInsertedCount)
     }
+
+    @Test
+    fun quizCompatiblePercent_allReady_returns100() {
+        val preview = SentenceImportPreview(
+            newSentences = listOf(
+                ImportedSentence("one two three four five six", "意味", isQuizReady = true),
+                ImportedSentence("two three four five six seven", "意味2", isQuizReady = true)
+            )
+        )
+        assertEquals(100, preview.quizCompatiblePercent)
+    }
+
+    @Test
+    fun quizCompatiblePercent_noneReady_returns0() {
+        val preview = SentenceImportPreview(
+            newSentences = listOf(
+                ImportedSentence("too short", "短い", isQuizReady = false)
+            )
+        )
+        assertEquals(0, preview.quizCompatiblePercent)
+    }
+
+    @Test
+    fun quizCompatiblePercent_halfReady_returns50() {
+        val preview = SentenceImportPreview(
+            newSentences = listOf(
+                ImportedSentence("one two three four five six", "意味", isQuizReady = true),
+                ImportedSentence("too short", "短い", isQuizReady = false)
+            )
+        )
+        assertEquals(50, preview.quizCompatiblePercent)
+    }
+
+    @Test
+    fun quizCompatiblePercent_emptyNewSentences_returns0() {
+        val preview = SentenceImportPreview(newSentences = emptyList())
+        assertEquals(0, preview.quizCompatiblePercent)
+    }
 }
