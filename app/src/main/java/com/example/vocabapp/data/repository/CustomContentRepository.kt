@@ -303,7 +303,7 @@ class CustomContentRepository @Inject constructor(
                 return@forEachIndexed
             }
 
-            val imported = ImportedSentence(sentence, meaning)
+            val imported = ImportedSentence(sentence, meaning, isQuizReady = sentence.isQuizReadySentence())
             val normalized = sentence.normalizeEnglish()
             when {
                 normalized in existing || normalized in seenInCsv -> addDuplicate(imported)
