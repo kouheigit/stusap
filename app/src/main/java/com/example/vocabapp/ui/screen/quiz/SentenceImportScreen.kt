@@ -427,11 +427,20 @@ private fun SentenceImportRow(sentence: ImportedSentence) {
 
 @Composable
 private fun SentenceImportErrorRow(error: ImportErrorRow) {
-    Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Danger.copy(alpha = 0.05f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("${error.rowNumber}行目", color = Danger, fontWeight = FontWeight.Bold)
-            Text(error.reason, color = TextDark)
-            Text(error.rawValues.toSentenceMaskedPreview(), color = TextMuted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                SentenceTypeBadge("${error.rowNumber}行", Danger)
+                Text("エラー", color = Danger, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+            Text(error.reason, color = TextDark, fontSize = 13.sp)
+            if (error.rawValues.isNotEmpty()) {
+                Text(error.rawValues.toSentenceMaskedPreview(), color = TextMuted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }
