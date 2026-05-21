@@ -81,12 +81,12 @@ internal fun SentenceMenuScreen(
                 Button(
                     onClick = { navController.navigate(Route.SentenceImport.path) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
+                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = Color.White)
                     Spacer(Modifier.width(8.dp))
-                    Text("文章Excel / CSV取込", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("文章Excel / CSV一括取込", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
             item {
