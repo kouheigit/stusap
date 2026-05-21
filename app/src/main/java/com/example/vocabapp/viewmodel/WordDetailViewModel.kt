@@ -7,6 +7,7 @@ import com.example.vocabapp.data.local.entity.CustomIdiomEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.repository.CustomContentRepository
+import com.example.vocabapp.data.repository.CustomImportRepository
 import com.example.vocabapp.data.repository.ReviewRepository
 import com.example.vocabapp.data.repository.WordRepository
 import com.example.vocabapp.domain.model.HomeSummary
@@ -99,7 +100,7 @@ class AddWordViewModel @Inject constructor(
 
 @HiltViewModel
 class WordImportViewModel @Inject constructor(
-    private val repository: CustomContentRepository
+    private val repository: CustomImportRepository
 ) : ViewModel() {
     private val _preview = MutableStateFlow<WordImportPreview?>(null)
     val preview: StateFlow<WordImportPreview?> = _preview.asStateFlow()

@@ -2,7 +2,7 @@ package com.example.vocabapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.vocabapp.data.repository.CustomContentRepository
+import com.example.vocabapp.data.repository.CustomImportRepository
 import com.example.vocabapp.domain.model.SentenceImportPreview
 import com.example.vocabapp.domain.model.SentenceImportResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SentenceImportViewModel @Inject constructor(
-    private val repository: CustomContentRepository
+    private val repository: CustomImportRepository
 ) : ViewModel() {
     private val _preview = MutableStateFlow<SentenceImportPreview?>(null)
     val preview: StateFlow<SentenceImportPreview?> = _preview.asStateFlow()
