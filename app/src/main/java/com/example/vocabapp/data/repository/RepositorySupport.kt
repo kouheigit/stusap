@@ -31,6 +31,20 @@ internal fun List<String>.getOrEmpty(index: Int): String =
 
 internal fun String.normalizeEnglish(): String = trim().lowercase()
 
+private val BRACKET_REGEX = Regex("\\[([^\\]]+)\\]")
+
+internal fun String.isQuizReadySentence(): Boolean {
+    val bracketCount = BRACKET_REGEX.findAll(this).count()
+    if (bracketCount > 0) return bracketCount == 4
+    val wordCount = trim().split("\\s+".toRegex()).count { it.isNotBlank() }
+    return wordCount >= 6
+}
+
+internal fun String.sentenceType(): String {
+    val bracketCount = BRACKET_REGEX.findAll(this).count()
+    return if (bracketCount > 0) "B" else "A"
+}
+
 internal data class CustomStudyWord(
     val id: Int,
     val english: String,
