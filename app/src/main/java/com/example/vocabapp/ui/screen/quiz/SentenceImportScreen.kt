@@ -37,7 +37,7 @@ import com.example.vocabapp.ui.theme.Danger
 import com.example.vocabapp.ui.theme.Gold
 import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.Success
-import com.example.vocabapp.errorImportLog
+import com.example.vocabapp.util.errorImportLog
 import com.example.vocabapp.queryDisplayName
 import com.example.vocabapp.readImportFileAsCsv
 import com.example.vocabapp.ui.navigation.Route

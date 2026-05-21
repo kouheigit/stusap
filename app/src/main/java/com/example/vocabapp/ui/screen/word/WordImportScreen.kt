@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.util.errorImportLog
+
 import com.example.vocabapp.ui.theme.Danger
 
 import com.example.vocabapp.ui.theme.Success

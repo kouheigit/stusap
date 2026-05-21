@@ -1,5 +1,11 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.util.errorImportLog
+
+import com.example.vocabapp.util.warnImportLog
+
+import com.example.vocabapp.util.debugImportLog
+
 import java.util.Locale
 import org.xmlpull.v1.XmlPullParser
 

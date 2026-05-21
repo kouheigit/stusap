@@ -1,6 +1,7 @@
-package com.example.vocabapp
+package com.example.vocabapp.util
 
 import android.util.Log
+import com.example.vocabapp.BuildConfig
 
 private const val IMPORT_TAG = "ExcelImport"
 

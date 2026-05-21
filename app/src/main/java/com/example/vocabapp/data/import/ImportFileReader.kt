@@ -1,5 +1,7 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.util.debugImportLog
+
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
