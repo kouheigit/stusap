@@ -231,7 +231,13 @@ class CustomContentRepository @Inject constructor(
     suspend fun previewCustomSentenceCsv(csvText: String): SentenceImportPreview {
         val rows = parseCsvRows(csvText)
         if (rows.isEmpty()) {
-            return SentenceImportPreview(errors = listOf(ImportErrorRow(1, "CSVが空です", emptyList())))
+            return SentenceImportPreview(errors = listOf(ImportErrorRow(1, "ファイルにデータが見つかりません。1行目にヘッダー（sentence, meaning）を入れてください", emptyList())))
+        }
+        if (rows.size == 1) {
+            return SentenceImportPreview(
+                totalRows = 0,
+                errors = listOf(ImportErrorRow(1, "ヘッダー行のみでデータ行がありません。2行目以降に英文と意味を入力してください", rows.first()))
+            )
         }
 
         val header = rows.first().map { it.trim() }
