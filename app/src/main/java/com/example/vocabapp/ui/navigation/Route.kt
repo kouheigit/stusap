@@ -1,4 +1,4 @@
-package com.example.vocabapp
+package com.example.vocabapp.ui.navigation
 
 internal sealed class Route(val path: String) {
     object Home : Route("home")

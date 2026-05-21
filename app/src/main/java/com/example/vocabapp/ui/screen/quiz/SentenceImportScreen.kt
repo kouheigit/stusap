@@ -35,12 +35,12 @@ import androidx.navigation.NavHostController
 import com.example.vocabapp.BrightBlue
 import com.example.vocabapp.Danger
 import com.example.vocabapp.Gold
-import com.example.vocabapp.Route
 import com.example.vocabapp.SoftBlue
 import com.example.vocabapp.Success
 import com.example.vocabapp.errorImportLog
 import com.example.vocabapp.queryDisplayName
 import com.example.vocabapp.readImportFileAsCsv
+import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.ui.screen.common.BlueScaffold
 import com.example.vocabapp.viewmodel.SentenceImportViewModel
 import kotlinx.coroutines.Dispatchers
