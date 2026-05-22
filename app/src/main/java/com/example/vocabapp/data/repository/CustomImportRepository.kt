@@ -25,7 +25,10 @@ class CustomImportRepository @Inject constructor(
     private val dao: AppDao = database.appDao()
 
     suspend fun previewCustomWordCsv(csvText: String): WordImportPreview {
-        val rows = parseCsvRows(csvText)
+        return previewCustomWordRows(parseCsvRows(csvText))
+    }
+
+    suspend fun previewCustomWordRows(rows: List<List<String>>): WordImportPreview {
         if (rows.isEmpty()) {
             return WordImportPreview(errors = listOf(ImportErrorRow(1, "CSVが空です", emptyList())))
         }
@@ -44,11 +47,13 @@ class CustomImportRepository @Inject constructor(
         val exampleTranslationIndex = header.findIndex(WORD_EXAMPLE_TRANSLATION_HEADER_ALIASES)
         val typeIndex = header.findIndex(TYPE_HEADER_ALIASES)
         val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish() +
-            dao.getNormalizedCustomIdiomEnglish()).toMutableSet()
+            dao.getNormalizedCustomIdiomEnglish()).toSet()
         val errorCollector = ImportIssueCollector<ImportedWord>()
-        val seenInCsv = mutableSetOf<String>()
-        val newWords = mutableListOf<ImportedWord>()
-        val availableSlots = remainingCustomContentCapacity()
+        val uniqueCollector = UniqueImportCollector(
+            existing = existing,
+            availableSlots = remainingCustomContentCapacity(),
+            issueCollector = errorCollector
+        )
 
         rows.drop(1).forEachIndexed { index, row ->
             val rowNumber = index + 2
@@ -70,20 +75,12 @@ class CustomImportRepository @Inject constructor(
             ) ?: return@forEachIndexed
 
             val imported = ImportedWord(english, meaning, example, exampleTranslation, wordType)
-            val normalized = english.normalizeEnglish()
-            when {
-                normalized in existing || normalized in seenInCsv -> errorCollector.addDuplicate(imported)
-                newWords.size >= availableSlots -> errorCollector.addError(rowNumber, "登録上限（${MAX_CUSTOM_CONTENT_ITEMS}件）を超えています", row)
-                else -> {
-                    seenInCsv += normalized
-                    newWords += imported
-                }
-            }
+            uniqueCollector.addIfUnique(english.normalizeEnglish(), imported, rowNumber, row)
         }
 
         return WordImportPreview(
             totalRows = rows.drop(1).size,
-            newWords = newWords,
+            newWords = uniqueCollector.newItems,
             duplicateWords = errorCollector.duplicates,
             errors = errorCollector.errors,
             omittedDuplicateCount = errorCollector.omittedDuplicateCount,
@@ -131,7 +128,10 @@ class CustomImportRepository @Inject constructor(
     }
 
     suspend fun previewCustomSentenceCsv(csvText: String): SentenceImportPreview {
-        val rows = parseCsvRows(csvText)
+        return previewCustomSentenceRows(parseCsvRows(csvText))
+    }
+
+    suspend fun previewCustomSentenceRows(rows: List<List<String>>): SentenceImportPreview {
         if (rows.isEmpty()) {
             return SentenceImportPreview(errors = listOf(ImportErrorRow(1, "ファイルにデータが見つかりません。1行目にヘッダー（sentence, meaning）を入れてください", emptyList())))
         }
@@ -152,11 +152,13 @@ class CustomImportRepository @Inject constructor(
             )
         }
 
-        val existing = dao.getNormalizedCustomSentences().toMutableSet()
+        val existing = dao.getNormalizedCustomSentences().toSet()
         val errorCollector = ImportIssueCollector<ImportedSentence>()
-        val seenInCsv = mutableSetOf<String>()
-        val newSentences = mutableListOf<ImportedSentence>()
-        val availableSlots = remainingCustomContentCapacity()
+        val uniqueCollector = UniqueImportCollector(
+            existing = existing,
+            availableSlots = remainingCustomContentCapacity(),
+            issueCollector = errorCollector
+        )
 
         rows.drop(1).forEachIndexed { index, row ->
             val rowNumber = index + 2
@@ -167,20 +169,12 @@ class CustomImportRepository @Inject constructor(
             }
 
             val imported = ImportedSentence(sentence, meaning, isQuizReady = sentence.isQuizReadySentence())
-            val normalized = sentence.normalizeEnglish()
-            when {
-                normalized in existing || normalized in seenInCsv -> errorCollector.addDuplicate(imported)
-                newSentences.size >= availableSlots -> errorCollector.addError(rowNumber, "登録上限（${MAX_CUSTOM_CONTENT_ITEMS}件）を超えています", row)
-                else -> {
-                    seenInCsv += normalized
-                    newSentences += imported
-                }
-            }
+            uniqueCollector.addIfUnique(sentence.normalizeEnglish(), imported, rowNumber, row)
         }
 
         return SentenceImportPreview(
             totalRows = rows.drop(1).size,
-            newSentences = newSentences,
+            newSentences = uniqueCollector.newItems,
             duplicateSentences = errorCollector.duplicates,
             errors = errorCollector.errors,
             omittedDuplicateCount = errorCollector.omittedDuplicateCount,
