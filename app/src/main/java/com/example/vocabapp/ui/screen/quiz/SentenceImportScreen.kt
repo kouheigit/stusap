@@ -39,7 +39,7 @@ import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.Success
 import com.example.vocabapp.util.errorImportLog
 import com.example.vocabapp.queryDisplayName
-import com.example.vocabapp.readImportFileAsCsv
+import com.example.vocabapp.readImportFileAsRows
 import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.ui.screen.common.BlueScaffold
 import com.example.vocabapp.viewmodel.SentenceImportViewModel
@@ -65,9 +65,9 @@ internal fun SentenceImportScreen(
             val pickedName = context.queryDisplayName(uri)
             viewModel.showLoading()
             scope.launch(Dispatchers.IO) {
-                val readResult = runCatching { context.readImportFileAsCsv(uri) }
-                readResult.onSuccess { csvText ->
-                    viewModel.loadCsv(csvText, pickedName)
+                val readResult = runCatching { context.readImportFileAsRows(uri) }
+                readResult.onSuccess { rows ->
+                    viewModel.loadRows(rows, pickedName)
                 }.onFailure {
                     errorImportLog("Sentence file read error")
                     viewModel.showMessage("文章ファイルの読み込みに失敗しました。形式とサイズを確認してください。")

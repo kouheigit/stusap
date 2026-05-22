@@ -69,9 +69,9 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
         if (uri != null) {
             viewModel.showLoading()
             scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                val result = runCatching { context.readImportFileAsCsv(uri) }
-                result.onSuccess { csvText ->
-                    viewModel.loadCsv(csvText)
+                val result = runCatching { context.readImportFileAsRows(uri) }
+                result.onSuccess { rows ->
+                    viewModel.loadRows(rows)
                 }.onFailure {
                     errorImportLog("File read error")
                     viewModel.showMessage("ファイルの読み込みに失敗しました。形式とサイズを確認してください。")
