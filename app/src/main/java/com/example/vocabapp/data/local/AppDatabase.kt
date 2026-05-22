@@ -46,7 +46,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         UserProgressEntity::class,
         AppSettingsEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -132,11 +132,6 @@ abstract class AppDatabase : RoomDatabase() {
                 """)
             }
         }
-        val MIGRATION_10_11 = object : Migration(10, 11) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE custom_sentences ADD COLUMN importedFromFile TEXT")
-            }
-        }
         val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE words ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
@@ -187,6 +182,33 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE quiz_attempt_answers_new RENAME TO quiz_attempt_answers")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_quiz_attempt_answers_quizAttemptId ON quiz_attempt_answers(quizAttemptId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_quiz_attempt_answers_wordId ON quiz_attempt_answers(wordId)")
+            }
+        }
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE custom_sentences ADD COLUMN importedFromFile TEXT")
+            }
+        }
+        // Renames app_settings columns from legacy inventory-app naming (stockalert_threshold, is_active)
+        // to vocabulary-app domain names (daily_review_goal, is_study_reminder_enabled).
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `app_settings_new` (
+                        `id` INTEGER NOT NULL,
+                        `daily_review_goal` INTEGER NOT NULL DEFAULT 0,
+                        `is_study_reminder_enabled` INTEGER NOT NULL DEFAULT 1,
+                        PRIMARY KEY(`id`)
+                    )
+                """)
+                db.execSQL("""
+                    INSERT INTO app_settings_new (
+                        id, daily_review_goal, is_study_reminder_enabled
+                    )
+                    SELECT id, stockalert_threshold, is_active FROM app_settings
+                """)
+                db.execSQL("DROP TABLE app_settings")
+                db.execSQL("ALTER TABLE app_settings_new RENAME TO app_settings")
             }
         }
     }
