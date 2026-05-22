@@ -46,6 +46,27 @@ internal class ImportIssueCollector<T> {
     }
 }
 
+internal class UniqueImportCollector<T>(
+    private val existing: Set<String>,
+    private val availableSlots: Int,
+    private val issueCollector: ImportIssueCollector<T>
+) {
+    private val seenInFile = mutableSetOf<String>()
+    private val _newItems = mutableListOf<T>()
+    val newItems: List<T> get() = _newItems
+
+    fun addIfUnique(normalizedKey: String, item: T, rowNumber: Int, row: List<String>) {
+        when {
+            normalizedKey in existing || normalizedKey in seenInFile -> issueCollector.addDuplicate(item)
+            _newItems.size >= availableSlots -> issueCollector.addError(rowNumber, "登録上限（${MAX_CUSTOM_CONTENT_ITEMS}件）を超えています", row)
+            else -> {
+                seenInFile += normalizedKey
+                _newItems += item
+            }
+        }
+    }
+}
+
 internal fun validateWordImportRow(
     rowNumber: Int,
     row: List<String>,
