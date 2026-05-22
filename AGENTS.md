@@ -25,10 +25,13 @@ Use:
 - `.claude/prompts/test.md`
 - `.claude/prompts/deploy.md`
 - `.claude/agents/reviewer.md`
+- `.claude/commands/scorereview.md`
 
 作業後は必ず `.claude/prompts/test.md` に従って、必要なテストとビルド確認を行ってください。
 
 保守性レビューを依頼された場合は、`.claude/prompts/review.md` または `.claude/agents/reviewer.md` に従ってください。
+
+`/prompts:scorereview`、`/scorereview`、`scorereview`、`スコアレビュー`、点数付きの保守性レビューを依頼された場合は、Codex でも `.claude/commands/scorereview.md` をコマンド定義として読み、未コミット差分または指定されたコミット範囲をレビューしてください。
 
 Android のビルド、APK インストール、ADB 起動確認が必要な場合は `.claude/prompts/deploy.md` に従ってください。
 

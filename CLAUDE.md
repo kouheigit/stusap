@@ -21,14 +21,13 @@ Use:
 
 このプロジェクトでは、以下の補助ファイルを必ず参照してください。
 
-- `.claude/prompts/review.md`
+- `.claude/agents/reviewer.md`
 - `.claude/prompts/test.md`
 - `.claude/prompts/deploy.md`
-- `.claude/agents/reviewer.md`
 
 作業後は必ず `.claude/prompts/test.md` に従って、必要なテストとビルド確認を行ってください。
 
-保守性レビューを依頼された場合は、`.claude/prompts/review.md` または `.claude/agents/reviewer.md` に従ってください。
+保守性レビューを依頼された場合は、`.claude/agents/reviewer.md` に従ってください。
 
 Android のビルド、APK インストール、ADB 起動確認が必要な場合は `.claude/prompts/deploy.md` に従ってください。
 
@@ -197,13 +196,45 @@ If ADB fails, retry up to 3 times before stopping.
 
 ## Bug Investigation Rules
 
-- If the same bug is not fixed after 2 attempts:
-  - stop making surface-level fixes
-  - investigate root cause
-  - list assumptions
-  - verify assumptions before editing more code
+### Attempt Limit
 
-- Avoid repeated trial-and-error fixes without diagnosis.
+- If the same bug is **not fixed after 2 attempts**, immediately stop making surface-level fixes.
+- Do not attempt a 3rd fix until the root cause investigation below is complete.
+
+### Root Cause Investigation Steps
+
+1. **Describe the symptom precisely**
+   - Copy the exact error message and stack trace.
+   - Identify reproduction conditions (always / conditional / intermittent).
+
+2. **List all assumptions and hypotheses**
+   - Write down every assumption about why the code should work.
+   - For each hypothesis, define a concrete verification method.
+
+3. **Verify hypotheses one by one — before changing code**
+   - Use logs, debugger, or unit tests to confirm or deny each hypothesis.
+   - Do not modify code until at least one hypothesis is verified.
+
+4. **Check the impact scope**
+   - Confirm the fix does not break other modules, screens, or states.
+   - Check for side effects on Room Migration / StateFlow / LaunchedEffect / DisposableEffect.
+
+5. **Decide on a fix strategy, then implement**
+   - "Let me just try changing this" is prohibited.
+   - Only implement a fix when you can state the reason it will work.
+
+### Prohibited Behaviors
+
+- Continuing to modify code while the root cause is unknown (trial-and-error).
+- Repeating the same fix with superficial wording changes.
+- Fixing code without checking logs or stack traces first.
+- Stacking new changes on top of unresolved build errors.
+
+### Escalation Criteria
+
+- **2 failed attempts** → switch to root cause investigation.
+- **Root cause still unknown after investigation** → report current status to the user and request additional information.
+- **All hypotheses ruled out** → suspect an architecture-level design issue and propose a structural review.
 
 ---
 
@@ -234,9 +265,6 @@ Never mark work as complete before verification.
 - `touch .claude/config.toml`
   - `.claude/config.toml` を作成、または更新日時を変更する
   - Claude 用の設定ファイル置き場として使う想定
-- `touch .claude/prompts/review.md`
-  - review 用のプロンプトファイルを作成、または更新する
-  - レビュー用の指示文を入れる場所
 - `touch .claude/prompts/test.md`
   - test 用のプロンプトファイルを作成、または更新する
   - テスト実行用の指示文を入れる場所
