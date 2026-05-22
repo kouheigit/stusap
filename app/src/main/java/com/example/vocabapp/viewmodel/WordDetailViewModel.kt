@@ -112,13 +112,21 @@ class WordImportViewModel @Inject constructor(
     val message: StateFlow<String?> = _message.asStateFlow()
 
     fun loadCsv(csvText: String) {
+        loadRowsInBackground { repository.previewCustomWordCsv(csvText) }
+    }
+
+    fun loadRows(rows: List<List<String>>) {
+        loadRowsInBackground { repository.previewCustomWordRows(rows) }
+    }
+
+    private fun loadRowsInBackground(loadPreview: suspend () -> WordImportPreview) {
         viewModelScope.launch {
             _isLoading.value = true
             _message.value = null
             _result.value = null
             runCatching {
                 withContext(Dispatchers.Default) {
-                    repository.previewCustomWordCsv(csvText)
+                    loadPreview()
                 }
             }.onSuccess { loadedPreview ->
                 _preview.value = loadedPreview

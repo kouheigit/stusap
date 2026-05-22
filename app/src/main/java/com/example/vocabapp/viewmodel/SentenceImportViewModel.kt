@@ -36,6 +36,14 @@ class SentenceImportViewModel @Inject constructor(
     }
 
     fun loadCsv(csvText: String, fileName: String? = null) {
+        loadRowsInBackground(fileName) { repository.previewCustomSentenceCsv(csvText) }
+    }
+
+    fun loadRows(rows: List<List<String>>, fileName: String? = null) {
+        loadRowsInBackground(fileName) { repository.previewCustomSentenceRows(rows) }
+    }
+
+    private fun loadRowsInBackground(fileName: String?, loadPreview: suspend () -> SentenceImportPreview) {
         viewModelScope.launch {
             _isLoading.value = true
             _message.value = null
@@ -43,7 +51,7 @@ class SentenceImportViewModel @Inject constructor(
             if (fileName != null) _fileName.value = fileName
             runCatching {
                 withContext(Dispatchers.Default) {
-                    repository.previewCustomSentenceCsv(csvText)
+                    loadPreview()
                 }
             }.onSuccess { loadedPreview ->
                 _preview.value = loadedPreview.copy(sourceFileName = _fileName.value)
