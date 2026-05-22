@@ -8,15 +8,15 @@ import android.provider.OpenableColumns
 import java.io.InputStream
 import java.util.Locale
 
-internal fun Context.readImportFileAsCsv(uri: Uri): String {
-    debugImportLog("readImportFileAsCsv: start")
+internal fun Context.readImportFileAsRows(uri: Uri): List<List<String>> {
+    debugImportLog("readImportFileAsRows: start")
     val bytes = contentResolver.openInputStream(uri)?.use { it.readBytesWithLimit(MAX_IMPORT_FILE_BYTES) }
         ?: error("ファイルを開けませんでした")
     if (bytes.isEmpty()) error("ファイルが空です")
 
     val fileName = queryDisplayName(uri).lowercase(Locale.ROOT)
     val mimeType = contentResolver.getType(uri).orEmpty().lowercase(Locale.ROOT)
-    debugImportLog("readImportFileAsCsv: file metadata checked")
+    debugImportLog("readImportFileAsRows: file metadata checked")
 
     val isZipMagic = bytes.startsWith(byteArrayOf(0x50, 0x4B, 0x03, 0x04))
     val isOle2Magic = bytes.startsWith(byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte()))
@@ -26,20 +26,23 @@ internal fun Context.readImportFileAsCsv(uri: Uri): String {
     val isOldXls = isOle2Magic ||
         (!isZipMagic && fileName.endsWith(".xls")) ||
         (!isZipMagic && mimeType == "application/vnd.ms-excel")
-    debugImportLog("readImportFileAsCsv: file type resolved")
+    debugImportLog("readImportFileAsRows: file type resolved")
 
     if (isOldXls && !isXlsx) {
         error("古い .xls 形式は未対応です。Excelで .xlsx または CSV として保存してから選択してください")
     }
 
     return if (isXlsx) {
-        debugImportLog("readImportFileAsCsv: parsing as XLSX")
-        parseXlsxRows(bytes).toCsvText()
+        debugImportLog("readImportFileAsRows: parsing as XLSX")
+        parseXlsxRows(bytes)
     } else {
-        debugImportLog("readImportFileAsCsv: parsing as CSV")
-        decodeCsvBytes(bytes)
+        debugImportLog("readImportFileAsRows: parsing as CSV")
+        parseCsvRows(decodeCsvBytes(bytes))
     }
 }
+
+internal fun Context.readImportFileAsCsv(uri: Uri): String =
+    readImportFileAsRows(uri).toCsvText()
 
 internal fun Context.queryDisplayName(uri: Uri): String {
     contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
@@ -63,7 +66,7 @@ internal fun InputStream.readBytesWithLimit(maxBytes: Int): ByteArray {
         if (read == -1) break
         total += read
         if (total > maxBytes) {
-            error("ファイルサイズが上限を超えています")
+            throw IllegalArgumentException("ファイルサイズが上限を超えています")
         }
         output.write(buffer, 0, read)
     }
