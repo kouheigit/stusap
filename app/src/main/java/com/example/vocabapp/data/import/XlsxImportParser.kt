@@ -1,12 +1,11 @@
 package com.example.vocabapp
 
+import com.example.vocabapp.util.debugImportLog
 import com.example.vocabapp.util.errorImportLog
-
 import com.example.vocabapp.util.warnImportLog
 
-import com.example.vocabapp.util.debugImportLog
-
 import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.util.zip.ZipInputStream
@@ -37,7 +36,7 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
                 if (!entry.isDirectory && name in XLSX_TARGET_ENTRIES) {
                     try {
                         entryBytes = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
-                    } catch (e: Exception) {
+                    } catch (e: IOException) {
                         warnImportLog("parseXlsxRows: ZIP entry read failed")
                     }
                 }
@@ -75,8 +74,12 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
                 var entry = zip.nextEntry
                 while (entry != null && !entries.containsKey(sheetPath)) {
                     if (!entry.isDirectory && entry.name == sheetPath) {
-                        entries[sheetPath] = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
-                        debugImportLog("parseXlsxRows: re-scan captured worksheet")
+                        try {
+                            entries[sheetPath] = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
+                            debugImportLog("parseXlsxRows: re-scan captured worksheet")
+                        } catch (e: IOException) {
+                            warnImportLog("parseXlsxRows: re-scan worksheet read failed")
+                        }
                     }
                     try { zip.closeEntry() } catch (e: java.util.zip.ZipException) {
                         warnImportLog("parseXlsxRows: re-scan closeEntry failed")
@@ -84,7 +87,7 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
                     entry = try { zip.nextEntry } catch (e: java.util.zip.ZipException) { break }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             warnImportLog("parseXlsxRows: re-scan failed")
         }
     }
