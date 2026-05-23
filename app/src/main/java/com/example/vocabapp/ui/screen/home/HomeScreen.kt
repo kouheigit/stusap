@@ -125,9 +125,9 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
                 CardButton(
                     title = stringResource(R.string.home_sentence_title),
                     subtitle = if (summary.sentenceCount > 0)
-                        "登録済み ${summary.sentenceCount}文 · 並べ替え問題を出題"
+                        stringResource(R.string.home_sentence_subtitle_with_count, summary.sentenceCount)
                     else
-                        "登録した英文から並べ替え問題を出題",
+                        stringResource(R.string.home_sentence_subtitle),
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = { navController.navigate(Route.SentenceMenu.path) }
                 )
