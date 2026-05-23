@@ -47,6 +47,8 @@
     <string name="custom_quiz_requires_four">クイズには4つ以上の%1$sを登録してください</string>
     <string name="random_quiz_requires_four">ランダムクイズには4つ以上の%1$sを登録してください</string>
     <string name="nav_back">戻る</string>
+    <string name="home_study_log_label">学習ログ</string>
+    <string name="home_settings_label">設定</string>
 
     <string name="random_custom_menu_title">ランダム英単語&amp;英熟語</string>
     <string name="random_custom_section">ランダム10問</string>
