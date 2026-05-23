@@ -143,7 +143,7 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             item {
                 CardButton(
                     title = stringResource(R.string.home_sentence_import_title),
-                    subtitle = "CSV・Excelファイルから一度に大量の英文を登録",
+                    subtitle = stringResource(R.string.home_sentence_import_subtitle),
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = { navController.navigate(Route.SentenceImport.path) }
                 )
