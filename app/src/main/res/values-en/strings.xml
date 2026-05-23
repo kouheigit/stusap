@@ -16,6 +16,8 @@
     <string name="home_sentence_title">文章問題</string>
     <string name="home_sentence_subtitle">登録した英文から並べ替え問題を出題</string>
     <string name="home_sentence_subtitle_with_count">登録済み %1$d文 · 並べ替え問題を出題</string>
+    <string name="home_sentence_import_title">文章Excel / CSV一括取込</string>
+    <string name="home_sentence_import_subtitle">CSV・Excelファイルから一度に大量の英文を登録</string>
     <string name="home_review_title">復習トレーニング</string>
     <string name="home_review_subtitle">間違えた単語とチェックした単語を10問で復習</string>
 
