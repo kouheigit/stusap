@@ -5,6 +5,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -20,7 +21,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SentenceImportViewModelTest {
 
-    private val testDispatcher = UnconfinedTestDispatcher()
+    private lateinit var testDispatcher: TestDispatcher
 
     private fun buildViewModel(
         repository: CustomImportRepository = mockk {
@@ -30,6 +31,7 @@ class SentenceImportViewModelTest {
 
     @Before
     fun setUp() {
+        testDispatcher = UnconfinedTestDispatcher()
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -39,7 +41,7 @@ class SentenceImportViewModelTest {
     }
 
     @Test
-    fun `initial state has no preview result or message`() = runTest {
+    fun `initial state has no preview result or message`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         assertNull(vm.preview.value)
         assertNull(vm.result.value)
@@ -49,7 +51,7 @@ class SentenceImportViewModelTest {
     }
 
     @Test
-    fun `showLoading sets isLoading true and clears preview result and message`() = runTest {
+    fun `showLoading sets isLoading true and clears preview result and message`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.showLoading()
         assertTrue(vm.isLoading.value)
@@ -59,7 +61,7 @@ class SentenceImportViewModelTest {
     }
 
     @Test
-    fun `showMessage sets message and stops loading`() = runTest {
+    fun `showMessage sets message and stops loading`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.showLoading()
         vm.showMessage("読み込みに失敗しました")
@@ -68,7 +70,7 @@ class SentenceImportViewModelTest {
     }
 
     @Test
-    fun `resetForNewFile clears all user-visible state`() = runTest {
+    fun `resetForNewFile clears all user-visible state`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.showMessage("エラー")
         vm.resetForNewFile()
@@ -79,7 +81,7 @@ class SentenceImportViewModelTest {
     }
 
     @Test
-    fun `showLoading then showMessage reflects final message state`() = runTest {
+    fun `showLoading then showMessage reflects final message state`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.showLoading()
         assertTrue(vm.isLoading.value)
@@ -89,7 +91,7 @@ class SentenceImportViewModelTest {
     }
 
     @Test
-    fun `multiple resetForNewFile calls are idempotent`() = runTest {
+    fun `multiple resetForNewFile calls are idempotent`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.showMessage("エラー1")
         vm.resetForNewFile()
