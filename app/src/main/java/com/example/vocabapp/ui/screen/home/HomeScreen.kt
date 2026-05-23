@@ -69,21 +69,21 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
                 )
                 Spacer(Modifier.height(14.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatCard("累計学習", formatSeconds(summary.totalStudySeconds), Modifier.weight(1f))
-                    StatCard("今週", formatSeconds(summary.weekStudySeconds), Modifier.weight(1f))
+                    StatCard(stringResource(R.string.stat_total_study), formatSeconds(summary.totalStudySeconds), Modifier.weight(1f))
+                    StatCard(stringResource(R.string.stat_this_week), formatSeconds(summary.weekStudySeconds), Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatCard("英単語Master", "${summary.masteredLessons}/${summary.totalLessons}", Modifier.weight(1f))
-                    StatCard("熟語Master", "${summary.idiomMasteredLessons}/${summary.idiomTotalLessons}", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.stat_word_master), "${summary.masteredLessons}/${summary.totalLessons}", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.stat_idiom_master), "${summary.idiomMasteredLessons}/${summary.idiomTotalLessons}", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatCard("復習単語", "${summary.reviewCount}", Modifier.weight(1f))
-                    StatCard("連続学習", "${summary.streakDays}日", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.stat_review_count), "${summary.reviewCount}", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.stat_streak_days), "${summary.streakDays}日", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(12.dp))
-                StatCard("文章登録", "${summary.sentenceCount}文", Modifier.fillMaxWidth())
+                StatCard(stringResource(R.string.stat_sentence_count_label), "${summary.sentenceCount}文", Modifier.fillMaxWidth())
             }
             item {
                 CardButton(
