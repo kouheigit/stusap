@@ -43,6 +43,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.example.vocabapp.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,22 +63,16 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
-            title = { Text("学習進捗をリセット") },
-            text = {
-                Text(
-                    "すべての学習進捗・クイズ履歴・復習リストを削除します。\n" +
-                        "登録したカスタム単語・熟語・文章も削除されます。\n" +
-                        "この操作は元に戻せません。"
-                )
-            },
+            title = { Text(stringResource(R.string.settings_reset_title)) },
+            text = { Text(stringResource(R.string.settings_reset_confirm)) },
             confirmButton = {
                 Button(
                     onClick = { viewModel.resetProgress(); showResetDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Danger)
-                ) { Text("リセット") }
+                ) { Text(stringResource(R.string.settings_action_reset)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showResetDialog = false }) { Text("キャンセル") }
+                OutlinedButton(onClick = { showResetDialog = false }) { Text(stringResource(R.string.settings_action_cancel)) }
             }
         )
     }
@@ -84,8 +80,8 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
     if (showDeleteCustomWordsDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteCustomWordsDialog = false },
-            title = { Text("カスタム単語・熟語を全削除") },
-            text = { Text("登録したすべてのカスタム単語・熟語を削除します。\nこの操作は元に戻せません。") },
+            title = { Text(stringResource(R.string.settings_delete_words_title)) },
+            text = { Text(stringResource(R.string.settings_delete_words_confirm)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -93,10 +89,10 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
                         showDeleteCustomWordsDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Danger)
-                ) { Text("削除") }
+                ) { Text(stringResource(R.string.settings_action_delete)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteCustomWordsDialog = false }) { Text("キャンセル") }
+                OutlinedButton(onClick = { showDeleteCustomWordsDialog = false }) { Text(stringResource(R.string.settings_action_cancel)) }
             }
         )
     }
@@ -104,21 +100,21 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
     if (showDeleteSentenceDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteSentenceDialog = false },
-            title = { Text("カスタム文章を全削除") },
-            text = { Text("登録したすべての文章問題を削除します。\nこの操作は元に戻せません。") },
+            title = { Text(stringResource(R.string.settings_delete_sentence_title)) },
+            text = { Text(stringResource(R.string.settings_delete_sentence_confirm)) },
             confirmButton = {
                 Button(
                     onClick = { viewModel.deleteAllCustomSentences(); showDeleteSentenceDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Danger)
-                ) { Text("削除") }
+                ) { Text(stringResource(R.string.settings_action_delete)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteSentenceDialog = false }) { Text("キャンセル") }
+                OutlinedButton(onClick = { showDeleteSentenceDialog = false }) { Text(stringResource(R.string.settings_action_cancel)) }
             }
         )
     }
 
-    BlueScaffold(title = "設定", onBack = { navController.popBackStack() }) { inner ->
+    BlueScaffold(title = stringResource(R.string.settings_screen_title), onBack = { navController.popBackStack() }) { inner ->
         Column(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -128,14 +124,14 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = BrightBlue)
                         Spacer(Modifier.width(8.dp))
-                        Text("アプリ情報", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(stringResource(R.string.settings_app_info_title), fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     }
-                    Text("TOEIC向け英単語・英熟語を、10問単位の4択クイズで学習するローカル保存型アプリです。", color = TextMuted)
-                    Text("英単語 100語（Lesson 1〜4） / 英熟語 30語（Lesson 1）", color = TextMuted, fontSize = 13.sp)
-                    Text("バージョン ${BuildConfig.VERSION_NAME}", color = TextMuted, fontSize = 13.sp)
+                    Text(stringResource(R.string.settings_app_info_body), color = TextMuted)
+                    Text(stringResource(R.string.settings_app_content_count), color = TextMuted, fontSize = 13.sp)
+                    Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME), color = TextMuted, fontSize = 13.sp)
                 }
             }
-            Text("データ管理", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.settings_data_management), color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Card(
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -149,7 +145,7 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
                         Spacer(Modifier.width(8.dp))
-                        Text("カスタム単語・熟語を全削除", color = Danger, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.settings_delete_words_title), color = Danger, modifier = Modifier.weight(1f))
                     }
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = TextMuted.copy(alpha = 0.1f))
                     OutlinedButton(
@@ -159,7 +155,7 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = Danger)
                         Spacer(Modifier.width(8.dp))
-                        Text("カスタム文章を全削除", color = Danger, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.settings_delete_sentence_title), color = Danger, modifier = Modifier.weight(1f))
                     }
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = TextMuted.copy(alpha = 0.1f))
                     OutlinedButton(
@@ -169,7 +165,7 @@ internal fun SettingsScreen(navController: NavHostController, viewModel: Setting
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = null, tint = Danger)
                         Spacer(Modifier.width(8.dp))
-                        Text("学習進捗をリセット", color = Danger, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.settings_reset_title), color = Danger, modifier = Modifier.weight(1f))
                     }
                 }
             }

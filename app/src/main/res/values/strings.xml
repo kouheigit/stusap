@@ -79,6 +79,22 @@
     <string name="sentence_menu_about_section">文章問題について</string>
     <string name="sentence_menu_about_desc">登録した英文から並べ替え問題を自動生成します</string>
 
+    <string name="settings_screen_title">設定</string>
+    <string name="settings_app_info_title">アプリ情報</string>
+    <string name="settings_app_info_body">TOEIC向け英単語・英熟語を、10問単位の4択クイズで学習するローカル保存型アプリです。</string>
+    <string name="settings_app_content_count">英単語 100語（Lesson 1〜4） / 英熟語 30語（Lesson 1）</string>
+    <string name="settings_version">バージョン %1$s</string>
+    <string name="settings_data_management">データ管理</string>
+    <string name="settings_delete_words_title">カスタム単語・熟語を全削除</string>
+    <string name="settings_delete_words_confirm">登録したすべてのカスタム単語・熟語を削除します。\nこの操作は元に戻せません。</string>
+    <string name="settings_delete_sentence_title">カスタム文章を全削除</string>
+    <string name="settings_delete_sentence_confirm">登録したすべての文章問題を削除します。\nこの操作は元に戻せません。</string>
+    <string name="settings_reset_title">学習進捗をリセット</string>
+    <string name="settings_reset_confirm">すべての学習進捗・クイズ履歴・復習リストを削除します。\n登録したカスタム単語・熟語・文章も削除されます。\nこの操作は元に戻せません。</string>
+    <string name="settings_action_reset">リセット</string>
+    <string name="settings_action_delete">削除</string>
+    <string name="settings_action_cancel">キャンセル</string>
+
     <string name="result_correct_summary">%1$d/%2$d正解</string>
     <string name="result_accuracy">%1$d%%</string>
     <string name="result_retry">再チャレンジ</string>
