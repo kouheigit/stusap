@@ -47,7 +47,7 @@ internal fun rememberSpeaker(): Speaker {
         android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
             )
@@ -64,10 +64,12 @@ internal fun rememberSpeaker(): Speaker {
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
         engine.stop()
-        audioManager.requestAudioFocus(focusRequest)
+        val focusResult = audioManager.requestAudioFocus(focusRequest)
+        if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return
         val utteranceId = "utt-${System.nanoTime()}"
         val params = android.os.Bundle().apply {
-            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
+            putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, TTS_MAX_VOLUME)
         }
         engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
     }
@@ -130,4 +132,4 @@ internal fun rememberSpeaker(): Speaker {
     return Speaker(isReady = isReady, speak = speak)
 }
 
-
+private const val TTS_MAX_VOLUME = 1.0f
