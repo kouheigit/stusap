@@ -57,6 +57,18 @@
     <string name="random_idiom_title">ランダム英熟語</string>
     <string name="random_idiom_subtitle">登録済みの英熟語から毎回ランダムに10問出題</string>
 
+    <string name="sentence_menu_add_button">文章登録</string>
+    <string name="sentence_menu_list_button">登録一覧</string>
+    <string name="sentence_menu_import_hint">CSV・Excelファイルから一度に大量の英文を登録できます</string>
+    <string name="sentence_menu_start_empty">文章を登録してから開始できます</string>
+    <string name="sentence_menu_start_count">文章問題を開始（%1$d文登録済み）</string>
+    <string name="sentence_menu_stat_registered">登録文章</string>
+    <string name="sentence_menu_stat_bun">文</string>
+    <string name="sentence_menu_stat_quizable">出題可能</string>
+    <string name="sentence_menu_stat_mon">問</string>
+    <string name="sentence_menu_about_section">文章問題について</string>
+    <string name="sentence_menu_about_desc">登録した英文から並べ替え問題を自動生成します</string>
+
     <string name="result_correct_summary">%1$d/%2$d正解</string>
     <string name="result_accuracy">%1$d%%</string>
     <string name="result_retry">再チャレンジ</string>

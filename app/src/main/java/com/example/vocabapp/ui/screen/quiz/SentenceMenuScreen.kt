@@ -45,6 +45,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.example.vocabapp.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,7 +62,7 @@ internal fun SentenceMenuScreen(
     viewModel: CustomSentenceListViewModel = hiltViewModel()
 ) {
     val sentences by viewModel.sentences.collectAsStateWithLifecycle()
-    BlueScaffold(title = "文章問題", onBack = { navController.popBackStack() }) { inner ->
+    BlueScaffold(title = stringResource(R.string.home_sentence_title), onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
@@ -76,7 +78,7 @@ internal fun SentenceMenuScreen(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
                         Spacer(Modifier.width(4.dp))
-                        Text("文章登録", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.sentence_menu_add_button), color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Button(
                         onClick = { navController.navigate(Route.CustomSentenceList.path) },
@@ -86,7 +88,7 @@ internal fun SentenceMenuScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
                         Spacer(Modifier.width(4.dp))
-                        Text("登録一覧", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.sentence_menu_list_button), color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -100,10 +102,10 @@ internal fun SentenceMenuScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = Color.White)
                         Spacer(Modifier.width(8.dp))
-                        Text("文章Excel / CSV一括取込", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.home_sentence_import_title), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Text(
-                        "CSV・Excelファイルから一度に大量の英文を登録できます",
+                        stringResource(R.string.sentence_menu_import_hint),
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 4.dp)
@@ -121,8 +123,8 @@ internal fun SentenceMenuScreen(
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        if (sentences.isEmpty()) "文章を登録してから開始できます"
-                        else "文章問題を開始（${sentences.size}文登録済み）",
+                        if (sentences.isEmpty()) stringResource(R.string.sentence_menu_start_empty)
+                        else stringResource(R.string.sentence_menu_start_count, sentences.size),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -140,21 +142,21 @@ internal fun SentenceMenuScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("登録文章", color = TextMuted, fontSize = 12.sp)
+                                Text(stringResource(R.string.sentence_menu_stat_registered), color = TextMuted, fontSize = 12.sp)
                                 Text("${sentences.size}", color = DeepBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                                Text("文", color = TextMuted, fontSize = 11.sp)
+                                Text(stringResource(R.string.sentence_menu_stat_bun), color = TextMuted, fontSize = 11.sp)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("出題可能", color = TextMuted, fontSize = 12.sp)
+                                Text(stringResource(R.string.sentence_menu_stat_quizable), color = TextMuted, fontSize = 12.sp)
                                 Text("${sentences.size}", color = AccentBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                                Text("問", color = TextMuted, fontSize = 11.sp)
+                                Text(stringResource(R.string.sentence_menu_stat_mon), color = TextMuted, fontSize = 11.sp)
                             }
                         }
                     }
                 }
             }
             item {
-                SectionTitle("文章問題について")
+                SectionTitle(stringResource(R.string.sentence_menu_about_section))
             }
             item {
                 Card(
@@ -163,7 +165,7 @@ internal fun SentenceMenuScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("登録した英文から並べ替え問題を自動生成します", color = TextDark, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.sentence_menu_about_desc), color = TextDark, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         HorizontalDivider(color = TextMuted.copy(alpha = 0.15f))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Card(
