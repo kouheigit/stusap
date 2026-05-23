@@ -123,6 +123,17 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 CardButton(
+                    title = stringResource(R.string.home_sentence_title),
+                    subtitle = if (summary.sentenceCount > 0)
+                        "登録済み ${summary.sentenceCount}文 · 並べ替え問題を出題"
+                    else
+                        "登録した英文から並べ替え問題を出題",
+                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                    onClick = { navController.navigate(Route.SentenceMenu.path) }
+                )
+            }
+            item {
+                CardButton(
                     title = stringResource(R.string.home_random_title),
                     subtitle = stringResource(R.string.home_random_subtitle),
                     icon = Icons.Default.PlayArrow,
@@ -131,13 +142,10 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 CardButton(
-                    title = stringResource(R.string.home_sentence_title),
-                    subtitle = if (summary.sentenceCount > 0)
-                        "登録済み ${summary.sentenceCount}文 · 並べ替え問題を出題"
-                    else
-                        "登録した英文から並べ替え問題を出題",
+                    title = stringResource(R.string.home_sentence_import_title),
+                    subtitle = "CSV・Excelファイルから一度に大量の英文を登録",
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
-                    onClick = { navController.navigate(Route.SentenceMenu.path) }
+                    onClick = { navController.navigate(Route.SentenceImport.path) }
                 )
             }
             item {
