@@ -43,6 +43,8 @@ import com.example.vocabapp.readImportFileAsRows
 import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.ui.screen.common.BlueScaffold
 import com.example.vocabapp.viewmodel.SentenceImportViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.vocabapp.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -76,7 +78,7 @@ internal fun SentenceImportScreen(
         }
     }
 
-    BlueScaffold(title = "文章インポート", onBack = { navController.popBackStack() }) { inner ->
+    BlueScaffold(title = stringResource(R.string.sentence_import_screen_title), onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = PaddingValues(20.dp),
@@ -163,7 +165,7 @@ private fun SentenceFilePickerButton(hasLoadedFile: Boolean, onClick: () -> Unit
         Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
         Spacer(Modifier.width(8.dp))
         Text(
-            if (hasLoadedFile) "別のファイルを選択" else "文章Excel / CSVを選択",
+            if (hasLoadedFile) stringResource(R.string.sentence_import_change_file) else stringResource(R.string.sentence_import_pick_file),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
@@ -181,7 +183,7 @@ private fun SentenceRegisterButton(count: Int, enabled: Boolean, onClick: () -> 
     ) {
         Icon(Icons.Default.Check, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text("文章を登録する（${count}件）", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.sentence_import_register_btn, count), fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
 }
 

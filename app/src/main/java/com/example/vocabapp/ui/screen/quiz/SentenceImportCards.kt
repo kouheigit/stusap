@@ -23,7 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.example.vocabapp.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,7 +90,7 @@ internal fun SentenceImportFormatCard() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("文章専用インポート", color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
+            Text(stringResource(R.string.sentence_import_format_title), color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
             Text("1行目にヘッダー行を入れてください。", color = TextDark, fontSize = 14.sp)
             CsvFormatExampleCard()
             SentenceFormatHint("A型", AccentBlue, "6語以上でそのまま入力 → 自動で4語が空白に")
@@ -109,7 +111,7 @@ internal fun SentenceImportLoadingRow() {
     ) {
         CircularProgressIndicator(color = BrightBlue)
         Spacer(Modifier.width(12.dp))
-        Text("処理中...", color = TextDark, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.sentence_import_loading_text), color = TextDark, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -126,11 +128,11 @@ internal fun SentenceImportSuccessCard(insertedCount: Int, quizReadyCount: Int, 
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("登録完了！", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Text("${insertedCount}件登録（クイズ対応: ${quizReadyCount}件）", color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
+                Text(stringResource(R.string.sentence_import_success_title), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.sentence_import_success_detail, insertedCount, quizReadyCount), color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
             }
             TextButton(onClick = onViewList, colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = Color.White)) {
-                Text("一覧へ", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.sentence_import_view_list), fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(4.dp))
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
             }

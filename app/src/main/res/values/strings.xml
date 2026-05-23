@@ -57,6 +57,16 @@
     <string name="random_idiom_title">ランダム英熟語</string>
     <string name="random_idiom_subtitle">登録済みの英熟語から毎回ランダムに10問出題</string>
 
+    <string name="sentence_import_screen_title">文章インポート</string>
+    <string name="sentence_import_pick_file">文章Excel / CSVを選択</string>
+    <string name="sentence_import_change_file">別のファイルを選択</string>
+    <string name="sentence_import_loading_text">処理中...</string>
+    <string name="sentence_import_success_title">登録完了！</string>
+    <string name="sentence_import_success_detail">%1$d件登録（クイズ対応: %2$d件）</string>
+    <string name="sentence_import_view_list">一覧へ</string>
+    <string name="sentence_import_register_btn">文章を登録する（%1$d件）</string>
+    <string name="sentence_import_format_title">文章専用インポート</string>
+
     <string name="sentence_menu_add_button">文章登録</string>
     <string name="sentence_menu_list_button">登録一覧</string>
     <string name="sentence_menu_import_hint">CSV・Excelファイルから一度に大量の英文を登録できます</string>
