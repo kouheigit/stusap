@@ -158,8 +158,8 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    BottomAction("学習ログ", Icons.Default.School, Modifier.weight(1f)) { navController.navigate(Route.StudyLog.path) }
-                    BottomAction("設定", Icons.Default.Settings, Modifier.weight(1f)) { navController.navigate(Route.Settings.path) }
+                    BottomAction(stringResource(R.string.home_study_log_label), Icons.Default.School, Modifier.weight(1f)) { navController.navigate(Route.StudyLog.path) }
+                    BottomAction(stringResource(R.string.home_settings_label), Icons.Default.Settings, Modifier.weight(1f)) { navController.navigate(Route.Settings.path) }
                 }
             }
         }
