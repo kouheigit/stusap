@@ -34,6 +34,10 @@ class SentenceImportViewModelTest {
         defaultDispatcher = testDispatcher
     )
 
+    private fun assertInitialCapacityLoaded(vm: SentenceImportViewModel) {
+        assertEquals(500, vm.remainingCapacity.value)
+    }
+
     @Before
     fun setUp() {
         testDispatcher = StandardTestDispatcher()
@@ -49,6 +53,7 @@ class SentenceImportViewModelTest {
     fun `initial state has no preview result or message`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         advanceUntilIdle()
+        assertInitialCapacityLoaded(vm)
         assertNull(vm.preview.value)
         assertNull(vm.result.value)
         assertNull(vm.message.value)
@@ -60,6 +65,7 @@ class SentenceImportViewModelTest {
     fun `showLoading sets isLoading true and clears preview result and message`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         advanceUntilIdle()
+        assertInitialCapacityLoaded(vm)
         vm.showLoading()
         assertTrue(vm.isLoading.value)
         assertNull(vm.preview.value)
@@ -71,6 +77,7 @@ class SentenceImportViewModelTest {
     fun `showMessage sets message and stops loading`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         advanceUntilIdle()
+        assertInitialCapacityLoaded(vm)
         vm.showLoading()
         vm.showMessage("読み込みに失敗しました")
         assertEquals("読み込みに失敗しました", vm.message.value)
@@ -81,6 +88,7 @@ class SentenceImportViewModelTest {
     fun `resetForNewFile clears all user-visible state`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         advanceUntilIdle()
+        assertInitialCapacityLoaded(vm)
         vm.showMessage("エラー")
         vm.resetForNewFile()
         assertNull(vm.preview.value)
@@ -93,6 +101,7 @@ class SentenceImportViewModelTest {
     fun `showLoading then showMessage reflects final message state`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         advanceUntilIdle()
+        assertInitialCapacityLoaded(vm)
         vm.showLoading()
         assertTrue(vm.isLoading.value)
         vm.showMessage("ファイルの読み込みに失敗しました。形式とサイズを確認してください。")
@@ -104,6 +113,7 @@ class SentenceImportViewModelTest {
     fun `multiple resetForNewFile calls are idempotent`() = runTest(testDispatcher) {
         val vm = buildViewModel()
         advanceUntilIdle()
+        assertInitialCapacityLoaded(vm)
         vm.showMessage("エラー1")
         vm.resetForNewFile()
         vm.resetForNewFile()
