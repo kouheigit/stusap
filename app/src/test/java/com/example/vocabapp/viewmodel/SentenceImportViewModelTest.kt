@@ -27,7 +27,14 @@ class SentenceImportViewModelTest {
         repository: CustomImportRepository = mockk {
             coEvery { remainingCustomContentCapacity() } returns 500
         }
-    ) = SentenceImportViewModel(repository)
+    ) = SentenceImportViewModel(repository).also(::waitForInitialCapacity)
+
+    private fun waitForInitialCapacity(vm: SentenceImportViewModel) {
+        repeat(50) {
+            if (vm.remainingCapacity.value != null) return
+            Thread.sleep(10)
+        }
+    }
 
     @Before
     fun setUp() {
