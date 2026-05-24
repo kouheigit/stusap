@@ -22,6 +22,10 @@ internal class AndroidSpeechVolumeGateway(
     }
 }
 
+/**
+ * Temporarily raises the media stream while TTS reads quiz words, then restores
+ * the user's original media volume when that utterance finishes or is canceled.
+ */
 internal class SpeechVolumeController(
     private val gateway: SpeechVolumeGateway,
     private val reportFailure: (String, Throwable) -> Unit
