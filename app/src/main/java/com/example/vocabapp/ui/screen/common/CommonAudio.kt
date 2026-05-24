@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +44,11 @@ internal fun rememberSpeaker(): Speaker {
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     val pendingSpeechText = remember { java.util.concurrent.atomic.AtomicReference<String?>(null) }
     val isTtsConfigured = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+    val speechVolumeController = remember {
+        SpeechVolumeController(AndroidSpeechVolumeGateway(audioManager)) { message, error ->
+            Log.w(COMMON_AUDIO_TAG, message, error)
+        }
+    }
     val focusRequest = remember {
         android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
@@ -57,6 +63,12 @@ internal fun rememberSpeaker(): Speaker {
     // 直前に発話した内容と時刻を記録して、短時間の重複リクエストを防ぐ
     val lastSpokenText = remember { java.util.concurrent.atomic.AtomicReference<String>("") }
     val lastSpokenAt = remember { java.util.concurrent.atomic.AtomicLong(0L) }
+    fun finishSpeech(utteranceId: String?) {
+        if (speechVolumeController.finishSpeech(utteranceId)) {
+            audioManager.abandonAudioFocusRequest(focusRequest)
+        }
+    }
+
     fun speakNow(text: String, engine: TextToSpeech) {
         val now = System.currentTimeMillis()
         val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
@@ -67,11 +79,15 @@ internal fun rememberSpeaker(): Speaker {
         val focusResult = audioManager.requestAudioFocus(focusRequest)
         if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return
         val utteranceId = "utt-${System.nanoTime()}"
+        speechVolumeController.beginSpeech(utteranceId)
         val params = android.os.Bundle().apply {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
             putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, TTS_MAX_VOLUME)
         }
-        engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        val speakResult = engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        if (speakResult == TextToSpeech.ERROR) {
+            finishSpeech(utteranceId)
+        }
     }
 
     fun configureTts(engine: TextToSpeech) {
@@ -102,13 +118,17 @@ internal fun rememberSpeaker(): Speaker {
             override fun onStart(utteranceId: String?) = Unit
 
             override fun onDone(utteranceId: String?) {
-                mainHandler.post { audioManager.abandonAudioFocusRequest(focusRequest) }
+                mainHandler.post { finishSpeech(utteranceId) }
             }
 
             @Deprecated("Deprecated by Android SDK")
-            override fun onError(utteranceId: String?) = Unit
+            override fun onError(utteranceId: String?) {
+                mainHandler.post { finishSpeech(utteranceId) }
+            }
 
-            override fun onError(utteranceId: String?, errorCode: Int) = Unit
+            override fun onError(utteranceId: String?, errorCode: Int) {
+                mainHandler.post { finishSpeech(utteranceId) }
+            }
         })
         tts = instance
         onDispose {
@@ -117,6 +137,7 @@ internal fun rememberSpeaker(): Speaker {
             pendingSpeechText.set(null)
             instance.stop()
             instance.shutdown()
+            speechVolumeController.cancelSpeech()
             audioManager.abandonAudioFocusRequest(focusRequest)
         }
     }
@@ -132,4 +153,5 @@ internal fun rememberSpeaker(): Speaker {
     return Speaker(isReady = isReady, speak = speak)
 }
 
+private const val COMMON_AUDIO_TAG = "CommonAudio"
 private const val TTS_MAX_VOLUME = 1.0f
