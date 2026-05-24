@@ -5,8 +5,9 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -27,18 +28,15 @@ class SentenceImportViewModelTest {
         repository: CustomImportRepository = mockk {
             coEvery { remainingCustomContentCapacity() } returns 500
         }
-    ) = SentenceImportViewModel(repository).also(::waitForInitialCapacity)
-
-    private fun waitForInitialCapacity(vm: SentenceImportViewModel) {
-        repeat(50) {
-            if (vm.remainingCapacity.value != null) return
-            Thread.sleep(10)
-        }
-    }
+    ) = SentenceImportViewModel(
+        repository = repository,
+        ioDispatcher = testDispatcher,
+        defaultDispatcher = testDispatcher
+    )
 
     @Before
     fun setUp() {
-        testDispatcher = UnconfinedTestDispatcher()
+        testDispatcher = StandardTestDispatcher()
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -50,6 +48,7 @@ class SentenceImportViewModelTest {
     @Test
     fun `initial state has no preview result or message`() = runTest(testDispatcher) {
         val vm = buildViewModel()
+        advanceUntilIdle()
         assertNull(vm.preview.value)
         assertNull(vm.result.value)
         assertNull(vm.message.value)
@@ -60,6 +59,7 @@ class SentenceImportViewModelTest {
     @Test
     fun `showLoading sets isLoading true and clears preview result and message`() = runTest(testDispatcher) {
         val vm = buildViewModel()
+        advanceUntilIdle()
         vm.showLoading()
         assertTrue(vm.isLoading.value)
         assertNull(vm.preview.value)
@@ -70,6 +70,7 @@ class SentenceImportViewModelTest {
     @Test
     fun `showMessage sets message and stops loading`() = runTest(testDispatcher) {
         val vm = buildViewModel()
+        advanceUntilIdle()
         vm.showLoading()
         vm.showMessage("読み込みに失敗しました")
         assertEquals("読み込みに失敗しました", vm.message.value)
@@ -79,6 +80,7 @@ class SentenceImportViewModelTest {
     @Test
     fun `resetForNewFile clears all user-visible state`() = runTest(testDispatcher) {
         val vm = buildViewModel()
+        advanceUntilIdle()
         vm.showMessage("エラー")
         vm.resetForNewFile()
         assertNull(vm.preview.value)
@@ -90,6 +92,7 @@ class SentenceImportViewModelTest {
     @Test
     fun `showLoading then showMessage reflects final message state`() = runTest(testDispatcher) {
         val vm = buildViewModel()
+        advanceUntilIdle()
         vm.showLoading()
         assertTrue(vm.isLoading.value)
         vm.showMessage("ファイルの読み込みに失敗しました。形式とサイズを確認してください。")
@@ -100,6 +103,7 @@ class SentenceImportViewModelTest {
     @Test
     fun `multiple resetForNewFile calls are idempotent`() = runTest(testDispatcher) {
         val vm = buildViewModel()
+        advanceUntilIdle()
         vm.showMessage("エラー1")
         vm.resetForNewFile()
         vm.resetForNewFile()
