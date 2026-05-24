@@ -5,10 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.vocabapp.data.repository.CustomImportRepository
 import com.example.vocabapp.domain.model.SentenceImportPreview
 import com.example.vocabapp.domain.model.SentenceImportResult
+import com.example.vocabapp.util.AppDispatchers
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,18 +15,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @HiltViewModel
-class SentenceImportViewModel internal constructor(
+class SentenceImportViewModel @Inject constructor(
     private val repository: CustomImportRepository,
-    private val ioDispatcher: CoroutineDispatcher,
-    private val defaultDispatcher: CoroutineDispatcher
+    private val dispatchers: AppDispatchers
 ) : ViewModel() {
-    @Inject
-    constructor(repository: CustomImportRepository) : this(
-        repository = repository,
-        ioDispatcher = Dispatchers.IO,
-        defaultDispatcher = Dispatchers.Default
-    )
-
     private val _preview = MutableStateFlow<SentenceImportPreview?>(null)
     val preview: StateFlow<SentenceImportPreview?> = _preview.asStateFlow()
     private val _result = MutableStateFlow<SentenceImportResult?>(null)
@@ -60,7 +51,7 @@ class SentenceImportViewModel internal constructor(
             _result.value = null
             if (fileName != null) _fileName.value = fileName
             runCatching {
-                withContext(defaultDispatcher) {
+                withContext(dispatchers.default) {
                     loadPreview()
                 }
             }.onSuccess { loadedPreview ->
@@ -79,7 +70,7 @@ class SentenceImportViewModel internal constructor(
             _isLoading.value = true
             _message.value = null
             runCatching {
-                withContext(ioDispatcher) {
+                withContext(dispatchers.io) {
                     repository.importCustomSentences(currentPreview)
                 }
             }.onSuccess { importResult ->
@@ -95,7 +86,7 @@ class SentenceImportViewModel internal constructor(
     fun loadRemainingCapacity() {
         viewModelScope.launch {
             runCatching {
-                withContext(ioDispatcher) {
+                withContext(dispatchers.io) {
                     repository.remainingCustomContentCapacity()
                 }
             }.onSuccess { capacity ->
