@@ -7,6 +7,7 @@ import com.example.vocabapp.domain.model.SentenceImportPreview
 import com.example.vocabapp.domain.model.SentenceImportResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,9 +16,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @HiltViewModel
-class SentenceImportViewModel @Inject constructor(
-    private val repository: CustomImportRepository
+class SentenceImportViewModel internal constructor(
+    private val repository: CustomImportRepository,
+    private val ioDispatcher: CoroutineDispatcher,
+    private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
+    @Inject
+    constructor(repository: CustomImportRepository) : this(
+        repository = repository,
+        ioDispatcher = Dispatchers.IO,
+        defaultDispatcher = Dispatchers.Default
+    )
+
     private val _preview = MutableStateFlow<SentenceImportPreview?>(null)
     val preview: StateFlow<SentenceImportPreview?> = _preview.asStateFlow()
     private val _result = MutableStateFlow<SentenceImportResult?>(null)
@@ -50,7 +60,7 @@ class SentenceImportViewModel @Inject constructor(
             _result.value = null
             if (fileName != null) _fileName.value = fileName
             runCatching {
-                withContext(Dispatchers.Default) {
+                withContext(defaultDispatcher) {
                     loadPreview()
                 }
             }.onSuccess { loadedPreview ->
@@ -69,7 +79,7 @@ class SentenceImportViewModel @Inject constructor(
             _isLoading.value = true
             _message.value = null
             runCatching {
-                withContext(Dispatchers.IO) {
+                withContext(ioDispatcher) {
                     repository.importCustomSentences(currentPreview)
                 }
             }.onSuccess { importResult ->
@@ -85,7 +95,7 @@ class SentenceImportViewModel @Inject constructor(
     fun loadRemainingCapacity() {
         viewModelScope.launch {
             runCatching {
-                withContext(Dispatchers.IO) {
+                withContext(ioDispatcher) {
                     repository.remainingCustomContentCapacity()
                 }
             }.onSuccess { capacity ->
