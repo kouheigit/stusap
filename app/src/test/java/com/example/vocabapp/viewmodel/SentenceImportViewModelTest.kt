@@ -1,6 +1,7 @@
 package com.example.vocabapp.viewmodel
 
 import com.example.vocabapp.data.repository.CustomImportRepository
+import com.example.vocabapp.util.AppDispatchers
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +31,10 @@ class SentenceImportViewModelTest {
         }
     ) = SentenceImportViewModel(
         repository = repository,
-        ioDispatcher = testDispatcher,
-        defaultDispatcher = testDispatcher
+        dispatchers = AppDispatchers(
+            io = testDispatcher,
+            default = testDispatcher
+        )
     )
 
     private fun assertInitialCapacityLoaded(vm: SentenceImportViewModel) {
