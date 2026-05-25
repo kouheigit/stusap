@@ -33,7 +33,8 @@ class SentenceImportViewModelTest {
         repository = repository,
         dispatchers = AppDispatchers(
             io = testDispatcher,
-            default = testDispatcher
+            default = testDispatcher,
+            main = testDispatcher
         )
     )
 
