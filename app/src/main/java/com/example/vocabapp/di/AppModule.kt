@@ -11,6 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -38,5 +39,9 @@ object AppModule {
     fun provideAppDao(database: AppDatabase): AppDao = database.appDao()
 
     @Provides
-    fun provideAppDispatchers(): AppDispatchers = AppDispatchers()
+    fun provideAppDispatchers(): AppDispatchers = AppDispatchers(
+        io = Dispatchers.IO,
+        default = Dispatchers.Default,
+        main = Dispatchers.Main
+    )
 }
