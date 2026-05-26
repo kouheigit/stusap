@@ -77,4 +77,11 @@ class SentenceImportHeaderTest {
 
         assertEquals(null, columns)
     }
+
+    @Test
+    fun resolveSentenceImportColumns_withoutHeaderAndOnlyOneColumn_returnsNull() {
+        val columns = resolveSentenceImportColumns(listOf("I might stay as well here"))
+
+        assertEquals(null, columns)
+    }
 }

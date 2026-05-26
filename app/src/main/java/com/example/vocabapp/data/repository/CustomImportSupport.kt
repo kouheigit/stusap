@@ -49,7 +49,7 @@ internal fun resolveWordImportColumns(firstRow: List<String>): WordImportColumns
             typeIndex = header.findIndex(TYPE_HEADER_ALIASES),
             dataStartIndex = 1
         )
-        englishIndex == -1 && meaningIndex == -1 -> WordImportColumns(
+        englishIndex == -1 && meaningIndex == -1 && firstRow.size >= 2 -> WordImportColumns(
             englishIndex = 0,
             meaningIndex = 1,
             exampleIndex = -1,
@@ -67,7 +67,7 @@ internal fun resolveSentenceImportColumns(firstRow: List<String>): ImportColumns
     val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
     return when {
         sentenceIndex != -1 && meaningIndex != -1 -> ImportColumns(sentenceIndex, meaningIndex, dataStartIndex = 1)
-        sentenceIndex == -1 && meaningIndex == -1 -> ImportColumns(sentenceIndex = 0, meaningIndex = 1, dataStartIndex = 0)
+        sentenceIndex == -1 && meaningIndex == -1 && firstRow.size >= 2 -> ImportColumns(sentenceIndex = 0, meaningIndex = 1, dataStartIndex = 0)
         else -> null
     }
 }

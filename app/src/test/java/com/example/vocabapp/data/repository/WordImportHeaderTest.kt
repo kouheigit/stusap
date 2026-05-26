@@ -33,4 +33,11 @@ class WordImportHeaderTest {
 
         assertEquals(null, columns)
     }
+
+    @Test
+    fun resolveWordImportColumns_withoutHeaderAndOnlyOneColumn_returnsNull() {
+        val columns = resolveWordImportColumns(listOf("apple"))
+
+        assertEquals(null, columns)
+    }
 }
