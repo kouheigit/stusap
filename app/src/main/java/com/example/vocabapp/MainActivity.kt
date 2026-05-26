@@ -107,7 +107,19 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.AddSentence.path) { AddSentenceScreen(navController) }
         composable(Route.SentenceImport.path) { SentenceImportScreen(navController) }
         composable(Route.CustomSentenceList.path) { CustomSentenceListScreen(navController) }
-        composable(Route.SentenceQuiz.path) { SentenceQuizScreen(navController) }
+        composable(
+            Route.SentenceTrainingBlock.PATTERN,
+            arguments = listOf(navArgument("blockNumber") { type = NavType.IntType })
+        ) { backStackEntry ->
+            SentenceTrainingBlockScreen(
+                navController = navController,
+                blockNumber = backStackEntry.arguments?.getInt("blockNumber") ?: 1
+            )
+        }
+        composable(
+            Route.SentenceQuiz.PATTERN,
+            arguments = listOf(navArgument("setNumber") { type = NavType.IntType })
+        ) { SentenceQuizScreen(navController) }
     }
 }
 

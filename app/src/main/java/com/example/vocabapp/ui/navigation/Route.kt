@@ -19,7 +19,17 @@ internal sealed class Route(val path: String) {
     object AddSentence : Route("add-sentence")
     object SentenceImport : Route("sentence-import")
     object CustomSentenceList : Route("custom-sentence-list")
-    object SentenceQuiz : Route("sentence-quiz")
+    data class SentenceTrainingBlock(val blockNumber: String) : Route("sentence-block/$blockNumber") {
+        companion object {
+            const val PATTERN = "sentence-block/{blockNumber}"
+        }
+    }
+
+    data class SentenceQuiz(val setNumber: String) : Route("sentence-quiz/$setNumber") {
+        companion object {
+            const val PATTERN = "sentence-quiz/{setNumber}"
+        }
+    }
 
     data class Training(val lessonId: String) : Route("training/$lessonId") {
         companion object {
@@ -86,6 +96,8 @@ internal sealed class Route(val path: String) {
         fun customTrainingQuiz(type: String, setNumber: Int) =
             CustomTrainingQuiz(type, setNumber.toString()).path
         fun randomCustomQuiz(type: String) = RandomCustomQuiz(type).path
+        fun sentenceTrainingBlock(blockNumber: Int) = SentenceTrainingBlock(blockNumber.toString()).path
+        fun sentenceQuiz(setNumber: Int) = SentenceQuiz(setNumber.toString()).path
         fun training(lessonId: Int) = Training(lessonId.toString()).path
         fun quiz(trainingId: Int? = null, isReview: Boolean = false) =
             Quiz(trainingId?.toString(), isReview).path
