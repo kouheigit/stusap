@@ -33,19 +33,17 @@ class CustomImportRepository @Inject constructor(
             return WordImportPreview(errors = listOf(ImportErrorRow(1, "CSVが空です", emptyList())))
         }
 
-        val header = CsvHeader(rows.first())
-        val englishIndex = header.findIndex(WORD_ENGLISH_HEADER_ALIASES)
-        val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
-        if (englishIndex == -1 || meaningIndex == -1) {
+        val columns = resolveWordImportColumns(rows.first())
+        if (columns == null) {
+            val header = CsvHeader(rows.first())
+            val englishIndex = header.findIndex(WORD_ENGLISH_HEADER_ALIASES)
+            val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
             return WordImportPreview(
                 totalRows = rows.drop(1).size,
                 errors = listOf(missingWordHeaderError(rows.first(), englishIndex, meaningIndex))
             )
         }
-
-        val exampleIndex = header.findIndex(WORD_EXAMPLE_HEADER_ALIASES)
-        val exampleTranslationIndex = header.findIndex(WORD_EXAMPLE_TRANSLATION_HEADER_ALIASES)
-        val typeIndex = header.findIndex(TYPE_HEADER_ALIASES)
+        val dataRows = rows.drop(columns.dataStartIndex)
         val existing = (dao.getNormalizedSeedEnglish() + dao.getNormalizedCustomEnglish() +
             dao.getNormalizedCustomIdiomEnglish()).toSet()
         val errorCollector = ImportIssueCollector<ImportedWord>()
@@ -55,13 +53,13 @@ class CustomImportRepository @Inject constructor(
             issueCollector = errorCollector
         )
 
-        rows.drop(1).forEachIndexed { index, row ->
-            val rowNumber = index + 2
-            val english = row.getOrEmpty(englishIndex).trim()
-            val meaning = row.getOrEmpty(meaningIndex).trim()
-            val example = row.getOrEmpty(exampleIndex).trim()
-            val exampleTranslation = row.getOrEmpty(exampleTranslationIndex).trim()
-            val rawType = row.getOrEmpty(typeIndex).trim().lowercase()
+        dataRows.forEachIndexed { index, row ->
+            val rowNumber = columns.dataStartIndex + index + 1
+            val english = row.getOrEmpty(columns.englishIndex).trim()
+            val meaning = row.getOrEmpty(columns.meaningIndex).trim()
+            val example = row.getOrEmpty(columns.exampleIndex).trim()
+            val exampleTranslation = row.getOrEmpty(columns.exampleTranslationIndex).trim()
+            val rawType = row.getOrEmpty(columns.typeIndex).trim().lowercase()
 
             val wordType = validateWordImportRow(
                 rowNumber = rowNumber,
@@ -79,7 +77,7 @@ class CustomImportRepository @Inject constructor(
         }
 
         return WordImportPreview(
-            totalRows = rows.drop(1).size,
+            totalRows = dataRows.size,
             newWords = uniqueCollector.newItems,
             duplicateWords = errorCollector.duplicates,
             errors = errorCollector.errors,
