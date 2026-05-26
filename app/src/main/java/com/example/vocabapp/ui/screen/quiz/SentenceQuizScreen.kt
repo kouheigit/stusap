@@ -56,8 +56,8 @@ internal fun SentenceQuizScreen(
                 result = result,
                 modifier = Modifier.padding(inner),
                 onRetry = {
-                    navController.navigate(Route.SentenceQuiz.path) {
-                        popUpTo(Route.SentenceQuiz.path) { inclusive = true }
+                    navController.navigate(Route.sentenceQuiz(viewModel.setNumber)) {
+                        popUpTo(Route.sentenceQuiz(viewModel.setNumber)) { inclusive = true }
                     }
                 },
                 onHome = { navController.navigate(Route.Home.path) { popUpTo(Route.Home.path) { inclusive = true } } },

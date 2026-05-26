@@ -37,15 +37,17 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SentenceQuizViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val repository: QuizRepository
 ) : ViewModel() {
+    val setNumber: Int = savedStateHandle["setNumber"] ?: 1
     private val _state = MutableStateFlow(SentenceQuizState())
     val state: StateFlow<SentenceQuizState> = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
             val startedAt = System.currentTimeMillis()
-            val questions = repository.buildSentenceQuiz()
+            val questions = repository.buildSentenceQuiz(setNumber)
             _state.value = SentenceQuizState(questions = questions, startedAt = startedAt)
         }
     }
