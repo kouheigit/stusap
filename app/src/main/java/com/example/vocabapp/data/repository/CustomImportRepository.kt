@@ -133,22 +133,24 @@ class CustomImportRepository @Inject constructor(
 
     suspend fun previewCustomSentenceRows(rows: List<List<String>>): SentenceImportPreview {
         if (rows.isEmpty()) {
-            return SentenceImportPreview(errors = listOf(ImportErrorRow(1, "ファイルにデータが見つかりません。1行目にヘッダー（sentence, meaning）を入れてください", emptyList())))
-        }
-        if (rows.size == 1) {
-            return SentenceImportPreview(
-                totalRows = 0,
-                errors = listOf(ImportErrorRow(1, "ヘッダー行のみでデータ行がありません。2行目以降に英文と意味を入力してください", rows.first()))
-            )
+            return SentenceImportPreview(errors = listOf(ImportErrorRow(1, "ファイルにデータが見つかりません。英文と意味の2列を入力してください", emptyList())))
         }
 
-        val header = CsvHeader(rows.first())
-        val sentenceIndex = header.findIndex(SENTENCE_HEADER_ALIASES)
-        val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
-        if (sentenceIndex == -1 || meaningIndex == -1) {
+        val columns = resolveSentenceImportColumns(rows.first())
+        if (columns == null) {
+            val header = CsvHeader(rows.first())
+            val sentenceIndex = header.findIndex(SENTENCE_HEADER_ALIASES)
+            val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
             return SentenceImportPreview(
                 totalRows = rows.drop(1).size,
                 errors = listOf(missingSentenceHeaderError(rows.first(), sentenceIndex, meaningIndex))
+            )
+        }
+        val dataRows = rows.drop(columns.dataStartIndex)
+        if (dataRows.isEmpty()) {
+            return SentenceImportPreview(
+                totalRows = 0,
+                errors = listOf(ImportErrorRow(1, "ヘッダー行のみでデータ行がありません。2行目以降に英文と意味を入力してください", rows.first()))
             )
         }
 
@@ -160,10 +162,10 @@ class CustomImportRepository @Inject constructor(
             issueCollector = errorCollector
         )
 
-        rows.drop(1).forEachIndexed { index, row ->
-            val rowNumber = index + 2
-            val sentence = row.getOrEmpty(sentenceIndex).trim()
-            val meaning = row.getOrEmpty(meaningIndex).trim()
+        dataRows.forEachIndexed { index, row ->
+            val rowNumber = columns.dataStartIndex + index + 1
+            val sentence = row.getOrEmpty(columns.sentenceIndex).trim()
+            val meaning = row.getOrEmpty(columns.meaningIndex).trim()
             if (!validateSentenceImportRow(rowNumber, row, sentence, meaning, errorCollector::addError)) {
                 return@forEachIndexed
             }
@@ -173,7 +175,7 @@ class CustomImportRepository @Inject constructor(
         }
 
         return SentenceImportPreview(
-            totalRows = rows.drop(1).size,
+            totalRows = dataRows.size,
             newSentences = uniqueCollector.newItems,
             duplicateSentences = errorCollector.duplicates,
             errors = errorCollector.errors,

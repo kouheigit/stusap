@@ -21,6 +21,23 @@ internal class CsvHeader(header: List<String>) {
     fun findIndex(aliases: Set<String>): Int = lowerValues.indexOfFirst { it in aliases }
 }
 
+internal data class SentenceImportColumns(
+    val sentenceIndex: Int,
+    val meaningIndex: Int,
+    val dataStartIndex: Int
+)
+
+internal fun resolveSentenceImportColumns(firstRow: List<String>): SentenceImportColumns? {
+    val header = CsvHeader(firstRow)
+    val sentenceIndex = header.findIndex(SENTENCE_HEADER_ALIASES)
+    val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
+    return when {
+        sentenceIndex != -1 && meaningIndex != -1 -> SentenceImportColumns(sentenceIndex, meaningIndex, dataStartIndex = 1)
+        sentenceIndex == -1 && meaningIndex == -1 -> SentenceImportColumns(sentenceIndex = 0, meaningIndex = 1, dataStartIndex = 0)
+        else -> null
+    }
+}
+
 internal class ImportIssueCollector<T> {
     val duplicates = mutableListOf<T>()
     val errors = mutableListOf<ImportErrorRow>()

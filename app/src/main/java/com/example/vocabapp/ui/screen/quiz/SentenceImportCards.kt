@@ -91,7 +91,7 @@ internal fun SentenceImportFormatCard() {
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.sentence_import_format_title), color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
-            Text("1行目にヘッダー行を入れてください。", color = TextDark, fontSize = 14.sp)
+            Text("ヘッダーなしの場合は、1列目を英文、2列目を意味として読み込みます。", color = TextDark, fontSize = 14.sp)
             CsvFormatExampleCard()
             SentenceFormatHint("A型", AccentBlue, "6語以上でそのまま入力 → 自動で4語が空白に")
             SentenceFormatHint("B型", Gold, "[語句]で4つを囲む → その語句が並べ替え対象")

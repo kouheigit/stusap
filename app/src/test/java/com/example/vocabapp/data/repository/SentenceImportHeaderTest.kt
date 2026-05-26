@@ -1,8 +1,6 @@
 package com.example.vocabapp.data.repository
 
-import com.example.vocabapp.parseCsvRows
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class SentenceImportHeaderTest {
@@ -53,5 +51,30 @@ class SentenceImportHeaderTest {
         val aliases = meaningAliases
         val headers = listOf("Sentence", "Meaning").map { it.lowercase() }
         assertEquals(1, headers.indexOfFirst { it in aliases })
+    }
+
+    @Test
+    fun resolveSentenceImportColumns_withHeader_usesHeaderIndexesAndSkipsFirstRow() {
+        val columns = resolveSentenceImportColumns(listOf("meaning", "sentence"))
+
+        assertEquals(1, columns?.sentenceIndex)
+        assertEquals(0, columns?.meaningIndex)
+        assertEquals(1, columns?.dataStartIndex)
+    }
+
+    @Test
+    fun resolveSentenceImportColumns_withoutHeader_usesFirstTwoColumnsFromFirstRow() {
+        val columns = resolveSentenceImportColumns(listOf("I might stay as well here", "ここにいてもよい"))
+
+        assertEquals(0, columns?.sentenceIndex)
+        assertEquals(1, columns?.meaningIndex)
+        assertEquals(0, columns?.dataStartIndex)
+    }
+
+    @Test
+    fun resolveSentenceImportColumns_withPartialHeader_returnsNull() {
+        val columns = resolveSentenceImportColumns(listOf("sentence", "日本語訳"))
+
+        assertEquals(null, columns)
     }
 }
