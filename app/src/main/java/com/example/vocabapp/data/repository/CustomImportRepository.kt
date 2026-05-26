@@ -30,7 +30,7 @@ class CustomImportRepository @Inject constructor(
 
     suspend fun previewCustomWordRows(rows: List<List<String>>): WordImportPreview {
         if (rows.isEmpty()) {
-            return WordImportPreview(errors = listOf(ImportErrorRow(1, "CSVが空です", emptyList())))
+            return WordImportPreview(errors = listOf(ImportErrorRow(1, "ファイルにデータが見つかりません。英語と意味の2列を入力してください", emptyList())))
         }
 
         val columns = resolveWordImportColumns(rows.first())
