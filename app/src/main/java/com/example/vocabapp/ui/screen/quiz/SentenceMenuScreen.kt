@@ -113,46 +113,25 @@ internal fun SentenceMenuScreen(
                 }
             }
             item {
-                Button(
-                    onClick = { navController.navigate(Route.SentenceQuiz.path) },
-                    enabled = sentences.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        if (sentences.isEmpty()) stringResource(R.string.sentence_menu_start_empty)
-                        else stringResource(R.string.sentence_menu_start_count, sentences.size),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                SectionTitle("100問ごとのまとまり")
+            }
+            if (sentences.isEmpty()) {
+                item { EmptyCard(stringResource(R.string.sentence_menu_start_empty)) }
+            } else {
+                val blocks = sentences.chunked(SENTENCE_BLOCK_SIZE)
+                items(blocks.size) { blockIndex ->
+                    val blockNumber = blockIndex + 1
+                    val start = blockIndex * SENTENCE_BLOCK_SIZE + 1
+                    val end = start + blocks[blockIndex].size - 1
+                    CardButton(
+                        title = "第${start}〜${end}問",
+                        subtitle = "10問セット ${blocks[blockIndex].chunked(SENTENCE_SET_SIZE).size}個",
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                        onClick = { navController.navigate(Route.sentenceTrainingBlock(blockNumber)) }
                     )
                 }
-            }
-            if (sentences.isNotEmpty()) {
                 item {
-                    Card(
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            Modifier.padding(16.dp).fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(stringResource(R.string.sentence_menu_stat_registered), color = TextMuted, fontSize = 12.sp)
-                                Text("${sentences.size}", color = DeepBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                                Text(stringResource(R.string.sentence_menu_stat_bun), color = TextMuted, fontSize = 11.sp)
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(stringResource(R.string.sentence_menu_stat_quizable), color = TextMuted, fontSize = 12.sp)
-                                Text("${sentences.size}", color = AccentBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                                Text(stringResource(R.string.sentence_menu_stat_mon), color = TextMuted, fontSize = 11.sp)
-                            }
-                        }
-                    }
+                    SentenceStatsCard(sentences.size)
                 }
             }
             item {
@@ -200,3 +179,73 @@ internal fun SentenceMenuScreen(
         }
     }
 }
+
+@Composable
+internal fun SentenceTrainingBlockScreen(
+    navController: NavHostController,
+    blockNumber: Int,
+    viewModel: CustomSentenceListViewModel = hiltViewModel()
+) {
+    val sentences by viewModel.sentences.collectAsStateWithLifecycle()
+    val startQuestion = (blockNumber - 1).coerceAtLeast(0) * SENTENCE_BLOCK_SIZE + 1
+    val blockSentences = sentences.drop(startQuestion - 1).take(SENTENCE_BLOCK_SIZE)
+    val titleEndQuestion = if (blockSentences.isEmpty()) {
+        blockNumber * SENTENCE_BLOCK_SIZE
+    } else {
+        startQuestion + blockSentences.size - 1
+    }
+    BlueScaffold(title = "文章問題 ${startQuestion}〜${titleEndQuestion}", onBack = { navController.popBackStack() }) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item { SectionTitle("10問ごとのセット") }
+            if (blockSentences.isEmpty()) {
+                item { EmptyCard("この範囲の文章はありません") }
+            } else {
+                val sets = blockSentences.chunked(SENTENCE_SET_SIZE)
+                items(sets.size) { setIndexInBlock ->
+                    val setNumber = (blockNumber - 1).coerceAtLeast(0) * SENTENCE_SETS_PER_BLOCK + setIndexInBlock + 1
+                    val setStart = (setNumber - 1) * SENTENCE_SET_SIZE + 1
+                    val setEnd = setStart + sets[setIndexInBlock].size - 1
+                    CardButton(
+                        title = "第${setStart}〜${setEnd}問",
+                        subtitle = "10問出題",
+                        icon = Icons.Default.PlayArrow,
+                        onClick = { navController.navigate(Route.sentenceQuiz(setNumber)) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SentenceStatsCard(sentenceCount: Int) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(stringResource(R.string.sentence_menu_stat_registered), color = TextMuted, fontSize = 12.sp)
+                Text("$sentenceCount", color = DeepBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.sentence_menu_stat_bun), color = TextMuted, fontSize = 11.sp)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(stringResource(R.string.sentence_menu_stat_quizable), color = TextMuted, fontSize = 12.sp)
+                Text("$sentenceCount", color = AccentBlue, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.sentence_menu_stat_mon), color = TextMuted, fontSize = 11.sp)
+            }
+        }
+    }
+}
+
+private const val SENTENCE_SET_SIZE = 10
+private const val SENTENCE_SETS_PER_BLOCK = 10
+private const val SENTENCE_BLOCK_SIZE = SENTENCE_SET_SIZE * SENTENCE_SETS_PER_BLOCK
