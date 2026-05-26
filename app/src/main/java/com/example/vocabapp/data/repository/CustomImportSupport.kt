@@ -27,6 +27,40 @@ internal data class ImportColumns(
     val dataStartIndex: Int
 )
 
+internal data class WordImportColumns(
+    val englishIndex: Int,
+    val meaningIndex: Int,
+    val exampleIndex: Int,
+    val exampleTranslationIndex: Int,
+    val typeIndex: Int,
+    val dataStartIndex: Int
+)
+
+internal fun resolveWordImportColumns(firstRow: List<String>): WordImportColumns? {
+    val header = CsvHeader(firstRow)
+    val englishIndex = header.findIndex(WORD_ENGLISH_HEADER_ALIASES)
+    val meaningIndex = header.findIndex(MEANING_HEADER_ALIASES)
+    return when {
+        englishIndex != -1 && meaningIndex != -1 -> WordImportColumns(
+            englishIndex = englishIndex,
+            meaningIndex = meaningIndex,
+            exampleIndex = header.findIndex(WORD_EXAMPLE_HEADER_ALIASES),
+            exampleTranslationIndex = header.findIndex(WORD_EXAMPLE_TRANSLATION_HEADER_ALIASES),
+            typeIndex = header.findIndex(TYPE_HEADER_ALIASES),
+            dataStartIndex = 1
+        )
+        englishIndex == -1 && meaningIndex == -1 -> WordImportColumns(
+            englishIndex = 0,
+            meaningIndex = 1,
+            exampleIndex = -1,
+            exampleTranslationIndex = -1,
+            typeIndex = -1,
+            dataStartIndex = 0
+        )
+        else -> null
+    }
+}
+
 internal fun resolveSentenceImportColumns(firstRow: List<String>): ImportColumns? {
     val header = CsvHeader(firstRow)
     val sentenceIndex = header.findIndex(SENTENCE_HEADER_ALIASES)
