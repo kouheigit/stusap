@@ -96,6 +96,33 @@ class XlsxImportParserTest {
         }
     }
 
+    @Test
+    fun parseXlsxRows_rejectsTooManyZipEntries() {
+        val entries = (0..MAX_XLSX_ZIP_ENTRIES).map { index ->
+            "xl/ignored$index.xml" to "<ignored />"
+        }.toTypedArray()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            parseXlsxRows(xlsxBytes(*entries))
+        }
+    }
+
+    @Test
+    fun parseXlsxRows_rejectsUnsafeWorksheetPath() {
+        val bytes = xlsxBytes(
+            "xl/_rels/workbook.xml.rels" to """
+                <Relationships>
+                    <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="../evil.xml" />
+                </Relationships>
+            """.trimIndent(),
+            "xl/worksheets/sheet1.xml" to "<worksheet><sheetData /></worksheet>"
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            parseXlsxRows(bytes)
+        }
+    }
+
     private fun xlsxBytes(vararg entries: Pair<String, String>): ByteArray {
         val output = ByteArrayOutputStream()
         ZipOutputStream(output).use { zip ->

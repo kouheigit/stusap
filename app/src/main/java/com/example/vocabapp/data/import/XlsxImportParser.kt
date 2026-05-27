@@ -26,16 +26,23 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
         error("選択されたファイルは有効なExcelファイル(.xlsx)ではありません。ファイル形式を確認してください。")
     }
     val entries = mutableMapOf<String, ByteArray>()
+    var supportedEntryBytes = 0
     try {
         ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
             var entry = zip.nextEntry
+            var entryCount = 0
             while (entry != null) {
+                entryCount++
+                if (entryCount > MAX_XLSX_ZIP_ENTRIES) {
+                    throw IllegalArgumentException("Excelファイル内のデータ数が上限を超えています")
+                }
                 val name = entry.name
                 debugImportLog("parseXlsxRows: scanning ZIP entry")
                 var entryBytes: ByteArray? = null
                 if (!entry.isDirectory && name in XLSX_TARGET_ENTRIES) {
                     try {
                         entryBytes = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
+                        supportedEntryBytes = checkedSupportedEntryBytes(supportedEntryBytes, entryBytes.size)
                     } catch (e: IOException) {
                         warnImportLog("parseXlsxRows: ZIP entry read failed")
                     }
@@ -65,6 +72,9 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
 
     val sheetPath = parseWorkbookSheetPath(entries["xl/_rels/workbook.xml.rels"])
         ?: "xl/worksheets/sheet1.xml"
+    if (!isSafeWorksheetPath(sheetPath)) {
+        throw IllegalArgumentException("Excelファイルのシート参照が不正です")
+    }
     debugImportLog("parseXlsxRows: worksheet path resolved")
 
     if (!entries.containsKey(sheetPath) && sheetPath != "xl/worksheets/sheet1.xml") {
@@ -72,10 +82,16 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
         try {
             ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
                 var entry = zip.nextEntry
+                var entryCount = 0
                 while (entry != null && !entries.containsKey(sheetPath)) {
+                    entryCount++
+                    if (entryCount > MAX_XLSX_ZIP_ENTRIES) {
+                        throw IllegalArgumentException("Excelファイル内のデータ数が上限を超えています")
+                    }
                     if (!entry.isDirectory && entry.name == sheetPath) {
                         try {
                             entries[sheetPath] = zip.readBytesWithLimit(MAX_XLSX_ENTRY_BYTES)
+                            supportedEntryBytes = checkedSupportedEntryBytes(supportedEntryBytes, entries.getValue(sheetPath).size)
                             debugImportLog("parseXlsxRows: re-scan captured worksheet")
                         } catch (e: IOException) {
                             warnImportLog("parseXlsxRows: re-scan worksheet read failed")
@@ -98,6 +114,20 @@ internal fun parseXlsxRows(bytes: ByteArray): List<List<String>> {
     debugImportLog("parseXlsxRows: sharedStrings.size=${sharedStrings.size}")
     return parseWorksheetRows(sheet, sharedStrings)
 }
+
+private fun checkedSupportedEntryBytes(current: Int, added: Int): Int {
+    val next = current + added
+    if (next > MAX_XLSX_TOTAL_SUPPORTED_ENTRY_BYTES) {
+        throw IllegalArgumentException("Excelファイルの展開サイズが上限を超えています")
+    }
+    return next
+}
+
+private fun isSafeWorksheetPath(path: String): Boolean =
+    path.startsWith("xl/worksheets/") &&
+        path.endsWith(".xml") &&
+        !path.contains("..") &&
+        !path.startsWith("/")
 
 internal fun parseWorkbookSheetPath(relsBytes: ByteArray?): String? {
     if (relsBytes == null) {
