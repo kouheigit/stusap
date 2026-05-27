@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.vocabapp.data.local.AppDatabase
 import com.example.vocabapp.data.local.dao.AppDao
+import com.example.vocabapp.data.local.security.EncryptedDatabaseSupport
 import com.example.vocabapp.util.AppDispatchers
 import dagger.Module
 import dagger.Provides
@@ -19,7 +20,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "toeic_vocab.db")
+        Room.databaseBuilder(context, AppDatabase::class.java, EncryptedDatabaseSupport.DATABASE_NAME)
+            .openHelperFactory(EncryptedDatabaseSupport.createSupportFactory(context))
             .addMigrations(
                 AppDatabase.MIGRATION_1_2,
                 AppDatabase.MIGRATION_2_3,
