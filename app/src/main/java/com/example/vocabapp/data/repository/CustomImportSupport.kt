@@ -7,6 +7,7 @@ internal const val IMPORT_INSERT_CHUNK_SIZE = 200
 private const val MAX_PREVIEW_DUPLICATES = 50
 private const val MAX_PREVIEW_ERRORS = 50
 private val CSV_IDIOM_TYPES = setOf("phrase", "idiom", "custom_idiom", "custom_idioms")
+private val SPREADSHEET_FORMULA_PREFIXES = setOf('=', '+', '-', '@')
 
 internal val SENTENCE_HEADER_ALIASES = setOf("sentence", "english", "英文", "文章", "例文", "英語")
 internal val MEANING_HEADER_ALIASES = setOf("meaning", "japanese meaning", "日本語の意味", "意味", "japanese", "訳", "和訳", "日本語")
@@ -132,6 +133,10 @@ internal fun validateWordImportRow(
         addError(rowNumber, "english と meaning は必須です", row)
         return null
     }
+    if (row.hasSpreadsheetFormulaCell()) {
+        addError(rowNumber, "安全のため = + - @ で始まるセルは取り込めません", row)
+        return null
+    }
     if (meaning.length > MAX_CUSTOM_MEANING_CHARS) {
         addError(rowNumber, "meaning は${MAX_CUSTOM_MEANING_CHARS}文字以内にしてください", row)
         return null
@@ -171,6 +176,10 @@ internal fun validateSentenceImportRow(
         addError(rowNumber, "meaning 列が空です。日本語の意味を入力してください", row)
         return false
     }
+    if (row.hasSpreadsheetFormulaCell()) {
+        addError(rowNumber, "安全のため = + - @ で始まるセルは取り込めません", row)
+        return false
+    }
     if (sentence.length > MAX_CUSTOM_SENTENCE_CHARS) {
         addError(rowNumber, "sentence は${MAX_CUSTOM_SENTENCE_CHARS}文字以内にしてください（現在${sentence.length}文字）", row)
         return false
@@ -181,6 +190,11 @@ internal fun validateSentenceImportRow(
     }
     return true
 }
+
+private fun List<String>.hasSpreadsheetFormulaCell(): Boolean =
+    any { value ->
+        value.trimStart().firstOrNull() in SPREADSHEET_FORMULA_PREFIXES
+    }
 
 internal fun missingWordHeaderError(header: List<String>, englishIndex: Int, meaningIndex: Int): ImportErrorRow {
     val missing = buildList {
