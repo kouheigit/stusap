@@ -13,7 +13,7 @@ internal object EncryptedDatabaseSupport {
         SQLiteDatabase.loadLibs(context)
         val passphrase = DatabasePassphraseProvider(context).getOrCreatePassphrase()
         migratePlaintextDatabaseIfNeeded(context, passphrase)
-        return SupportFactory(passphrase)
+        return SupportFactory(passphrase, null, true)
     }
 
     private fun migratePlaintextDatabaseIfNeeded(context: Context, passphrase: ByteArray) {
