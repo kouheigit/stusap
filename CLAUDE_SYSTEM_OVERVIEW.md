@@ -76,9 +76,11 @@ Room Database
 ### ローカル永続化
 
 - Room
+- SQLCipher for Android
+- Android Keystore
 - Room Migration
 - Flow ベースの DAO
-- 端末内 SQLite DB
+- 端末内暗号化 SQLite DB
 - DB 名: `toeic_vocab.db`
 
 Room の schema export は有効です。
@@ -91,6 +93,14 @@ Room の schema export は有効です。
 ```
 
 バックアップ設定は Manifest 上で `android:allowBackup="false"` になっています。
+
+DB は SQLCipher for Android を通して暗号化して開きます。暗号化パスフレーズはランダム生成し、
+Android Keystore の AES-GCM 鍵で暗号化したうえでアプリ private SharedPreferences に保存します。
+既存インストールに平文の `toeic_vocab.db` が存在する場合は、Room を開く前に SQLCipher 形式へ移行します。
+
+学習履歴、復習状態、クイズ結果、カスタム単語・熟語・文章は、氏名や認証トークンほど高リスクではありませんが、
+ユーザーの学習傾向や入力内容を含むプライバシーデータとして扱います。バックアップ除外設定は維持し、
+DB、SharedPreferences、files、root domain は backup rules / data extraction rules で除外します。
 
 ### インポート
 
