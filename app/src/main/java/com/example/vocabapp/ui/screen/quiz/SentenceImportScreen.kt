@@ -188,11 +188,8 @@ private fun SentenceRegisterButton(count: Int, enabled: Boolean, onClick: () -> 
 }
 
 private val IMPORT_MIME_TYPES = arrayOf(
-    "text/*",
     "text/csv",
+    "text/comma-separated-values",
     "application/csv",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/octet-stream",
-    "*/*"
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )

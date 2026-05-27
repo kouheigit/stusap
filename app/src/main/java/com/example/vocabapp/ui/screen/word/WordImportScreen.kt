@@ -91,13 +91,10 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
                     onClick = {
                         picker.launch(
                             arrayOf(
-                                "text/*",
                                 "text/csv",
+                                "text/comma-separated-values",
                                 "application/csv",
-                                "application/vnd.ms-excel",
-                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                "application/octet-stream",
-                                "*/*"
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                             )
                         )
                     },
