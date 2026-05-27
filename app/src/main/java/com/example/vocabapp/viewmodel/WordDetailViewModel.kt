@@ -29,9 +29,12 @@ import com.example.vocabapp.domain.usecase.quiz.StartQuizUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -108,8 +111,8 @@ class WordImportViewModel @Inject constructor(
     val result: StateFlow<WordImportResult?> = _result.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    private val _message = MutableStateFlow<String?>(null)
-    val message: StateFlow<String?> = _message.asStateFlow()
+    private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val messages: SharedFlow<String> = _messages.asSharedFlow()
 
     fun loadCsv(csvText: String) {
         loadRowsInBackground { repository.previewCustomWordCsv(csvText) }
@@ -122,7 +125,6 @@ class WordImportViewModel @Inject constructor(
     private fun loadRowsInBackground(loadPreview: suspend () -> WordImportPreview) {
         viewModelScope.launch {
             _isLoading.value = true
-            _message.value = null
             _result.value = null
             runCatching {
                 withContext(Dispatchers.Default) {
@@ -132,7 +134,7 @@ class WordImportViewModel @Inject constructor(
                 _preview.value = loadedPreview
             }.onFailureUnlessCancellation { error ->
                 _preview.value = null
-                _message.value = error.message ?: "CSVの読み込みに失敗しました"
+                sendMessage(error.message ?: "CSVの読み込みに失敗しました")
             }
             _isLoading.value = false
         }
@@ -142,29 +144,43 @@ class WordImportViewModel @Inject constructor(
         val currentPreview = _preview.value ?: return
         viewModelScope.launch {
             _isLoading.value = true
-            _message.value = null
             runCatching {
                 withContext(Dispatchers.IO) {
                     repository.importCustomWords(currentPreview)
                 }
             }.onSuccess { importResult ->
                 _result.value = importResult
+                _preview.value = null
             }.onFailureUnlessCancellation { error ->
-                _message.value = error.message ?: "登録に失敗しました"
+                sendMessage(error.message ?: "登録に失敗しました")
             }
             _isLoading.value = false
         }
     }
 
     fun showMessage(message: String) {
-        _message.value = message
+        sendMessage(message)
         _isLoading.value = false
     }
 
     fun showLoading() {
         _isLoading.value = true
-        _message.value = null
         _preview.value = null
         _result.value = null
+    }
+
+    fun clearTransientState() {
+        _preview.value = null
+        _result.value = null
+        _isLoading.value = false
+    }
+
+    override fun onCleared() {
+        clearTransientState()
+        super.onCleared()
+    }
+
+    private fun sendMessage(message: String) {
+        _messages.tryEmit(message)
     }
 }

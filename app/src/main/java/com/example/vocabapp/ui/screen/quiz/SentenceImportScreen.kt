@@ -22,8 +22,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -57,14 +61,18 @@ internal fun SentenceImportScreen(
     val preview by viewModel.preview.collectAsStateWithLifecycle()
     val result by viewModel.result.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val message by viewModel.message.collectAsStateWithLifecycle()
+    var message by remember { mutableStateOf<String?>(null) }
     val fileName by viewModel.fileName.collectAsStateWithLifecycle()
     val remainingCapacity by viewModel.remainingCapacity.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message = it }
+    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             val pickedName = context.queryDisplayName(uri)
+            message = null
             viewModel.showLoading()
             scope.launch(Dispatchers.IO) {
                 val readResult = runCatching { context.readImportFileAsRows(uri) }
@@ -88,6 +96,7 @@ internal fun SentenceImportScreen(
                 SentenceFilePickerButton(
                     hasLoadedFile = preview != null || result != null,
                     onClick = {
+                        message = null
                         if (preview != null || result != null) viewModel.resetForNewFile()
                         picker.launch(IMPORT_MIME_TYPES)
                     }

@@ -42,7 +42,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,10 +67,14 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
     val preview by viewModel.preview.collectAsStateWithLifecycle()
     val result by viewModel.result.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val message by viewModel.message.collectAsStateWithLifecycle()
+    var message by remember { mutableStateOf<String?>(null) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message = it }
+    }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
+            message = null
             viewModel.showLoading()
             scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 val result = runCatching { context.readImportFileAsRows(uri) }
@@ -123,15 +131,27 @@ internal fun WordImportScreen(navController: NavHostController, viewModel: WordI
             message?.let { text ->
                 item { Text(text, color = Danger, fontWeight = FontWeight.Bold) }
             }
+            result?.let { importResult ->
+                item {
+                    ImportSummaryCard(
+                        title = "登録結果",
+                        totalRows = importResult.totalRows,
+                        newCount = importResult.insertedCount,
+                        newIdiomCount = importResult.insertedIdiomCount,
+                        duplicateCount = importResult.duplicateCount,
+                        errorCount = importResult.errorCount
+                    )
+                }
+            }
             preview?.let { currentPreview ->
                 item {
                     ImportSummaryCard(
-                        title = if (result == null) "読み込み結果" else "登録結果",
-                        totalRows = result?.totalRows ?: currentPreview.totalRows,
-                        newCount = result?.insertedCount ?: currentPreview.newWords.count { it.type == "word" },
-                        newIdiomCount = result?.insertedIdiomCount ?: currentPreview.newWords.count { it.type == "phrase" || it.type == "sentence" },
-                        duplicateCount = result?.duplicateCount ?: currentPreview.duplicateCount,
-                        errorCount = result?.errorCount ?: currentPreview.errorCount
+                        title = "読み込み結果",
+                        totalRows = currentPreview.totalRows,
+                        newCount = currentPreview.newWords.count { it.type == "word" },
+                        newIdiomCount = currentPreview.newWords.count { it.type == "phrase" || it.type == "sentence" },
+                        duplicateCount = currentPreview.duplicateCount,
+                        errorCount = currentPreview.errorCount
                     )
                 }
                 if (result == null) {

@@ -9,8 +9,11 @@ import com.example.vocabapp.util.AppDispatchers
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -25,8 +28,8 @@ class SentenceImportViewModel @Inject constructor(
     val result: StateFlow<SentenceImportResult?> = _result.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    private val _message = MutableStateFlow<String?>(null)
-    val message: StateFlow<String?> = _message.asStateFlow()
+    private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val messages: SharedFlow<String> = _messages.asSharedFlow()
     private val _fileName = MutableStateFlow<String?>(null)
     val fileName: StateFlow<String?> = _fileName.asStateFlow()
     private val _remainingCapacity = MutableStateFlow<Int?>(null)
@@ -47,7 +50,6 @@ class SentenceImportViewModel @Inject constructor(
     private fun loadRowsInBackground(fileName: String?, loadPreview: suspend () -> SentenceImportPreview) {
         viewModelScope.launch {
             _isLoading.value = true
-            _message.value = null
             _result.value = null
             if (fileName != null) _fileName.value = fileName
             runCatching {
@@ -58,7 +60,7 @@ class SentenceImportViewModel @Inject constructor(
                 _preview.value = loadedPreview.copy(sourceFileName = _fileName.value)
             }.onFailureUnlessCancellation { error ->
                 _preview.value = null
-                _message.value = error.message ?: "文章ファイルの読み込みに失敗しました"
+                sendMessage(error.message ?: "文章ファイルの読み込みに失敗しました")
             }
             _isLoading.value = false
         }
@@ -68,16 +70,16 @@ class SentenceImportViewModel @Inject constructor(
         val currentPreview = _preview.value ?: return
         viewModelScope.launch {
             _isLoading.value = true
-            _message.value = null
             runCatching {
                 withContext(dispatchers.io) {
                     repository.importCustomSentences(currentPreview)
                 }
             }.onSuccess { importResult ->
                 _result.value = importResult
+                _preview.value = null
                 loadRemainingCapacity()
             }.onFailureUnlessCancellation { error ->
-                _message.value = error.message ?: "文章の登録に失敗しました"
+                sendMessage(error.message ?: "文章の登録に失敗しました")
             }
             _isLoading.value = false
         }
@@ -98,19 +100,33 @@ class SentenceImportViewModel @Inject constructor(
     fun resetForNewFile() {
         _preview.value = null
         _result.value = null
-        _message.value = null
         _fileName.value = null
     }
 
     fun showMessage(message: String) {
-        _message.value = message
+        sendMessage(message)
         _isLoading.value = false
     }
 
     fun showLoading() {
         _isLoading.value = true
-        _message.value = null
         _preview.value = null
         _result.value = null
+    }
+
+    fun clearTransientState() {
+        _preview.value = null
+        _result.value = null
+        _fileName.value = null
+        _isLoading.value = false
+    }
+
+    override fun onCleared() {
+        clearTransientState()
+        super.onCleared()
+    }
+
+    private fun sendMessage(message: String) {
+        _messages.tryEmit(message)
     }
 }
