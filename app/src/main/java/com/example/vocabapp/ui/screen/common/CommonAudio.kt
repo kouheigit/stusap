@@ -11,6 +11,7 @@ import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,7 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.vocabapp.ui.audio.SoundPlayer
 import com.example.vocabapp.ui.audio.createSoundPlayer
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 @Composable
 internal fun rememberSoundPlayer(): SoundPlayer {
@@ -34,6 +39,20 @@ internal data class Speaker(
     val speak: (String) -> Unit
 )
 
+@Composable
+internal fun AutoSpeakEffect(
+    text: String?,
+    speaker: Speaker,
+    triggerKey: Any? = text,
+    delayMillis: Long = AUTO_SPEAK_DELAY_MILLIS
+) {
+    LaunchedEffect(triggerKey, speaker.isReady) {
+        if (text.isNullOrBlank()) return@LaunchedEffect
+        if (!speaker.isReady) return@LaunchedEffect
+        delay(delayMillis)
+        speaker.speak(text)
+    }
+}
 
 @Composable
 internal fun rememberSpeaker(): Speaker {
@@ -42,8 +61,8 @@ internal fun rememberSpeaker(): Speaker {
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
-    val pendingSpeechText = remember { java.util.concurrent.atomic.AtomicReference<String?>(null) }
-    val isTtsConfigured = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+    val pendingSpeechText = remember { AtomicReference<String?>(null) }
+    val isTtsConfigured = remember { AtomicBoolean(false) }
     val speechVolumeController = remember {
         SpeechVolumeController(AndroidSpeechVolumeGateway(audioManager)) { message, error ->
             Log.w(COMMON_AUDIO_TAG, message, error)
@@ -61,8 +80,8 @@ internal fun rememberSpeaker(): Speaker {
             .build()
     }
     // 直前に発話した内容と時刻を記録して、短時間の重複リクエストを防ぐ
-    val lastSpokenText = remember { java.util.concurrent.atomic.AtomicReference<String>("") }
-    val lastSpokenAt = remember { java.util.concurrent.atomic.AtomicLong(0L) }
+    val lastSpokenText = remember { AtomicReference("") }
+    val lastSpokenAt = remember { AtomicLong(0L) }
     fun finishSpeech(utteranceId: String?) {
         if (speechVolumeController.finishSpeech(utteranceId)) {
             audioManager.abandonAudioFocusRequest(focusRequest)
@@ -105,15 +124,17 @@ internal fun rememberSpeaker(): Speaker {
     }
 
     DisposableEffect(context) {
-        var ttsRef: TextToSpeech? = null
+        val ttsRef = AtomicReference<TextToSpeech?>(null)
+        val initSucceeded = AtomicBoolean(false)
         val instance = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
+                initSucceeded.set(true)
                 mainHandler.post {
-                    ttsRef?.let(::configureTts)
+                    ttsRef.get()?.let(::configureTts)
                 }
             }
         }
-        ttsRef = instance
+        ttsRef.set(instance)
         instance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) = Unit
 
@@ -131,6 +152,11 @@ internal fun rememberSpeaker(): Speaker {
             }
         })
         tts = instance
+        // Some TTS engines can invoke the init callback before TextToSpeech()
+        // returns; this second path configures the instance after the reference is set.
+        if (initSucceeded.get()) {
+            mainHandler.post { configureTts(instance) }
+        }
         onDispose {
             isReady = false
             isTtsConfigured.set(false)
@@ -154,4 +180,5 @@ internal fun rememberSpeaker(): Speaker {
 }
 
 private const val COMMON_AUDIO_TAG = "CommonAudio"
+private const val AUTO_SPEAK_DELAY_MILLIS = 150L
 private const val TTS_MAX_VOLUME = 1.0f

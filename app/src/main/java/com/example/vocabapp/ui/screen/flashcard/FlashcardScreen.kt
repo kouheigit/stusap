@@ -42,7 +42,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +55,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.vocabapp.viewmodel.FlashcardViewModel
-import kotlinx.coroutines.delay
 
 
 @Composable
@@ -68,11 +66,7 @@ internal fun FlashcardScreen(navController: NavHostController, viewModel: Flashc
     val word = words.getOrNull(index)
     val title = if (viewModel.trainingId >= 100) "英熟語帳" else "単語帳"
     // 単語帳でもカード切り替え時に自動読み上げ
-    LaunchedEffect(word?.id, speaker.isReady) {
-        if (word == null) return@LaunchedEffect
-        delay(150L)
-        speaker.speak(word.english)
-    }
+    AutoSpeakEffect(text = word?.english, speaker = speaker, triggerKey = word?.id)
     BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
         if (words.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {

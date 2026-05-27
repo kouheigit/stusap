@@ -66,10 +66,7 @@ internal fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) 
     val question = state.currentQuestion ?: return
     val speaker = rememberSpeaker()
     val soundPlayer = rememberSoundPlayer()
-    LaunchedEffect(question.word.id, speaker.isReady) {
-        delay(150L)
-        speaker.speak(question.word.english)
-    }
+    AutoSpeakEffect(text = question.word.english, speaker = speaker, triggerKey = question.word.id)
     LaunchedEffect(state.isAnswered, state.currentIndex) {
         if (state.isAnswered) {
             delay(30L) // UIフィードバック表示直後に効果音を再生
@@ -151,4 +148,3 @@ internal fun QuizTimerLifecycleEffect(
         }
     }
 }
-
