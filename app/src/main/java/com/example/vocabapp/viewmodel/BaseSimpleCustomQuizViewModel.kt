@@ -52,4 +52,10 @@ abstract class BaseSimpleCustomQuizViewModel(
     fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
     fun onScreenStopped() = quizSession.pauseTimer()
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
+
+    override fun onCleared() {
+        quizSession.clear()
+        _state.value = QuizState()
+        super.onCleared()
+    }
 }

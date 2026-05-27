@@ -100,6 +100,14 @@ internal class QuizSession(
         }
     }
 
+    fun clear() {
+        timerJob?.cancel()
+        timerJob = null
+        answers.clear()
+        isTimerActive = false
+        pausedAt = null
+    }
+
     private suspend fun nextOrFinish() {
         val current = state.value
         if (current.currentIndex >= current.questions.lastIndex) {

@@ -107,6 +107,11 @@ class SentenceQuizViewModel @Inject constructor(
             )
         }
     }
+
+    override fun onCleared() {
+        _state.value = SentenceQuizState()
+        super.onCleared()
+    }
 }
 @HiltViewModel
 class AddSentenceViewModel @Inject constructor(

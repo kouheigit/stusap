@@ -85,6 +85,13 @@ class QuizViewModel @Inject constructor(
      * @param choiceId 選択肢ID。未選択回答の場合はnull。
      */
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
+
+    override fun onCleared() {
+        quizSession.clear()
+        _state.value = QuizState(isReview = isReview, trainingId = trainingId)
+        _loadState.value = UiState.Loading
+        super.onCleared()
+    }
 }
 
 @HiltViewModel

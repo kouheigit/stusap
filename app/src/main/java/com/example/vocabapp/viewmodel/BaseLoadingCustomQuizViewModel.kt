@@ -26,7 +26,7 @@ abstract class BaseLoadingCustomQuizViewModel(
     savedStateHandle: SavedStateHandle,
     protected val repository: CustomContentRepository,
     protected val quizRepository: QuizRepository,
-    initialTrainingId: Int
+    private val initialTrainingId: Int
 ) : ViewModel() {
 
     val contentType: String = checkNotNull(savedStateHandle["type"])
@@ -74,4 +74,12 @@ abstract class BaseLoadingCustomQuizViewModel(
     fun onScreenStarted() = quizSession.resumeTimerIfNeeded()
     fun onScreenStopped() = quizSession.pauseTimer()
     fun submit(choiceId: Int?) = quizSession.submit(choiceId)
+
+    override fun onCleared() {
+        quizSession.clear()
+        _state.value = QuizState(trainingId = initialTrainingId, lessonId = contentTypeEnum.lessonId)
+        _loadState.value = UiState.Loading
+        _result.value = null
+        super.onCleared()
+    }
 }
