@@ -63,11 +63,7 @@ internal fun rememberSpeaker(): Speaker {
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     val pendingSpeechText = remember { AtomicReference<String?>(null) }
     val isTtsConfigured = remember { AtomicBoolean(false) }
-    val speechVolumeController = remember {
-        SpeechVolumeController(AndroidSpeechVolumeGateway(audioManager)) { message, error ->
-            Log.w(COMMON_AUDIO_TAG, message, error)
-        }
-    }
+    val activeUtteranceId = remember { AtomicReference<String?>(null) }
     val focusRequest = remember {
         android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
@@ -83,9 +79,9 @@ internal fun rememberSpeaker(): Speaker {
     val lastSpokenText = remember { AtomicReference("") }
     val lastSpokenAt = remember { AtomicLong(0L) }
     fun finishSpeech(utteranceId: String?) {
-        if (speechVolumeController.finishSpeech(utteranceId)) {
-            audioManager.abandonAudioFocusRequest(focusRequest)
-        }
+        if (utteranceId == null) return
+        if (!activeUtteranceId.compareAndSet(utteranceId, null)) return
+        audioManager.abandonAudioFocusRequest(focusRequest)
     }
 
     fun speakNow(text: String, engine: TextToSpeech) {
@@ -98,7 +94,7 @@ internal fun rememberSpeaker(): Speaker {
         val focusResult = audioManager.requestAudioFocus(focusRequest)
         if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return
         val utteranceId = "utt-${System.nanoTime()}"
-        speechVolumeController.beginSpeech(utteranceId)
+        activeUtteranceId.set(utteranceId)
         val params = android.os.Bundle().apply {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
             putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, TTS_MAX_VOLUME)
@@ -163,7 +159,7 @@ internal fun rememberSpeaker(): Speaker {
             pendingSpeechText.set(null)
             instance.stop()
             instance.shutdown()
-            speechVolumeController.cancelSpeech()
+            activeUtteranceId.set(null)
             audioManager.abandonAudioFocusRequest(focusRequest)
         }
     }
