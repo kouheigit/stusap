@@ -40,6 +40,46 @@ class ResultRouteTest {
         )
     }
 
+    @Test
+    fun nextRouteFor_wordCustomSetMovesToNextSetWhenAvailable() {
+        val result = result(trainingId = ContentType.WORD.trainingId(1))
+
+        assertEquals(
+            Route.customTrainingQuiz(ContentType.WORD.routeValue, 2),
+            nextRouteFor(result, hasNextCustomSet = true)
+        )
+    }
+
+    @Test
+    fun nextRouteFor_idiomCustomSetMovesToNextSetWhenAvailable() {
+        val result = result(trainingId = ContentType.IDIOM.trainingId(1))
+
+        assertEquals(
+            Route.customTrainingQuiz(ContentType.IDIOM.routeValue, 2),
+            nextRouteFor(result, hasNextCustomSet = true)
+        )
+    }
+
+    @Test
+    fun nextRouteFor_customSetReturnsListWhenNextSetIsUnavailable() {
+        val result = result(trainingId = ContentType.WORD.trainingId(1))
+
+        assertEquals(
+            Route.customTraining(ContentType.WORD.routeValue),
+            nextRouteFor(result, hasNextCustomSet = false)
+        )
+    }
+
+    @Test
+    fun nextRouteFor_randomCustomIgnoresSequentialSetFlag() {
+        val result = result(trainingId = ContentType.WORD.randomTrainingId)
+
+        assertEquals(
+            Route.customTraining(ContentType.WORD.routeValue),
+            nextRouteFor(result, hasNextCustomSet = true)
+        )
+    }
+
     private fun result(trainingId: Int): QuizResult =
         QuizResult(
             attemptId = 1L,

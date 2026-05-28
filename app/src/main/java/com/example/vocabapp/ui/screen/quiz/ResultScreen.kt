@@ -88,6 +88,7 @@ import kotlinx.coroutines.launch
 internal fun ResultScreen(navController: NavHostController, viewModel: ResultViewModel = hiltViewModel()) {
     val result by viewModel.result.collectAsStateWithLifecycle()
     val trainingLabel by viewModel.trainingLabel.collectAsStateWithLifecycle()
+    val hasNextCustomSet by viewModel.hasNextCustomSet.collectAsStateWithLifecycle()
     val title = trainingLabel ?: "クイズ結果"
     BlueScaffold(title = title, onBack = { navController.navigate(Route.Home.path) }) { inner ->
         result?.let {
@@ -96,7 +97,7 @@ internal fun ResultScreen(navController: NavHostController, viewModel: ResultVie
                 modifier = Modifier.padding(inner),
                 onRetry = { navController.navigate(retryRouteFor(it)) },
                 onHome = { navController.navigate(Route.Home.path) { popUpTo(Route.Home.path) { inclusive = true } } },
-                onNext = { navController.navigate(nextRouteFor(it)) }
+                onNext = { navController.navigate(nextRouteFor(it, hasNextCustomSet)) }
             )
         } ?: Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -104,12 +105,16 @@ internal fun ResultScreen(navController: NavHostController, viewModel: ResultVie
     }
 }
 
-internal fun nextRouteFor(result: QuizResult): String {
+internal fun nextRouteFor(result: QuizResult, hasNextCustomSet: Boolean = false): String {
     val trainingId = result.trainingId ?: return Route.Review.path
     val customType = customContentTypeForTrainingId(trainingId)
     return when {
         trainingId == ContentType.WORD.randomTrainingId -> Route.customTraining(ContentType.WORD.routeValue)
         trainingId == ContentType.IDIOM.randomTrainingId -> Route.customTraining(ContentType.IDIOM.routeValue)
+        customType != null && hasNextCustomSet -> Route.customTrainingQuiz(
+            customType.routeValue,
+            customTrainingSetNumber(customType.routeValue, trainingId) + 1
+        )
         customType != null -> Route.customTraining(customType.routeValue)
         trainingId >= 100 -> Route.IdiomLessons.path
         else -> Route.Lessons.path

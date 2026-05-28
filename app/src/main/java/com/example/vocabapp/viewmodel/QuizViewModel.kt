@@ -3,8 +3,11 @@ package com.example.vocabapp.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vocabapp.data.repository.CustomContentRepository
 import com.example.vocabapp.data.repository.LessonRepository
 import com.example.vocabapp.data.repository.QuizRepository
+import com.example.vocabapp.data.repository.customContentTypeForTrainingId
+import com.example.vocabapp.data.repository.customTrainingSetNumber
 import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.domain.model.QuizState
 import com.example.vocabapp.domain.usecase.quiz.FinishQuizUseCase
@@ -101,7 +104,8 @@ class QuizViewModel @Inject constructor(
 class ResultViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val quizRepository: QuizRepository,
-    private val lessonRepository: LessonRepository
+    private val lessonRepository: LessonRepository,
+    private val customContentRepository: CustomContentRepository
 ) : ViewModel() {
     private val attemptId: Long = checkNotNull(savedStateHandle["attemptId"])
     private val _result = MutableStateFlow<QuizResult?>(null)
@@ -110,6 +114,8 @@ class ResultViewModel @Inject constructor(
     val resultState: StateFlow<UiState<QuizResult?>> = _resultState.asStateFlow()
     private val _trainingLabel = MutableStateFlow<String?>(null)
     val trainingLabel: StateFlow<String?> = _trainingLabel.asStateFlow()
+    private val _hasNextCustomSet = MutableStateFlow(false)
+    val hasNextCustomSet: StateFlow<Boolean> = _hasNextCustomSet.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -119,6 +125,14 @@ class ResultViewModel @Inject constructor(
                 _result.value = quizResult
                 quizResult?.trainingId?.let { trainingId ->
                     _trainingLabel.value = lessonRepository.getTrainingRange(trainingId)
+                    val customType = customContentTypeForTrainingId(trainingId)
+                    if (customType != null) {
+                        val nextSet = customTrainingSetNumber(customType.routeValue, trainingId) + 1
+                        _hasNextCustomSet.value = customContentRepository.hasCustomTrainingSet(
+                            customType.routeValue,
+                            nextSet
+                        )
+                    }
                 }
                 quizResult
             }.onSuccess { quizResult ->

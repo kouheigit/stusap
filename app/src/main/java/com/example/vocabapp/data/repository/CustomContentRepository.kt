@@ -114,6 +114,11 @@ class CustomContentRepository @Inject constructor(
         return buildCustomQuizQuestions(ContentType.WORD.routeValue, randomCustomTrainingId(ContentType.WORD.routeValue), all, all, 0)
     }
 
+    suspend fun hasCustomTrainingSet(type: String, setNumber: Int): Boolean {
+        if (setNumber < 1) return false
+        return getCustomStudyWords(type).size > customTrainingStartIndex(setNumber)
+    }
+
     private fun observeCustomStudyWords(type: String): Flow<List<CustomStudyWord>> {
         val contentType = ContentType.fromRouteValue(type)
         return if (contentType == ContentType.IDIOM) {
