@@ -134,16 +134,37 @@ internal fun rememberSpeaker(): Speaker {
             override fun onStart(utteranceId: String?) = Unit
 
             override fun onDone(utteranceId: String?) {
-                mainHandler.post { finishSpeech(utteranceId) }
+                mainHandler.post {
+                    if (utteranceId?.startsWith(WARMUP_UTTERANCE_PREFIX) == true) {
+                        pendingSpeechText.set(null)
+                        isReady = true
+                    } else {
+                        finishSpeech(utteranceId)
+                    }
+                }
             }
 
             @Deprecated("Deprecated by Android SDK")
             override fun onError(utteranceId: String?) {
-                mainHandler.post { finishSpeech(utteranceId) }
+                mainHandler.post {
+                    if (utteranceId?.startsWith(WARMUP_UTTERANCE_PREFIX) == true) {
+                        pendingSpeechText.set(null)
+                        isReady = true
+                    } else {
+                        finishSpeech(utteranceId)
+                    }
+                }
             }
 
             override fun onError(utteranceId: String?, errorCode: Int) {
-                mainHandler.post { finishSpeech(utteranceId) }
+                mainHandler.post {
+                    if (utteranceId?.startsWith(WARMUP_UTTERANCE_PREFIX) == true) {
+                        pendingSpeechText.set(null)
+                        isReady = true
+                    } else {
+                        finishSpeech(utteranceId)
+                    }
+                }
             }
         })
         tts = instance
@@ -176,3 +197,4 @@ internal fun rememberSpeaker(): Speaker {
 
 private const val AUTO_SPEAK_DELAY_MILLIS = 150L
 private const val TTS_MAX_VOLUME = 1.0f
+private const val WARMUP_UTTERANCE_PREFIX = "warmup-"
