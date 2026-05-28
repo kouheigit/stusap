@@ -40,6 +40,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.vocabapp.R
+import com.example.vocabapp.data.repository.customTrainingSetNumber
 import com.example.vocabapp.domain.model.ContentType
 import com.example.vocabapp.domain.model.Training
 import com.example.vocabapp.viewmodel.CustomTrainingListViewModel
@@ -193,4 +194,11 @@ internal fun buildSectionPreview(items: List<String>, limit: Int = 2): String {
 }
 
 internal fun customSetNumber(training: Training): Int =
-    ((training.wordStartNumber - 1) / 10) + 1
+    customTrainingSetNumber(
+        type = if (training.lessonId == ContentType.IDIOM.lessonId) {
+            ContentType.IDIOM.routeValue
+        } else {
+            ContentType.WORD.routeValue
+        },
+        trainingId = training.id
+    )

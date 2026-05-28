@@ -19,6 +19,16 @@ internal fun customLessonId(type: String): Int =
 internal fun customTrainingId(type: String, setNumber: Int): Int =
     ContentType.fromRouteValue(type).trainingId(setNumber)
 
+internal fun customTrainingSetNumber(type: String, trainingId: Int): Int =
+    (ContentType.fromRouteValue(type).lessonId - trainingId).coerceAtLeast(1)
+
+internal fun customContentTypeForTrainingId(trainingId: Int): ContentType? =
+    when {
+        trainingId < ContentType.IDIOM.lessonId -> ContentType.IDIOM
+        trainingId < ContentType.WORD.lessonId -> ContentType.WORD
+        else -> null
+    }
+
 internal fun randomCustomTrainingId(type: String): Int =
     ContentType.fromRouteValue(type).randomTrainingId
 

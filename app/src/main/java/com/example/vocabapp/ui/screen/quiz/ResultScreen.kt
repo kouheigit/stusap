@@ -75,6 +75,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.vocabapp.R
+import com.example.vocabapp.data.repository.customContentTypeForTrainingId
+import com.example.vocabapp.data.repository.customTrainingSetNumber
 import com.example.vocabapp.domain.model.ContentType
 import com.example.vocabapp.domain.model.QuizResult
 import com.example.vocabapp.viewmodel.ResultViewModel
@@ -104,11 +106,11 @@ internal fun ResultScreen(navController: NavHostController, viewModel: ResultVie
 
 internal fun nextRouteFor(result: QuizResult): String {
     val trainingId = result.trainingId ?: return Route.Review.path
+    val customType = customContentTypeForTrainingId(trainingId)
     return when {
-        trainingId == RANDOM_CUSTOM_WORD_TRAINING_ID -> Route.customTraining(ContentType.WORD.routeValue)
-        trainingId == RANDOM_CUSTOM_IDIOM_TRAINING_ID -> Route.customTraining(ContentType.IDIOM.routeValue)
-        trainingId < CUSTOM_IDIOM_LESSON_ID -> Route.customTraining(ContentType.IDIOM.routeValue)
-        trainingId < CUSTOM_WORD_LESSON_ID -> Route.customTraining(ContentType.WORD.routeValue)
+        trainingId == ContentType.WORD.randomTrainingId -> Route.customTraining(ContentType.WORD.routeValue)
+        trainingId == ContentType.IDIOM.randomTrainingId -> Route.customTraining(ContentType.IDIOM.routeValue)
+        customType != null -> Route.customTraining(customType.routeValue)
         trainingId >= 100 -> Route.IdiomLessons.path
         else -> Route.Lessons.path
     }
@@ -116,24 +118,19 @@ internal fun nextRouteFor(result: QuizResult): String {
 
 internal fun retryRouteFor(result: QuizResult): String {
     val trainingId = result.trainingId ?: return Route.quiz(isReview = result.isReview)
+    val customType = customContentTypeForTrainingId(trainingId)
     return when {
-        trainingId == RANDOM_CUSTOM_WORD_TRAINING_ID -> Route.randomCustomQuiz(ContentType.WORD.routeValue)
-        trainingId == RANDOM_CUSTOM_IDIOM_TRAINING_ID -> Route.randomCustomQuiz(ContentType.IDIOM.routeValue)
-        trainingId < CUSTOM_IDIOM_LESSON_ID -> {
-            Route.customTrainingQuiz(ContentType.IDIOM.routeValue, CUSTOM_IDIOM_LESSON_ID - trainingId)
-        }
-        trainingId < CUSTOM_WORD_LESSON_ID -> {
-            Route.customTrainingQuiz(ContentType.WORD.routeValue, CUSTOM_WORD_LESSON_ID - trainingId)
+        trainingId == ContentType.WORD.randomTrainingId -> Route.randomCustomQuiz(ContentType.WORD.routeValue)
+        trainingId == ContentType.IDIOM.randomTrainingId -> Route.randomCustomQuiz(ContentType.IDIOM.routeValue)
+        customType != null -> {
+            Route.customTrainingQuiz(
+                customType.routeValue,
+                customTrainingSetNumber(customType.routeValue, trainingId)
+            )
         }
         else -> Route.quiz(trainingId, result.isReview)
     }
 }
-
-private const val CUSTOM_WORD_LESSON_ID = -10_000
-private const val CUSTOM_IDIOM_LESSON_ID = -20_000
-private const val RANDOM_TRAINING_OFFSET = 999
-private const val RANDOM_CUSTOM_WORD_TRAINING_ID = CUSTOM_WORD_LESSON_ID - RANDOM_TRAINING_OFFSET
-private const val RANDOM_CUSTOM_IDIOM_TRAINING_ID = CUSTOM_IDIOM_LESSON_ID - RANDOM_TRAINING_OFFSET
 
 @Composable
 internal fun CustomWordQuizResultContent(
