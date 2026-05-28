@@ -112,10 +112,13 @@ internal fun rememberSpeaker(): Speaker {
             engine.language = Locale.ENGLISH
         }
         engine.setSpeechRate(0.9f)
-        isReady = true
-        pendingSpeechText.getAndSet(null)?.let { text ->
-            speakNow(text, engine)
+
+        val warmupId = "$WARMUP_UTTERANCE_PREFIX${System.nanoTime()}"
+        val warmupParams = android.os.Bundle().apply {
+            putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 0f)
         }
+        engine.speak(" ", TextToSpeech.QUEUE_FLUSH, warmupParams, warmupId)
     }
 
     DisposableEffect(context) {
