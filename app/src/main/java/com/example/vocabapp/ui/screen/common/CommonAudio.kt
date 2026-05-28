@@ -8,7 +8,6 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -175,6 +174,5 @@ internal fun rememberSpeaker(): Speaker {
     return Speaker(isReady = isReady, speak = speak)
 }
 
-private const val COMMON_AUDIO_TAG = "CommonAudio"
 private const val AUTO_SPEAK_DELAY_MILLIS = 150L
 private const val TTS_MAX_VOLUME = 1.0f
