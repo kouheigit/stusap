@@ -96,7 +96,6 @@ internal fun rememberSpeaker(): Speaker {
         activeUtteranceId.set(utteranceId)
         val params = android.os.Bundle().apply {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
-            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, TTS_MAX_VOLUME)
         }
         val speakResult = engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         if (speakResult == TextToSpeech.ERROR) {
@@ -111,7 +110,8 @@ internal fun rememberSpeaker(): Speaker {
         if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
             engine.language = Locale.ENGLISH
         }
-        engine.setSpeechRate(0.9f)
+        engine.setSpeechRate(0.85f)
+        engine.setPitch(1.0f)
 
         val warmupId = "$WARMUP_UTTERANCE_PREFIX${System.nanoTime()}"
         val warmupParams = android.os.Bundle().apply {
@@ -199,5 +199,4 @@ internal fun rememberSpeaker(): Speaker {
 }
 
 private const val AUTO_SPEAK_DELAY_MILLIS = 450L
-private const val TTS_MAX_VOLUME = 1.0f
 private const val WARMUP_UTTERANCE_PREFIX = "warmup-"
