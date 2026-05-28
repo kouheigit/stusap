@@ -87,26 +87,16 @@ class CustomContentRepository @Inject constructor(
     suspend fun setCustomWordLearned(id: Int, isLearned: Boolean) = dao.setCustomWordLearned(id, isLearned)
 
     suspend fun buildCustomIdiomQuiz(): List<QuizQuestion> {
-        val all = dao.getAllCustomIdioms()
+        val all = getCustomStudyWords(ContentType.IDIOM.routeValue)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        return runtime.shuffled(all).take(minOf(QuizConstants.QUESTION_COUNT, all.size)).map { idiom ->
-            val wrongPool = runtime.shuffled(all.filter { it.id != idiom.id }).take(3)
-            val correct = WordChoice(id = idiom.id * -200, wordId = idiom.id, choiceText = idiom.meaning, isCorrect = true, displayOrder = 0)
-            val wrongs = wrongPool.mapIndexed { index, wrong ->
-                WordChoice(id = wrong.id * -200 - index - 1, wordId = idiom.id, choiceText = wrong.meaning, isCorrect = false, displayOrder = index + 1)
-            }
-            QuizQuestion(
-                word = Word(id = idiom.id, trainingId = -1, english = idiom.english, meaning = idiom.meaning, phonetic = "", partOfSpeech = "英熟語", exampleSentence = "", exampleTranslation = "", audioUrl = null, exampleAudioUrl = null, displayOrder = 0),
-                choices = runtime.shuffled(listOf(correct) + wrongs).mapIndexed { index, choice -> choice.copy(displayOrder = index) }
-            )
-        }
+        return buildCustomQuizQuestions(ContentType.IDIOM.routeValue, randomCustomTrainingId(ContentType.IDIOM.routeValue), all, all, 0)
     }
 
     suspend fun buildCustomTrainingQuiz(type: String, setNumber: Int): List<QuizQuestion> {
         val all = getCustomStudyWords(type)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        val startIndex = (setNumber - 1).coerceAtLeast(0) * QuizConstants.QUESTION_COUNT
-        val targets = all.drop(startIndex).take(QuizConstants.QUESTION_COUNT)
+        val startIndex = customTrainingStartIndex(setNumber)
+        val targets = all.customTrainingTargets(setNumber)
         if (targets.isEmpty()) return emptyList()
         return buildCustomQuizQuestions(type, customTrainingId(type, setNumber), targets, all, startIndex)
     }
@@ -119,19 +109,9 @@ class CustomContentRepository @Inject constructor(
     }
 
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
-        val all = dao.getAllCustomWords().filter { it.wordType != "phrase" }
+        val all = getCustomStudyWords(ContentType.WORD.routeValue)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        return runtime.shuffled(all).take(minOf(QuizConstants.QUESTION_COUNT, all.size)).map { word ->
-            val wrongPool = runtime.shuffled(all.filter { it.id != word.id }).take(3)
-            val correct = WordChoice(id = word.id * -100, wordId = word.id, choiceText = word.meaning, isCorrect = true, displayOrder = 0)
-            val wrongs = wrongPool.mapIndexed { index, wrong ->
-                WordChoice(id = wrong.id * -100 - index - 1, wordId = word.id, choiceText = wrong.meaning, isCorrect = false, displayOrder = index + 1)
-            }
-            QuizQuestion(
-                word = Word(id = word.id, trainingId = -1, english = word.english, meaning = word.meaning, phonetic = "", partOfSpeech = "単語", exampleSentence = word.exampleSentence, exampleTranslation = word.exampleTranslation, audioUrl = null, exampleAudioUrl = null, displayOrder = 0),
-                choices = runtime.shuffled(listOf(correct) + wrongs).mapIndexed { index, choice -> choice.copy(displayOrder = index) }
-            )
-        }
+        return buildCustomQuizQuestions(ContentType.WORD.routeValue, randomCustomTrainingId(ContentType.WORD.routeValue), all, all, 0)
     }
 
     private fun observeCustomStudyWords(type: String): Flow<List<CustomStudyWord>> {

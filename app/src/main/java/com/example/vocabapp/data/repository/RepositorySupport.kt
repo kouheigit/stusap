@@ -1,6 +1,7 @@
 package com.example.vocabapp.data.repository
 
 import com.example.vocabapp.domain.model.ContentType
+import com.example.vocabapp.domain.model.QuizConstants
 
 const val MAX_CUSTOM_ENGLISH_CHARS = 200
 const val MAX_CUSTOM_MEANING_CHARS = 500
@@ -53,3 +54,10 @@ internal data class CustomStudyWord(
     val exampleSentence: String,
     val exampleTranslation: String
 )
+
+internal fun customTrainingStartIndex(setNumber: Int): Int =
+    (setNumber - 1).coerceAtLeast(0) * QuizConstants.QUESTION_COUNT
+
+internal fun List<CustomStudyWord>.customTrainingTargets(setNumber: Int): List<CustomStudyWord> =
+    drop(customTrainingStartIndex(setNumber))
+        .take(QuizConstants.QUESTION_COUNT)

@@ -96,21 +96,21 @@ class CustomImportRepository @Inject constructor(
             val normalized = word.english.normalizeEnglish()
             normalized !in existing && seen.add(normalized)
         }
-        val wordItems = eligible.filter { it.type == "word" }.map { word ->
+        val wordItems = eligible.filter { it.type == "word" }.mapIndexed { index, word ->
             CustomWordEntity(
                 english = word.english.trim().take(MAX_CUSTOM_ENGLISH_CHARS),
                 meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
-                addedAt = now,
+                addedAt = now + index,
                 exampleSentence = word.exampleSentence.trim().take(MAX_CUSTOM_EXAMPLE_CHARS),
                 exampleTranslation = word.exampleTranslation.trim().take(MAX_CUSTOM_EXAMPLE_CHARS),
                 wordType = word.type
             )
         }
-        val idiomItems = eligible.filter { it.type == "phrase" }.map { word ->
+        val idiomItems = eligible.filter { it.type == "phrase" }.mapIndexed { index, word ->
             CustomIdiomEntity(
                 english = word.english.trim().take(MAX_CUSTOM_ENGLISH_CHARS),
                 meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
-                addedAt = now
+                addedAt = now + index
             )
         }
         wordItems.chunked(IMPORT_INSERT_CHUNK_SIZE).forEach { dao.insertCustomWords(it) }
