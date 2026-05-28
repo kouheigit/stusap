@@ -81,9 +81,10 @@ private val wrongSoundBuffer: ShortArray by lazy {
 }
 
 private fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
-    val totalSamples = segments.sumOf { (_, ms) -> SAMPLE_RATE * ms / 1_000 }
-    val buffer = ShortArray(totalSamples)
-    var position = 0
+    val paddingSamples = SAMPLE_RATE * SILENCE_PADDING_MS / 1_000
+    val totalSamples = paddingSamples + segments.sumOf { (_, ms) -> SAMPLE_RATE * ms / 1_000 }
+    val buffer = ShortArray(totalSamples) // leading zeros = silence
+    var position = paddingSamples
     for ((frequency, durationMs) in segments) {
         val sampleCount = SAMPLE_RATE * durationMs / 1_000
         for (index in 0 until sampleCount) {
@@ -129,3 +130,4 @@ private fun createAudioTrack(buffer: ShortArray): AudioTrack =
         }
 
 private const val SAMPLE_RATE = 44_100
+private const val SILENCE_PADDING_MS = 5
