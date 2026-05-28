@@ -198,6 +198,6 @@ internal fun rememberSpeaker(): Speaker {
     return Speaker(isReady = isReady, speak = speak)
 }
 
-private const val AUTO_SPEAK_DELAY_MILLIS = 150L
+private const val AUTO_SPEAK_DELAY_MILLIS = 450L
 private const val TTS_MAX_VOLUME = 1.0f
 private const val WARMUP_UTTERANCE_PREFIX = "warmup-"
