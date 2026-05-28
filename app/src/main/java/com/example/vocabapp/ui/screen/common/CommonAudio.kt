@@ -85,7 +85,7 @@ internal fun rememberSpeaker(): Speaker {
 
     fun speakNow(text: String, engine: TextToSpeech) {
         val now = System.currentTimeMillis()
-        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 400L
+        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 800L
         if (isSameTextRecently) return
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
