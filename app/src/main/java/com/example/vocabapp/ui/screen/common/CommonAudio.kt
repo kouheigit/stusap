@@ -64,7 +64,7 @@ internal fun rememberSpeaker(): Speaker {
     val isTtsConfigured = remember { AtomicBoolean(false) }
     val activeUtteranceId = remember { AtomicReference<String?>(null) }
     val focusRequest = remember {
-        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
