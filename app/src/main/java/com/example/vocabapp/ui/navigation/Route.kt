@@ -8,7 +8,8 @@ internal sealed class Route(val path: String) {
     object StudyLog : Route("study-log")
     object Settings : Route("settings")
     object AddWord : Route("add-word")
-    object WordImport : Route("word-import")
+    object WordImport : Route("word-import?defaultType=word")
+    object IdiomImport : Route("word-import?defaultType=phrase")
     object CustomQuiz : Route("custom-quiz")
     object CustomWordList : Route("custom-word-list")
     object AddIdiom : Route("add-idiom")
@@ -89,6 +90,7 @@ internal sealed class Route(val path: String) {
     }
 
     companion object {
+        const val WORD_IMPORT_PATTERN = "word-import?defaultType={defaultType}"
         fun flashcard(trainingId: Int) = Flashcard(trainingId.toString()).path
         fun customTraining(type: String) = CustomTraining(type).path
         fun customTrainingBlock(type: String, blockNumber: Int) =
