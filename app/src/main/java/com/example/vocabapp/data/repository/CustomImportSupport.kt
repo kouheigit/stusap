@@ -127,6 +127,7 @@ internal fun validateWordImportRow(
     example: String,
     exampleTranslation: String,
     rawType: String,
+    defaultType: String = "word",
     addError: (Int, String, List<String>) -> Unit
 ): String? {
     if (english.isBlank() || meaning.isBlank()) {
@@ -146,7 +147,11 @@ internal fun validateWordImportRow(
         return null
     }
     val wordType = when {
-        rawType.isBlank() -> if (english.contains(Regex("\\s"))) "phrase" else "word"
+        rawType.isBlank() -> when {
+            english.contains(Regex("\\s")) -> "phrase"
+            defaultType == "phrase" -> "phrase"
+            else -> "word"
+        }
         rawType == "word" -> rawType
         rawType in CSV_IDIOM_TYPES -> "phrase"
         else -> {
