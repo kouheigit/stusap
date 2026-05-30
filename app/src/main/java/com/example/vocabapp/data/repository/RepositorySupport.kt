@@ -68,6 +68,8 @@ internal data class CustomStudyWord(
 internal fun customTrainingStartIndex(setNumber: Int): Int =
     (setNumber - 1).coerceAtLeast(0) * QuizConstants.QUESTION_COUNT
 
+internal fun List<CustomStudyWord>.customAllQuizTargets(): List<CustomStudyWord> = this
+
 internal fun List<CustomStudyWord>.customTrainingTargets(setNumber: Int): List<CustomStudyWord> =
     drop(customTrainingStartIndex(setNumber))
         .take(QuizConstants.QUESTION_COUNT)

@@ -89,7 +89,8 @@ class CustomContentRepository @Inject constructor(
     suspend fun buildCustomIdiomQuiz(): List<QuizQuestion> {
         val all = getCustomStudyWords(ContentType.IDIOM.routeValue)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        return buildCustomQuizQuestions(ContentType.IDIOM.routeValue, randomCustomTrainingId(ContentType.IDIOM.routeValue), all, all, 0)
+        val targets = all.customAllQuizTargets()
+        return buildCustomQuizQuestions(ContentType.IDIOM.routeValue, randomCustomTrainingId(ContentType.IDIOM.routeValue), targets, all, 0)
     }
 
     suspend fun buildCustomTrainingQuiz(type: String, setNumber: Int): List<QuizQuestion> {
@@ -111,7 +112,8 @@ class CustomContentRepository @Inject constructor(
     suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
         val all = getCustomStudyWords(ContentType.WORD.routeValue)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        return buildCustomQuizQuestions(ContentType.WORD.routeValue, randomCustomTrainingId(ContentType.WORD.routeValue), all, all, 0)
+        val targets = all.customAllQuizTargets()
+        return buildCustomQuizQuestions(ContentType.WORD.routeValue, randomCustomTrainingId(ContentType.WORD.routeValue), targets, all, 0)
     }
 
     suspend fun hasCustomTrainingSet(type: String, setNumber: Int): Boolean {

@@ -11,7 +11,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -19,7 +18,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.vocabapp.domain.model.ContentType
 import com.example.vocabapp.ui.screen.quiz.SentenceImportScreen
 import com.example.vocabapp.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -73,15 +71,11 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
             val defaultType = backStackEntry.arguments?.getString("defaultType") ?: "word"
             WordImportScreen(navController, defaultType = defaultType)
         }
-        composable(Route.CustomQuiz.path) {
-            CustomTrainingRedirect(navController, ContentType.WORD)
-        }
+        composable(Route.CustomQuiz.path) { CustomWordQuizScreen(navController) }
         composable(Route.CustomWordList.path) { CustomWordListScreen(navController) }
         composable(Route.AddIdiom.path) { AddIdiomScreen(navController) }
         composable(Route.CustomIdiomList.path) { CustomIdiomListScreen(navController) }
-        composable(Route.CustomIdiomQuiz.path) {
-            CustomTrainingRedirect(navController, ContentType.IDIOM)
-        }
+        composable(Route.CustomIdiomQuiz.path) { CustomIdiomQuizScreen(navController) }
         composable(
             Route.CustomTraining.PATTERN,
             arguments = listOf(navArgument("type") { type = NavType.StringType })
@@ -128,19 +122,5 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
             Route.SentenceQuiz.PATTERN,
             arguments = listOf(navArgument("setNumber") { type = NavType.IntType })
         ) { SentenceQuizScreen(navController) }
-    }
-}
-
-@Composable
-private fun CustomTrainingRedirect(navController: NavHostController, contentType: ContentType) {
-    LaunchedEffect(contentType) {
-        navController.navigate(Route.customTraining(contentType.routeValue)) {
-            val sourceRoute = if (contentType == ContentType.IDIOM) {
-                Route.CustomIdiomQuiz.path
-            } else {
-                Route.CustomQuiz.path
-            }
-            popUpTo(sourceRoute) { inclusive = true }
-        }
     }
 }

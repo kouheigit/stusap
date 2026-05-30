@@ -34,6 +34,8 @@
     <string name="custom_idiom_register">英熟語登録</string>
     <string name="custom_registered_list">登録一覧</string>
     <string name="custom_idiom_import">CSVから熟語を一括インポート</string>
+    <string name="custom_all_quiz_title">全件から出題</string>
+    <string name="custom_all_quiz_subtitle">登録済みの%1$s全体から出題</string>
     <string name="custom_block_100">100問単位</string>
     <string name="custom_block_10">10問単位</string>
     <string name="custom_empty_questions">登録済みの問題がありません</string>

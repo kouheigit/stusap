@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -123,6 +124,18 @@ internal fun CustomTrainingListScreen(navController: NavHostController, viewMode
                         )
                     }
                 }
+            }
+            item {
+                CardButton(
+                    title = stringResource(R.string.custom_all_quiz_title),
+                    subtitle = stringResource(R.string.custom_all_quiz_subtitle, blockLabel),
+                    icon = Icons.Default.PlayArrow,
+                    onClick = {
+                        navController.navigate(
+                            if (isIdiom) Route.CustomIdiomQuiz.path else Route.CustomQuiz.path
+                        )
+                    }
+                )
             }
             item { SectionTitle(stringResource(R.string.custom_block_100)) }
             if (trainings.isEmpty()) {
