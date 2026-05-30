@@ -34,6 +34,24 @@ class CustomTrainingTargetTest {
     }
 
     @Test
+    fun customTrainingTargets_setOneDoesNotUseNewestRowsFromHundredItems() {
+        val words = studyWords(100)
+
+        val targets = words.customTrainingTargets(setNumber = 1)
+
+        assertEquals((1..10).map { "word$it" }, targets.map { it.english })
+    }
+
+    @Test
+    fun customTrainingTargets_setTenUsesRowsNinetyOneToOneHundred() {
+        val words = studyWords(100)
+
+        val targets = words.customTrainingTargets(setNumber = 10)
+
+        assertEquals((91..100).map { "word$it" }, targets.map { it.english })
+    }
+
+    @Test
     fun customTrainingTargets_outOfRangeSetReturnsEmptyList() {
         val words = studyWords(12)
 
