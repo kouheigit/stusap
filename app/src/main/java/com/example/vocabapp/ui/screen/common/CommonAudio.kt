@@ -96,6 +96,7 @@ internal fun rememberSpeaker(): Speaker {
         activeUtteranceId.set(utteranceId)
         val params = android.os.Bundle().apply {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
         }
         val speakResult = engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         if (speakResult == TextToSpeech.ERROR) {
