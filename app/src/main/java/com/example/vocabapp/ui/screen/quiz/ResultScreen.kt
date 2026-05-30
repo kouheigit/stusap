@@ -19,6 +19,7 @@ import com.example.vocabapp.ui.screen.common.*
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
+import android.media.AudioTrack
 import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -189,7 +190,7 @@ internal fun CustomWordQuizResultContent(
                 .setOnAudioFocusChangeListener {}.build()
             am.requestAudioFocus(req)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
-            mp?.setVolume(1f, 1f)
+            mp?.setVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume())
             mp?.setOnCompletionListener {
                 it.release()
                 medalPlayer.value = null
