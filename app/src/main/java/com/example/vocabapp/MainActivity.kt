@@ -66,7 +66,13 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.StudyLog.path) { StudyLogScreen(navController) }
         composable(Route.Settings.path) { SettingsScreen(navController) }
         composable(Route.AddWord.path) { AddWordScreen(navController) }
-        composable(Route.WordImport.path) { WordImportScreen(navController) }
+        composable(
+            Route.WORD_IMPORT_PATTERN,
+            arguments = listOf(navArgument("defaultType") { type = NavType.StringType; defaultValue = "word" })
+        ) { backStackEntry ->
+            val defaultType = backStackEntry.arguments?.getString("defaultType") ?: "word"
+            WordImportScreen(navController, defaultType = defaultType)
+        }
         composable(Route.CustomQuiz.path) {
             CustomTrainingRedirect(navController, ContentType.WORD)
         }
