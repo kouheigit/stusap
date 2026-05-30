@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -98,6 +99,24 @@ internal fun CustomTrainingListScreen(navController: NavHostController, viewMode
                         Spacer(Modifier.width(4.dp))
                         Text(
                             stringResource(R.string.custom_registered_list),
+                            color = DeepBlue,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                if (isIdiom) {
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = { navController.navigate(Route.IdiomImport.path) },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = BrightBlue)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            stringResource(R.string.custom_idiom_import),
                             color = DeepBlue,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
