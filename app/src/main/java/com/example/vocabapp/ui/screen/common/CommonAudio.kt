@@ -57,6 +57,7 @@ internal fun AutoSpeakEffect(
 internal fun rememberSpeaker(): Speaker {
     val context = LocalContext.current
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    remember { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
