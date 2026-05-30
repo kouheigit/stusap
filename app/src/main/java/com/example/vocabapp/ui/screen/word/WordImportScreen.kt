@@ -62,7 +62,8 @@ import com.example.vocabapp.viewmodel.WordImportViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun WordImportScreen(navController: NavHostController, viewModel: WordImportViewModel = hiltViewModel()) {
+internal fun WordImportScreen(navController: NavHostController, defaultType: String = "word", viewModel: WordImportViewModel = hiltViewModel()) {
+    LaunchedEffect(defaultType) { viewModel.setDefaultType(defaultType) }
     val context = LocalContext.current
     val preview by viewModel.preview.collectAsStateWithLifecycle()
     val result by viewModel.result.collectAsStateWithLifecycle()
