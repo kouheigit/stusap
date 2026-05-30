@@ -24,11 +24,11 @@ class CustomImportRepository @Inject constructor(
 ) {
     private val dao: AppDao = database.appDao()
 
-    suspend fun previewCustomWordCsv(csvText: String): WordImportPreview {
-        return previewCustomWordRows(parseCsvRows(csvText))
+    suspend fun previewCustomWordCsv(csvText: String, defaultType: String = "word"): WordImportPreview {
+        return previewCustomWordRows(parseCsvRows(csvText), defaultType)
     }
 
-    suspend fun previewCustomWordRows(rows: List<List<String>>): WordImportPreview {
+    suspend fun previewCustomWordRows(rows: List<List<String>>, defaultType: String = "word"): WordImportPreview {
         if (rows.isEmpty()) {
             return WordImportPreview(errors = listOf(ImportErrorRow(1, "ファイルにデータが見つかりません。英語と意味の2列を入力してください", emptyList())))
         }
@@ -69,6 +69,7 @@ class CustomImportRepository @Inject constructor(
                 example = example,
                 exampleTranslation = exampleTranslation,
                 rawType = rawType,
+                defaultType = defaultType,
                 addError = errorCollector::addError
             ) ?: return@forEachIndexed
 
