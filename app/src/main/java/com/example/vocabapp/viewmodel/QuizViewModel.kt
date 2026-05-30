@@ -122,7 +122,6 @@ class ResultViewModel @Inject constructor(
             _resultState.value = UiState.Loading
             runCatching {
                 val quizResult = quizRepository.getResult(attemptId)
-                _result.value = quizResult
                 quizResult?.trainingId?.let { trainingId ->
                     _trainingLabel.value = lessonRepository.getTrainingRange(trainingId)
                     val customType = customContentTypeForTrainingId(trainingId)
@@ -134,6 +133,7 @@ class ResultViewModel @Inject constructor(
                         )
                     }
                 }
+                _result.value = quizResult
                 quizResult
             }.onSuccess { quizResult ->
                 _resultState.value = UiState.Success(quizResult)
