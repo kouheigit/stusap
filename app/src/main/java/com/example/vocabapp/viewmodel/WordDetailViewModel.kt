@@ -105,6 +105,10 @@ class AddWordViewModel @Inject constructor(
 class WordImportViewModel @Inject constructor(
     private val repository: CustomImportRepository
 ) : ViewModel() {
+    private var defaultType: String = "word"
+
+    fun setDefaultType(type: String) { defaultType = type }
+
     private val _preview = MutableStateFlow<WordImportPreview?>(null)
     val preview: StateFlow<WordImportPreview?> = _preview.asStateFlow()
     private val _result = MutableStateFlow<WordImportResult?>(null)
@@ -115,11 +119,11 @@ class WordImportViewModel @Inject constructor(
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
     fun loadCsv(csvText: String) {
-        loadRowsInBackground { repository.previewCustomWordCsv(csvText) }
+        loadRowsInBackground { repository.previewCustomWordCsv(csvText, defaultType) }
     }
 
     fun loadRows(rows: List<List<String>>) {
-        loadRowsInBackground { repository.previewCustomWordRows(rows) }
+        loadRowsInBackground { repository.previewCustomWordRows(rows, defaultType) }
     }
 
     private fun loadRowsInBackground(loadPreview: suspend () -> WordImportPreview) {
