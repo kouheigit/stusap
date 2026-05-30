@@ -46,7 +46,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         UserProgressEntity::class,
         AppSettingsEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -209,6 +209,18 @@ abstract class AppDatabase : RoomDatabase() {
                 """)
                 db.execSQL("DROP TABLE app_settings")
                 db.execSQL("ALTER TABLE app_settings_new RENAME TO app_settings")
+            }
+        }
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM word_choices")
+                db.execSQL("DELETE FROM word_relations")
+                db.execSQL("DELETE FROM words")
+                db.execSQL("DELETE FROM trainings")
+                db.execSQL("DELETE FROM lessons")
+                db.execSQL("DELETE FROM review_words")
+                db.execSQL("DELETE FROM user_progress")
+                db.execSQL("DELETE FROM study_logs")
             }
         }
     }
