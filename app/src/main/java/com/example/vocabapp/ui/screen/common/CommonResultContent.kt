@@ -3,6 +3,7 @@ package com.example.vocabapp.ui.screen.common
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
+import android.media.AudioTrack
 import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
