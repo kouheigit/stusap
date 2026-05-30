@@ -68,7 +68,7 @@ internal fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () -
         try {
             am.requestAudioFocus(medalFocusReq)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
-            mp?.setVolume(1f, 1f)
+            mp?.setVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume())
             mp?.setOnCompletionListener {
                 it.release()
                 medalPlayer.value = null
