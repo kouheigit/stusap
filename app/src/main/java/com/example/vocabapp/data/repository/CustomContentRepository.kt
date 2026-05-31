@@ -33,24 +33,26 @@ class CustomContentRepository @Inject constructor(
     fun observeCustomTrainings(type: String): Flow<List<Training>> {
         val lessonId = customLessonId(type)
         return combine(observeCustomStudyWords(type), dao.observeProgress()) { words, progress ->
-            words.chunked(QuizConstants.QUESTION_COUNT).mapIndexed { index, chunk ->
-                val setNumber = index + 1
-                val trainingId = customTrainingId(type, setNumber)
-                val item = progress.firstOrNull { it.trainingId == trainingId }
-                Training(
-                    id = trainingId,
-                    lessonId = lessonId,
-                    title = customTitle(type),
-                    wordStartNumber = index * QuizConstants.QUESTION_COUNT + 1,
-                    wordEndNumber = index * QuizConstants.QUESTION_COUNT + chunk.size,
-                    studyCount = item?.studyCount ?: 0,
-                    bestAccuracy = item?.bestAccuracy ?: 0f,
-                    bestStarCount = item?.bestStarCount ?: 0,
-                    lastStudiedAt = item?.lastStudiedAt,
-                    lastAccuracy = item?.let { if (it.lastAccuracy > 0f) it.lastAccuracy else it.bestAccuracy } ?: 0f,
-                    firstWordId = chunk.first().id
-                )
-            }
+            words.chunked(QuizConstants.QUESTION_COUNT)
+                .mapIndexed { index, chunk ->
+                    val setNumber = index + 1
+                    val trainingId = customTrainingId(type, setNumber)
+                    val item = progress.firstOrNull { it.trainingId == trainingId }
+                    Training(
+                        id = trainingId,
+                        lessonId = lessonId,
+                        title = customTitle(type),
+                        wordStartNumber = index * QuizConstants.QUESTION_COUNT + 1,
+                        wordEndNumber = index * QuizConstants.QUESTION_COUNT + chunk.size,
+                        studyCount = item?.studyCount ?: 0,
+                        bestAccuracy = item?.bestAccuracy ?: 0f,
+                        bestStarCount = item?.bestStarCount ?: 0,
+                        lastStudiedAt = item?.lastStudiedAt,
+                        lastAccuracy = item?.let { if (it.lastAccuracy > 0f) it.lastAccuracy else it.bestAccuracy } ?: 0f,
+                        firstWordId = chunk.first().id
+                    )
+                }
+                .sortedBy { it.wordStartNumber }
         }
     }
 
@@ -86,18 +88,11 @@ class CustomContentRepository @Inject constructor(
     suspend fun setCustomWordFavorite(id: Int, isFavorite: Boolean) = dao.setCustomWordFavorite(id, isFavorite)
     suspend fun setCustomWordLearned(id: Int, isLearned: Boolean) = dao.setCustomWordLearned(id, isLearned)
 
-    suspend fun buildCustomIdiomQuiz(): List<QuizQuestion> {
-        val all = getCustomStudyWords(ContentType.IDIOM.routeValue)
-        if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        val targets = all.customAllQuizTargets()
-        return buildCustomQuizQuestions(ContentType.IDIOM.routeValue, randomCustomTrainingId(ContentType.IDIOM.routeValue), targets, all, 0)
-    }
-
     suspend fun buildCustomTrainingQuiz(type: String, setNumber: Int): List<QuizQuestion> {
         val all = getCustomStudyWords(type)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
         val startIndex = customTrainingStartIndex(setNumber)
-        val targets = all.customTrainingTargets(setNumber)
+        val targets = getCustomTrainingTargets(type, startIndex)
         if (targets.isEmpty()) return emptyList()
         return buildCustomQuizQuestions(type, customTrainingId(type, setNumber), targets, all, startIndex)
     }
@@ -109,13 +104,6 @@ class CustomContentRepository @Inject constructor(
         return buildCustomQuizQuestions(type, randomCustomTrainingId(type), targets, all, 0)
     }
 
-    suspend fun buildCustomWordQuiz(): List<QuizQuestion> {
-        val all = getCustomStudyWords(ContentType.WORD.routeValue)
-        if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
-        val targets = all.customAllQuizTargets()
-        return buildCustomQuizQuestions(ContentType.WORD.routeValue, randomCustomTrainingId(ContentType.WORD.routeValue), targets, all, 0)
-    }
-
     suspend fun hasCustomTrainingSet(type: String, setNumber: Int): Boolean {
         if (setNumber < 1) return false
         return getCustomStudyWords(type).size > customTrainingStartIndex(setNumber)
@@ -125,11 +113,12 @@ class CustomContentRepository @Inject constructor(
         val contentType = ContentType.fromRouteValue(type)
         return if (contentType == ContentType.IDIOM) {
             dao.observeCustomIdiomsInStudyOrder().map { items ->
-                items.map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
+                sortIdiomsInStudyOrder(items).map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
             }
         } else {
             dao.observeCustomWordsInStudyOrder().map { items ->
-                items.filter { it.wordType != "phrase" }
+                sortWordsInStudyOrder(items)
+                    .filter { it.wordType != "phrase" }
                     .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
             }
         }
@@ -138,13 +127,45 @@ class CustomContentRepository @Inject constructor(
     private suspend fun getCustomStudyWords(type: String): List<CustomStudyWord> {
         val contentType = ContentType.fromRouteValue(type)
         return if (contentType == ContentType.IDIOM) {
-            dao.getCustomIdiomsInStudyOrder().map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
+            sortIdiomsInStudyOrder(dao.getCustomIdiomsInStudyOrder())
+                .map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
         } else {
-            dao.getCustomWordsInStudyOrder()
+            sortWordsInStudyOrder(dao.getCustomWordsInStudyOrder())
                 .filter { it.wordType != "phrase" }
                 .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
         }
     }
+
+    private suspend fun getCustomTrainingTargets(type: String, startIndex: Int): List<CustomStudyWord> {
+        val contentType = ContentType.fromRouteValue(type)
+        return if (contentType == ContentType.IDIOM) {
+            dao.getCustomIdiomsForStudyRange(QuizConstants.QUESTION_COUNT, startIndex)
+                .map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
+        } else {
+            dao.getCustomWordsForStudyRange(QuizConstants.QUESTION_COUNT, startIndex)
+                .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
+        }
+    }
+
+    private fun <T> sortByStudyOrder(
+        items: List<T>,
+        addedAtSelector: (T) -> Long = { 0L },
+        idSelector: (T) -> Int = { 0 }
+    ): List<T> = items.sortedWith(compareBy<T> { addedAtSelector(it) }.thenBy { idSelector(it) })
+
+    private fun sortWordsInStudyOrder(items: List<CustomWordEntity>): List<CustomWordEntity> =
+        sortByStudyOrder(
+            items = items,
+            addedAtSelector = { it.addedAt },
+            idSelector = { it.id }
+        )
+
+    private fun sortIdiomsInStudyOrder(items: List<CustomIdiomEntity>): List<CustomIdiomEntity> =
+        sortByStudyOrder(
+            items = items,
+            addedAtSelector = { it.addedAt },
+            idSelector = { it.id }
+        )
 
     private fun buildCustomQuizQuestions(
         type: String,

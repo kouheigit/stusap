@@ -34,15 +34,6 @@ class CustomTrainingTargetTest {
     }
 
     @Test
-    fun customAllQuizTargets_usesAllFifteenImportedRows() {
-        val words = studyWords(15)
-
-        val targets = words.customAllQuizTargets()
-
-        assertEquals((1..15).map { "word$it" }, targets.map { it.english })
-    }
-
-    @Test
     fun customTrainingTargets_setOneDoesNotUseNewestRowsFromHundredItems() {
         val words = studyWords(100)
 

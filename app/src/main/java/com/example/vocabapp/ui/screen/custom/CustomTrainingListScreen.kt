@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -51,6 +49,7 @@ import com.example.vocabapp.viewmodel.CustomTrainingListViewModel
 @Composable
 internal fun CustomTrainingListScreen(navController: NavHostController, viewModel: CustomTrainingListViewModel = hiltViewModel()) {
     val trainings by viewModel.trainings.collectAsStateWithLifecycle()
+    val orderedTrainings = trainings.sortedBy { it.wordStartNumber }
     val isIdiom = ContentType.fromRouteValue(viewModel.contentType) == ContentType.IDIOM
     val title = if (isIdiom) {
         stringResource(R.string.custom_idiom_title)
@@ -125,23 +124,11 @@ internal fun CustomTrainingListScreen(navController: NavHostController, viewMode
                     }
                 }
             }
-            item {
-                CardButton(
-                    title = stringResource(R.string.custom_all_quiz_title),
-                    subtitle = stringResource(R.string.custom_all_quiz_subtitle, blockLabel),
-                    icon = Icons.Default.PlayArrow,
-                    onClick = {
-                        navController.navigate(
-                            if (isIdiom) Route.CustomIdiomQuiz.path else Route.CustomQuiz.path
-                        )
-                    }
-                )
-            }
             item { SectionTitle(stringResource(R.string.custom_block_100)) }
-            if (trainings.isEmpty()) {
+            if (orderedTrainings.isEmpty()) {
                 item { EmptyCard(stringResource(R.string.custom_empty_questions)) }
             } else {
-                val blocks = trainings.chunked(10)
+                val blocks = orderedTrainings.chunked(10)
                 items(blocks) { block ->
                     val first = block.first()
                     val last = block.last()
@@ -173,6 +160,7 @@ internal fun CustomTrainingBlockScreen(
     viewModel: CustomTrainingListViewModel = hiltViewModel()
 ) {
     val trainings by viewModel.trainings.collectAsStateWithLifecycle()
+    val orderedTrainings = trainings.sortedBy { it.wordStartNumber }
     val isIdiom = ContentType.fromRouteValue(viewModel.contentType) == ContentType.IDIOM
     val titlePrefix = if (isIdiom) {
         stringResource(R.string.custom_idiom_title)
@@ -182,7 +170,7 @@ internal fun CustomTrainingBlockScreen(
     val listRoute = if (isIdiom) Route.CustomIdiomList.path else Route.CustomWordList.path
     val startQuestion = (blockNumber - 1).coerceAtLeast(0) * 100 + 1
     val endQuestion = blockNumber * 100
-    val blockTrainings = trainings.drop((blockNumber - 1).coerceAtLeast(0) * 10).take(10)
+    val blockTrainings = orderedTrainings.drop((blockNumber - 1).coerceAtLeast(0) * 10).take(10)
     val titleEndQuestion = blockTrainings.lastOrNull()?.wordEndNumber ?: endQuestion
     BlueScaffold(
         title = stringResource(
