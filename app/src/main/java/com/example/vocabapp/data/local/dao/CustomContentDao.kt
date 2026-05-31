@@ -45,13 +45,13 @@ interface CustomContentDao {
     @Query("SELECT * FROM custom_words ORDER BY RANDOM()")
     suspend fun getAllCustomWords(): List<CustomWordEntity>
 
-    @Query("SELECT * FROM custom_words ORDER BY addedAt ASC, id ASC")
+    @Query("SELECT * FROM custom_words ORDER BY id ASC")
     fun observeCustomWordsInStudyOrder(): Flow<List<CustomWordEntity>>
 
-    @Query("SELECT * FROM custom_words ORDER BY addedAt ASC, id ASC")
+    @Query("SELECT * FROM custom_words ORDER BY id ASC")
     suspend fun getCustomWordsInStudyOrder(): List<CustomWordEntity>
 
-    @Query("SELECT * FROM custom_words WHERE wordType != 'phrase' ORDER BY addedAt ASC, id ASC LIMIT :limit OFFSET :offset")
+    @Query("SELECT * FROM custom_words WHERE wordType != 'phrase' ORDER BY id ASC LIMIT :limit OFFSET :offset")
     suspend fun getCustomWordsForStudyRange(limit: Int, offset: Int): List<CustomWordEntity>
 
     @Query("SELECT COUNT(*) FROM custom_words")
@@ -78,13 +78,13 @@ interface CustomContentDao {
     @Query("SELECT * FROM custom_idioms ORDER BY RANDOM()")
     suspend fun getAllCustomIdioms(): List<CustomIdiomEntity>
 
-    @Query("SELECT * FROM custom_idioms ORDER BY addedAt ASC, id ASC")
+    @Query("SELECT * FROM custom_idioms ORDER BY id ASC")
     fun observeCustomIdiomsInStudyOrder(): Flow<List<CustomIdiomEntity>>
 
-    @Query("SELECT * FROM custom_idioms ORDER BY addedAt ASC, id ASC")
+    @Query("SELECT * FROM custom_idioms ORDER BY id ASC")
     suspend fun getCustomIdiomsInStudyOrder(): List<CustomIdiomEntity>
 
-    @Query("SELECT * FROM custom_idioms ORDER BY addedAt ASC, id ASC LIMIT :limit OFFSET :offset")
+    @Query("SELECT * FROM custom_idioms ORDER BY id ASC LIMIT :limit OFFSET :offset")
     suspend fun getCustomIdiomsForStudyRange(limit: Int, offset: Int): List<CustomIdiomEntity>
 
     @Query("SELECT COUNT(*) FROM custom_idioms")

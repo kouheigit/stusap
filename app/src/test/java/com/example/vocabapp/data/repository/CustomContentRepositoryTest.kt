@@ -50,7 +50,7 @@ class CustomContentRepositoryTest {
                 id = index,
                 english = "idiom$index",
                 meaning = "meaning$index",
-                addedAt = index.toLong()
+                addedAt = (count - index).toLong()
             )
         }
 
@@ -60,7 +60,7 @@ class CustomContentRepositoryTest {
                 id = index,
                 english = "word$index",
                 meaning = "meaning$index",
-                addedAt = index.toLong()
+                addedAt = (count - index).toLong()
             )
         }
 }

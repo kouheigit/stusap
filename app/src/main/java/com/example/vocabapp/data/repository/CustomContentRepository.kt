@@ -149,21 +149,18 @@ class CustomContentRepository @Inject constructor(
 
     private fun <T> sortByStudyOrder(
         items: List<T>,
-        addedAtSelector: (T) -> Long = { 0L },
         idSelector: (T) -> Int = { 0 }
-    ): List<T> = items.sortedWith(compareBy<T> { addedAtSelector(it) }.thenBy { idSelector(it) })
+    ): List<T> = items.sortedBy(idSelector)
 
     private fun sortWordsInStudyOrder(items: List<CustomWordEntity>): List<CustomWordEntity> =
         sortByStudyOrder(
             items = items,
-            addedAtSelector = { it.addedAt },
             idSelector = { it.id }
         )
 
     private fun sortIdiomsInStudyOrder(items: List<CustomIdiomEntity>): List<CustomIdiomEntity> =
         sortByStudyOrder(
             items = items,
-            addedAtSelector = { it.addedAt },
             idSelector = { it.id }
         )
 
