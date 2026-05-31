@@ -92,7 +92,7 @@ class CustomContentRepository @Inject constructor(
         val all = getCustomStudyWords(type)
         if (all.size < QuizConstants.MIN_WORD_COUNT_FOR_QUIZ) return emptyList()
         val startIndex = customTrainingStartIndex(setNumber)
-        val targets = getCustomTrainingTargets(type, startIndex)
+        val targets = all.customTrainingTargets(setNumber)
         if (targets.isEmpty()) return emptyList()
         return buildCustomQuizQuestions(type, customTrainingId(type, setNumber), targets, all, startIndex)
     }
@@ -132,17 +132,6 @@ class CustomContentRepository @Inject constructor(
         } else {
             sortWordsInStudyOrder(dao.getCustomWordsInStudyOrder())
                 .filter { it.wordType != "phrase" }
-                .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
-        }
-    }
-
-    private suspend fun getCustomTrainingTargets(type: String, startIndex: Int): List<CustomStudyWord> {
-        val contentType = ContentType.fromRouteValue(type)
-        return if (contentType == ContentType.IDIOM) {
-            dao.getCustomIdiomsForStudyRange(QuizConstants.QUESTION_COUNT, startIndex)
-                .map { CustomStudyWord(it.id, it.english, it.meaning, "", "") }
-        } else {
-            dao.getCustomWordsForStudyRange(QuizConstants.QUESTION_COUNT, startIndex)
                 .map { CustomStudyWord(it.id, it.english, it.meaning, it.exampleSentence, it.exampleTranslation) }
         }
     }
