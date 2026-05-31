@@ -12,7 +12,7 @@ class CustomTrainingListScreenTest {
         val training = training(
             id = ContentType.WORD.trainingId(2),
             lessonId = ContentType.WORD.lessonId,
-            wordStartNumber = 1
+            wordStartNumber = 11
         )
 
         assertEquals(2, customSetNumber(training))
@@ -23,10 +23,21 @@ class CustomTrainingListScreenTest {
         val training = training(
             id = ContentType.IDIOM.trainingId(3),
             lessonId = ContentType.IDIOM.lessonId,
-            wordStartNumber = 1
+            wordStartNumber = 21
         )
 
         assertEquals(3, customSetNumber(training))
+    }
+
+    @Test
+    fun customSetNumber_usesDisplayedRangeWhenTrainingIdIsStale() {
+        val training = training(
+            id = ContentType.IDIOM.trainingId(10),
+            lessonId = ContentType.IDIOM.lessonId,
+            wordStartNumber = 1
+        )
+
+        assertEquals(1, customSetNumber(training))
     }
 
     private fun training(id: Int, lessonId: Int, wordStartNumber: Int): Training =
