@@ -26,7 +26,6 @@ class CustomContentRepositoryTest {
     fun buildCustomTrainingQuiz_usesIdiomRowsForRequestedSet() = runTest {
         val idioms = customIdioms(70)
         coEvery { dao.getCustomIdiomsInStudyOrder() } returns idioms
-        coEvery { dao.getCustomIdiomsForStudyRange(limit = 10, offset = 60) } returns idioms.drop(60).take(10)
 
         val questions = repository.buildCustomTrainingQuiz(ContentType.IDIOM.routeValue, setNumber = 7)
 
@@ -37,11 +36,22 @@ class CustomContentRepositoryTest {
     fun buildCustomTrainingQuiz_usesWordRowsForRequestedSet() = runTest {
         val words = customWords(50)
         coEvery { dao.getCustomWordsInStudyOrder() } returns words
-        coEvery { dao.getCustomWordsForStudyRange(limit = 10, offset = 40) } returns words.drop(40).take(10)
 
         val questions = repository.buildCustomTrainingQuiz(ContentType.WORD.routeValue, setNumber = 5)
 
         assertEquals((41..50).map { "word$it" }, questions.map { it.word.english })
+    }
+
+    @Test
+    fun buildCustomTrainingQuiz_setOneDoesNotStartFromLastImportedIdiom() = runTest {
+        val idioms = customIdioms(30).map { idiom ->
+            if (idiom.id == 30) idiom.copy(english = "according to") else idiom
+        }
+        coEvery { dao.getCustomIdiomsInStudyOrder() } returns idioms
+
+        val questions = repository.buildCustomTrainingQuiz(ContentType.IDIOM.routeValue, setNumber = 1)
+
+        assertEquals((1..10).map { "idiom$it" }, questions.map { it.word.english })
     }
 
     private fun customIdioms(count: Int): List<CustomIdiomEntity> =
