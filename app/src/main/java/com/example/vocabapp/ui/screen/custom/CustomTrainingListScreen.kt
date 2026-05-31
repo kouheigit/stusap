@@ -129,7 +129,7 @@ internal fun CustomTrainingListScreen(navController: NavHostController, viewMode
                 item { EmptyCard(stringResource(R.string.custom_empty_questions)) }
             } else {
                 val blocks = orderedTrainings.chunked(10)
-                items(blocks) { block ->
+                items(blocks, key = { block -> block.first().wordStartNumber }) { block ->
                     val first = block.first()
                     val last = block.last()
                     val blockNumber = ((first.wordStartNumber - 1) / 100) + 1
@@ -190,7 +190,7 @@ internal fun CustomTrainingBlockScreen(
             if (blockTrainings.isEmpty()) {
                 item { EmptyCard(stringResource(R.string.custom_empty_range)) }
             } else {
-                items(blockTrainings) { training ->
+                items(blockTrainings, key = { training -> training.wordStartNumber }) { training ->
                     val setNumber = customSetNumber(training)
                     TrainingCard(
                         training = training,
