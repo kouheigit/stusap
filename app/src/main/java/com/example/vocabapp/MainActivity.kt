@@ -93,7 +93,17 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
                 navArgument("type") { type = NavType.StringType },
                 navArgument("setNumber") { type = NavType.IntType }
             )
-        ) { CustomTrainingQuizScreen(navController) }
+        ) { backStackEntry ->
+            val type = checkNotNull(backStackEntry.arguments?.getString("type"))
+            val setNumber = checkNotNull(backStackEntry.arguments?.getInt("setNumber"))
+            CustomTrainingQuizScreen(
+                navController = navController,
+                viewModel = hiltViewModel(
+                    viewModelStoreOwner = backStackEntry,
+                    key = "customTrainingQuiz:$type:$setNumber"
+                )
+            )
+        }
         composable(Route.RandomCustomMenu.path) { RandomCustomMenuScreen(navController) }
         composable(
             Route.RandomCustomQuiz.PATTERN,
