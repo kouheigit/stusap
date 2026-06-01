@@ -3,7 +3,6 @@ package com.example.vocabapp.ui.screen.common
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
@@ -57,7 +56,6 @@ internal fun AutoSpeakEffect(
 internal fun rememberSpeaker(): Speaker {
     val context = LocalContext.current
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
-    remember { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isReady by remember { mutableStateOf(false) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
@@ -65,7 +63,7 @@ internal fun rememberSpeaker(): Speaker {
     val isTtsConfigured = remember { AtomicBoolean(false) }
     val activeUtteranceId = remember { AtomicReference<String?>(null) }
     val focusRequest = remember {
-        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -97,7 +95,6 @@ internal fun rememberSpeaker(): Speaker {
         activeUtteranceId.set(utteranceId)
         val params = android.os.Bundle().apply {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
-            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
         }
         val speakResult = engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         if (speakResult == TextToSpeech.ERROR) {
@@ -115,12 +112,10 @@ internal fun rememberSpeaker(): Speaker {
         engine.setSpeechRate(0.85f)
         engine.setPitch(1.0f)
 
-        val warmupId = "$WARMUP_UTTERANCE_PREFIX${System.nanoTime()}"
-        val warmupParams = android.os.Bundle().apply {
-            putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
-            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 0f)
+        isReady = true
+        pendingSpeechText.getAndSet(null)?.let { pending ->
+            if (pending.isNotBlank()) speakNow(pending, engine)
         }
-        engine.speak(" ", TextToSpeech.QUEUE_FLUSH, warmupParams, warmupId)
     }
 
     DisposableEffect(context) {
@@ -140,35 +135,20 @@ internal fun rememberSpeaker(): Speaker {
 
             override fun onDone(utteranceId: String?) {
                 mainHandler.post {
-                    if (utteranceId?.startsWith(WARMUP_UTTERANCE_PREFIX) == true) {
-                        pendingSpeechText.set(null)
-                        isReady = true
-                    } else {
-                        finishSpeech(utteranceId)
-                    }
+                    finishSpeech(utteranceId)
                 }
             }
 
             @Deprecated("Deprecated by Android SDK")
             override fun onError(utteranceId: String?) {
                 mainHandler.post {
-                    if (utteranceId?.startsWith(WARMUP_UTTERANCE_PREFIX) == true) {
-                        pendingSpeechText.set(null)
-                        isReady = true
-                    } else {
-                        finishSpeech(utteranceId)
-                    }
+                    finishSpeech(utteranceId)
                 }
             }
 
             override fun onError(utteranceId: String?, errorCode: Int) {
                 mainHandler.post {
-                    if (utteranceId?.startsWith(WARMUP_UTTERANCE_PREFIX) == true) {
-                        pendingSpeechText.set(null)
-                        isReady = true
-                    } else {
-                        finishSpeech(utteranceId)
-                    }
+                    finishSpeech(utteranceId)
                 }
             }
         })
@@ -201,4 +181,3 @@ internal fun rememberSpeaker(): Speaker {
 }
 
 private const val AUTO_SPEAK_DELAY_MILLIS = 450L
-private const val WARMUP_UTTERANCE_PREFIX = "warmup-"
