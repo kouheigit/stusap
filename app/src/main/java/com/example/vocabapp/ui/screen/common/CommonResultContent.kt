@@ -3,7 +3,6 @@ package com.example.vocabapp.ui.screen.common
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.AudioTrack
 import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -63,13 +62,12 @@ internal fun ResultContent(result: QuizResult, modifier: Modifier, onRetry: () -
         delay(200L)
         medalVisible = true
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val medalFocusReq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        val medalFocusReq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).build())
             .setOnAudioFocusChangeListener {}.build()
         try {
             am.requestAudioFocus(medalFocusReq)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
-            mp?.setVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume())
             mp?.setOnCompletionListener {
                 it.release()
                 medalPlayer.value = null
