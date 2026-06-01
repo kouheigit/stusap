@@ -27,6 +27,10 @@ class RandomCustomQuizViewModel @Inject constructor(
         checkNotNull(savedStateHandle["type"])
     ).randomTrainingId
 ) {
+    init {
+        loadQuiz()
+    }
+
     override suspend fun buildQuiz(): List<QuizQuestion> =
         repository.buildRandomCustomQuiz(contentType)
 

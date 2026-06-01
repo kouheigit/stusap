@@ -29,6 +29,10 @@ class CustomTrainingQuizViewModel @Inject constructor(
 ) {
     val setNumber: Int = checkNotNull(savedStateHandle["setNumber"])
 
+    init {
+        loadQuiz()
+    }
+
     override suspend fun buildQuiz(): List<QuizQuestion> =
         repository.buildCustomTrainingQuiz(contentType, setNumber)
 

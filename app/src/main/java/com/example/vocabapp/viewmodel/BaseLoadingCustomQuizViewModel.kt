@@ -49,7 +49,7 @@ abstract class BaseLoadingCustomQuizViewModel(
         _state.value = current.copy(finishedAttemptId = quizResult.attemptId)
     }
 
-    init {
+    protected fun loadQuiz() {
         viewModelScope.launch {
             _loadState.value = UiState.Loading
             runCatching {
