@@ -19,7 +19,6 @@ import com.example.vocabapp.ui.screen.common.*
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.AudioTrack
 import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -185,12 +184,11 @@ internal fun CustomWordQuizResultContent(
         medalVisible = true
         try {
             val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val req = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            val req = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
                 .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).build())
                 .setOnAudioFocusChangeListener {}.build()
             am.requestAudioFocus(req)
             val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
-            mp?.setVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume())
             mp?.setOnCompletionListener {
                 it.release()
                 medalPlayer.value = null
