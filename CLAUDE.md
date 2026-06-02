@@ -36,6 +36,18 @@ Flutter / React Native / Web へ変換しないでください。
 
 ---
 
+## Required Skills
+
+このプロジェクトで作業する場合は、以下のスキルを必須として扱ってください。
+
+- spec-driven-development
+- test-driven-development
+- code-review-and-quality
+- security-threat-modeling
+- performance-analysis
+
+---
+
 ## App Concept
 
 Build an English vocabulary learning app inspired by TEPPEN-style word training.
@@ -276,3 +288,120 @@ Never mark work as complete before verification.
   - 自動レビュー担当のエージェント設定を書く場所
 
 注意点として、`touch` は中身は書きません。空ファイルを作るだけなので、実際に使えるようにするには後で各ファイルへ内容を入れる必要があります。
+
+---
+
+## Spec-Driven Development
+
+実装を始める前に仕様を確定する。
+
+### Rules
+
+- 新機能・画面・ViewModel を追加する前に、必ず仕様書（spec）を作成または確認すること。
+- 仕様は `.claude/specs/` ディレクトリに Markdown 形式で保存する。
+- 仕様に含めるべき項目：
+  - 機能の目的・スコープ
+  - 入力・出力・状態の定義
+  - UI の振る舞いと状態遷移
+  - エラーケース・エッジケース
+  - 受け入れ条件（Acceptance Criteria）
+- 仕様が存在しない機能への実装着手は禁止。
+- 仕様変更が生じた場合は、コード変更前に仕様ファイルを更新すること。
+
+---
+
+## Test-Driven Development
+
+コードより先にテストを書く。
+
+### Rules
+
+- 新しいロジック（ViewModel・Repository・UseCase・Utility）を実装する前に、対応するユニットテストを先に作成する。
+- テストが失敗することを確認してから実装に入る（Red → Green → Refactor サイクル）。
+- テスト対象：
+  - ViewModel の状態変化（StateFlow / UiState）
+  - Repository のデータ取得・保存ロジック
+  - ドメインロジック（クイズ採点、進捗計算など）
+- テストフレームワーク：JUnit4 / MockK / Turbine（Flow テスト）
+- UI テストは Compose Testing API を使用する。
+- テストなしで実装を完了したとみなすことを禁止する。
+- テストファイルの配置：`app/src/test/` および `app/src/androidTest/`
+
+---
+
+## Code Review and Quality
+
+すべてのコード変更はレビュー基準を満たすこと。
+
+### Review Checklist
+
+- **可読性**: 変数名・関数名が意図を明確に表しているか。
+- **単一責任**: 1 つのクラス・関数が複数の責務を持っていないか。
+- **重複排除**: 同じロジックが複数箇所に散在していないか。
+- **MVVM 遵守**: UI ロジックが ViewModel に、データ操作が Repository に正しく分離されているか。
+- **Compose ベストプラクティス**: 不要な recomposition が発生していないか。`remember` / `derivedStateOf` が適切に使われているか。
+- **Room**: Migration が定義されているか。クエリに適切なインデックスがあるか。
+- **Hilt**: DI スコープが適切か（`@Singleton` の乱用がないか）。
+- **エラーハンドリング**: Result 型や try-catch が適切に使われているか。
+- **コメント**: WHY が非自明な箇所にのみコメントが存在するか（WHAT コメントは不要）。
+
+### Prohibited Patterns
+
+- `TODO` や `FIXME` をコミットに含めたまま完了扱いにすること。
+- `suppress` アノテーションで警告を黙認すること（根本対処が必要）。
+- ハードコードされた文字列・数値をコードに直接埋め込むこと。
+
+---
+
+## Security Threat Modeling
+
+実装前にセキュリティリスクを洗い出す。
+
+### Threat Modeling Steps
+
+1. **アセットの特定**: 保護すべきデータを列挙する（単語データ、学習進捗、設定値など）。
+2. **脅威の列挙**: STRIDE モデル（なりすまし・改ざん・否認・情報漏洩・DoS・権限昇格）で脅威を検討する。
+3. **リスク評価**: 各脅威の発生可能性と影響度を評価する。
+4. **対策の決定**: リスクに対応する実装方針を決める。
+
+### Android-Specific Security Rules
+
+- Room データベースには機密情報を平文で保存しない（必要なら暗号化を検討）。
+- `SharedPreferences` への機密データ保存を禁止する（DataStore + 暗号化を使用）。
+- ログ出力（`Log.d` など）に個人情報・機密情報を含めない。
+- バックアップ設定（`android:allowBackup`）を意図的に制御する。
+- 外部入力（ユーザー入力・Intent）はバリデーションしてから使用する。
+- WebView を使う場合は JavaScript の有効化範囲を最小化する。
+
+### Security Review Trigger
+
+- 新しいデータ永続化処理を追加するとき。
+- 外部入力を処理するロジックを追加するとき。
+- パーミッション要求を変更するとき。
+
+---
+
+## Performance Analysis
+
+パフォーマンスを計測・検証してから完了とする。
+
+### Rules
+
+- UI 変更後は Compose の recomposition が不必要に増えていないことを確認する。
+- リスト表示（`LazyColumn` / `LazyRow`）では `key` を必ず指定する。
+- ViewModel から大量データを一括ロードすることを禁止する（ページング / Flow の遅延評価を使用）。
+- Room クエリは `Flow` で購読し、UI スレッドでの同期クエリを禁止する。
+- 画像・アセットのサイズを最適化する（不必要に大きなリソースを追加しない）。
+
+### Measurement Points
+
+- **起動時間**: Cold start で 2 秒以内を目安とする。
+- **画面遷移**: 300ms 以内に次画面が表示されることを確認する。
+- **クイズ応答**: 回答選択から次問題表示まで 100ms 以内。
+- **DB クエリ**: 単一クエリが 50ms を超える場合は最適化を検討する。
+
+### Tools
+
+- Android Studio Profiler（CPU / Memory / Network）
+- Compose Layout Inspector（recomposition 回数の確認）
+- `./gradlew assembleRelease` でリリースビルドのサイズを確認する。
