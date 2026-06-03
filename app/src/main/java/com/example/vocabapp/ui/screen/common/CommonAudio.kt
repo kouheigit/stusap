@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.example.vocabapp.ui.audio.MediaSoundPlayer
 import com.example.vocabapp.ui.audio.SoundPlayer
 import com.example.vocabapp.ui.audio.createSoundPlayer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -26,6 +27,16 @@ import kotlinx.coroutines.delay
 @Composable
 internal fun rememberSoundPlayer(): SoundPlayer {
     val player = remember { createSoundPlayer() }
+    DisposableEffect(player) {
+        onDispose { player.dispose() }
+    }
+    return player
+}
+
+@Composable
+internal fun rememberMediaSoundPlayer(): MediaSoundPlayer {
+    val context = LocalContext.current
+    val player = remember { MediaSoundPlayer(context) }
     DisposableEffect(player) {
         onDispose { player.dispose() }
     }
