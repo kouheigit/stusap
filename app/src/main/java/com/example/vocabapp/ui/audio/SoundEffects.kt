@@ -41,6 +41,8 @@ internal class SoundPlayer {
             stop()
             flush()
             release()
+        }?.onFailure { error ->
+            warnAudioPlayback("Failed to release active synth audio track", error)
         }
     }
 
@@ -49,6 +51,8 @@ internal class SoundPlayer {
             stop()
             flush()
             release()
+        }?.onFailure { error ->
+            warnAudioPlayback("Failed to release previous synth audio track", error)
         }
         scope.launch {
             var track: AudioTrack? = null
@@ -57,13 +61,16 @@ internal class SoundPlayer {
                 activeSynthTrack.set(track)
                 track.play()
                 delay(buffer.size * 1_000L / SAMPLE_RATE + 80)
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                warnAudioPlayback("Failed to play synth audio track", error)
             } finally {
                 activeSynthTrack.compareAndSet(track, null)
                 track?.runCatching {
                     stop()
                     flush()
                     release()
+                }?.onFailure { error ->
+                    warnAudioPlayback("Failed to release completed synth audio track", error)
                 }
             }
         }
