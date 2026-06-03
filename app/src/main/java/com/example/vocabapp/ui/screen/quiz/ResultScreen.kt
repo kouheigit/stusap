@@ -16,10 +16,6 @@ import com.example.vocabapp.ui.navigation.Route
 
 import com.example.vocabapp.ui.screen.common.*
 
-import android.content.Context
-import android.media.AudioAttributes
-import android.media.AudioManager
-import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -51,7 +47,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,7 +59,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -156,9 +150,8 @@ internal fun CustomWordQuizResultContent(
     var medalVisible by remember { mutableStateOf(false) }
     val medalScale = remember { Animatable(0f) }
     val medalAlpha = remember { Animatable(0f) }
-    val medalPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
-    val context = LocalContext.current
     val soundPlayer = rememberSoundPlayer()
+    val mediaSoundPlayer = rememberMediaSoundPlayer()
 
     LaunchedEffect(Unit) {
         val animDuration = 1800
@@ -182,35 +175,11 @@ internal fun CustomWordQuizResultContent(
         }
         delay(200L)
         medalVisible = true
-        try {
-            val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val req = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).build())
-                .setOnAudioFocusChangeListener {}.build()
-            am.requestAudioFocus(req)
-            val mp = MediaPlayer.create(context, R.raw.new_medal_sound)
-            mp?.setOnCompletionListener {
-                it.release()
-                medalPlayer.value = null
-                am.abandonAudioFocusRequest(req)
-            }
-            mp?.start()
-            medalPlayer.value = mp
-        } catch (_: Exception) {}
+        mediaSoundPlayer.play(R.raw.new_medal_sound)
         launch { medalAlpha.animateTo(1f, animationSpec = tween(300, easing = FastOutSlowInEasing)) }
         medalScale.animateTo(1.15f, animationSpec = tween(280, easing = FastOutSlowInEasing))
         medalScale.animateTo(0.95f, animationSpec = tween(120))
         medalScale.animateTo(1f, animationSpec = tween(100))
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            medalPlayer.value?.let { mp ->
-                if (mp.isPlaying) mp.stop()
-                mp.release()
-                medalPlayer.value = null
-            }
-        }
     }
 
     Column(
