@@ -33,6 +33,7 @@ internal class MediaSoundPlayer(context: Context) {
         try {
             val player = MediaPlayer.create(appContext, resId)
             if (player == null) {
+                warnAudioPlayback("MediaPlayer.create returned null for raw resource: $resId")
                 if (requestFocus) audioManager.abandonAudioFocusRequest(focusRequest)
                 return
             }
@@ -43,7 +44,8 @@ internal class MediaSoundPlayer(context: Context) {
                 if (requestFocus) audioManager.abandonAudioFocusRequest(focusRequest)
             }
             player.start()
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            warnAudioPlayback("Failed to play raw audio resource: $resId", error)
             if (requestFocus) audioManager.abandonAudioFocusRequest(focusRequest)
         }
     }
