@@ -28,4 +28,15 @@ class SoundEffectsTest {
         assertTrue(audibleSamples.any { it < 0 })
         assertTrue(audibleSamples.all { kotlin.math.abs(it.toInt()) <= maxExpectedAmplitude })
     }
+
+    @Test
+    fun smoothStep_clampsBoundaryInputs() {
+        val delta = 0.000_001
+
+        assertEquals(0.0, smoothStep(-0.25), delta)
+        assertEquals(0.0, smoothStep(0.0), delta)
+        assertEquals(0.5, smoothStep(0.5), delta)
+        assertEquals(1.0, smoothStep(1.0), delta)
+        assertEquals(1.0, smoothStep(1.25), delta)
+    }
 }
