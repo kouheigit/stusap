@@ -87,7 +87,7 @@ private val wrongSoundBuffer: ShortArray by lazy {
     buildSynthBuffer(listOf(280f to 190, 0f to 45, 220f to 230))
 }
 
-private fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
+internal fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
     val paddingSamples = SAMPLE_RATE * SILENCE_PADDING_MS / 1_000
     val totalSamples = paddingSamples + segments.sumOf { (_, ms) -> SAMPLE_RATE * ms / 1_000 } + paddingSamples
     val buffer = ShortArray(totalSamples) // leading zeros = silence
@@ -119,7 +119,7 @@ private fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
     return buffer
 }
 
-private fun smoothStep(value: Double): Double {
+internal fun smoothStep(value: Double): Double {
     val x = value.coerceIn(0.0, 1.0)
     return x * x * (3 - 2 * x)
 }
