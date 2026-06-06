@@ -185,16 +185,7 @@ internal fun PassagePracticeScreen(
             }
         },
         onSelectQuestion = { index -> currentIndex = index },
-        onSubmit = {
-            if (selections[currentIndex] != null) submitted[currentIndex] = true
-        },
-        onNext = {
-            if (currentIndex >= set.questions.lastIndex) {
-                finished = true
-            } else {
-                currentIndex += 1
-            }
-        }
+        onSubmitAll = { finished = true }
     )
 }
 
@@ -211,8 +202,7 @@ private fun PassagePracticeContent(
     onClose: () -> Unit,
     onSelect: (Int) -> Unit,
     onSelectQuestion: (Int) -> Unit,
-    onSubmit: () -> Unit,
-    onNext: () -> Unit
+    onSubmitAll: () -> Unit
 ) {
     val question = set.questions[state.currentIndex]
 
@@ -271,12 +261,9 @@ private fun PassagePracticeContent(
             totalQuestions = set.questions.size,
             currentIndex = state.currentIndex,
             answeredFlags = state.answeredFlags,
+            allAnswered = state.allAnswered,
             onSelectQuestion = onSelectQuestion,
-            canSubmit = state.selectedIndex != null && !isSubmitted,
-            isSubmitted = isSubmitted,
-            isLastQuestion = state.currentIndex == set.questions.lastIndex,
-            onSubmit = onSubmit,
-            onNext = onNext
+            onSubmitAll = onSubmitAll
         )
     }
 }
@@ -714,12 +701,9 @@ private fun BottomPracticeBar(
     totalQuestions: Int,
     currentIndex: Int,
     answeredFlags: List<Boolean>,
+    allAnswered: Boolean,
     onSelectQuestion: (Int) -> Unit,
-    canSubmit: Boolean,
-    isSubmitted: Boolean,
-    isLastQuestion: Boolean,
-    onSubmit: () -> Unit,
-    onNext: () -> Unit
+    onSubmitAll: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().height(72.dp).background(Color.White),
@@ -760,27 +744,20 @@ private fun BottomPracticeBar(
                 }
             }
         }
+        // 全問解答するまで一括送信を無効にする。最後にまとめて答え合わせする。
         Button(
-            onClick = if (isSubmitted) onNext else onSubmit,
-            enabled = isSubmitted || canSubmit,
+            onClick = onSubmitAll,
+            enabled = allAnswered,
             modifier = Modifier.width(190.dp).fillMaxHeight(),
             shape = RoundedCornerShape(0.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isSubmitted) DeepBlue else AccentBlue,
+                containerColor = AccentBlue,
                 disabledContainerColor = Color(0xFFCAD7DD),
                 contentColor = Color.White,
                 disabledContentColor = Color.White
             )
         ) {
-            Text(
-                when {
-                    isSubmitted && isLastQuestion -> "結果を見る"
-                    isSubmitted -> "次へ"
-                    else -> "解答する"
-                },
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Black
-            )
+            Text("解答する", fontSize = 20.sp, fontWeight = FontWeight.Black)
         }
     }
 }
