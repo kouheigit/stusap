@@ -87,6 +87,14 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 CardButton(
+                    title = "長文問題",
+                    subtitle = "記事・案内・メールを読んで4択問題に答える",
+                    icon = Icons.Default.PlayArrow,
+                    onClick = { navController.navigate(Route.quiz()) }
+                )
+            }
+            item {
+                CardButton(
                     title = stringResource(R.string.home_add_word_title),
                     subtitle = stringResource(R.string.home_add_word_subtitle),
                     icon = Icons.Default.Add,
