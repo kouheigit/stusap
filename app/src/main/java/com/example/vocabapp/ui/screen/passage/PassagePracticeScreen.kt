@@ -184,6 +184,7 @@ internal fun PassagePracticeScreen(
                 }
             }
         },
+        onSelectQuestion = { index -> currentIndex = index },
         onSubmit = {
             if (selections[currentIndex] != null) submitted[currentIndex] = true
         },
@@ -209,11 +210,11 @@ private fun PassagePracticeContent(
     onToggleDocument: () -> Unit,
     onClose: () -> Unit,
     onSelect: (Int) -> Unit,
+    onSelectQuestion: (Int) -> Unit,
     onSubmit: () -> Unit,
     onNext: () -> Unit
 ) {
     val question = set.questions[state.currentIndex]
-    val progress = (state.currentIndex + 1) / set.questions.size.toFloat()
 
     Column(modifier.fillMaxSize().background(Color.White)) {
         PassagePracticeTopBar(
@@ -267,9 +268,10 @@ private fun PassagePracticeContent(
             )
         }
         BottomPracticeBar(
-            progress = progress,
             totalQuestions = set.questions.size,
             currentIndex = state.currentIndex,
+            answeredFlags = state.answeredFlags,
+            onSelectQuestion = onSelectQuestion,
             canSubmit = state.selectedIndex != null && !isSubmitted,
             isSubmitted = isSubmitted,
             isLastQuestion = state.currentIndex == set.questions.lastIndex,
@@ -709,9 +711,10 @@ private fun ChoiceRow(
 
 @Composable
 private fun BottomPracticeBar(
-    progress: Float,
     totalQuestions: Int,
     currentIndex: Int,
+    answeredFlags: List<Boolean>,
+    onSelectQuestion: (Int) -> Unit,
     canSubmit: Boolean,
     isSubmitted: Boolean,
     isLastQuestion: Boolean,
@@ -727,20 +730,36 @@ private fun BottomPracticeBar(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 各設問の進捗ドット。解答済みはチェック付き、現在の設問は強調表示。
+            // タップでその設問へ移動できる。
             repeat(totalQuestions) { index ->
+                val answered = answeredFlags.getOrElse(index) { false }
+                val isCurrent = index == currentIndex
                 Box(
-                    modifier = Modifier.size(24.dp).clip(CircleShape).background(
-                        if (index == currentIndex) AccentBlue else Color(0xFFEAF0F2)
-                    )
-                )
+                    modifier = Modifier
+                        .size(ProgressDotSize)
+                        .clip(CircleShape)
+                        .background(
+                            when {
+                                isCurrent -> BrightBlue
+                                answered -> ChoiceGray
+                                else -> ProgressDotInactive
+                            }
+                        )
+                        .clickable { onSelectQuestion(index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (answered) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
         }
-        LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
-            modifier = Modifier.width(1.dp).height(1.dp),
-            color = Color.Transparent,
-            trackColor = Color.Transparent
-        )
         Button(
             onClick = if (isSubmitted) onNext else onSubmit,
             enabled = isSubmitted || canSubmit,
