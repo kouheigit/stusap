@@ -1,7 +1,9 @@
 package com.example.vocabapp.ui.audio
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioTrack
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
@@ -11,7 +13,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-internal class SoundPlayer {
+internal class SoundPlayer(context: Context) {
+    private val appContext = context.applicationContext
+    private val audioManager = appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val activeSynthTrack = AtomicReference<AudioTrack?>(null)
 
@@ -57,6 +61,7 @@ internal class SoundPlayer {
         scope.launch {
             var track: AudioTrack? = null
             try {
+                forceMusicStreamMaxVolume(audioManager)
                 track = createAudioTrack(buffer)
                 activeSynthTrack.set(track)
                 track.play()
@@ -77,7 +82,7 @@ internal class SoundPlayer {
     }
 }
 
-internal fun createSoundPlayer(): SoundPlayer = SoundPlayer()
+internal fun createSoundPlayer(context: Context): SoundPlayer = SoundPlayer(context)
 
 private val correctSoundBuffer: ShortArray by lazy {
     buildSynthBuffer(listOf(698f to 140, 880f to 260))
@@ -144,6 +149,7 @@ private fun createAudioTrack(buffer: ShortArray): AudioTrack =
         .build()
         .also { track ->
             track.write(buffer, 0, buffer.size)
+            track.setVolume(AudioTrack.getMaxVolume())
         }
 
 private const val SAMPLE_RATE = 44_100

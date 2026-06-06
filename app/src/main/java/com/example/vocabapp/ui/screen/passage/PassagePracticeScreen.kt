@@ -112,9 +112,10 @@ internal fun PassagePracticeScreen(
             repeat(set.questions.size) { list.add(false) }
         }
     }
+    // 一括送信フローでは全問解答後にまとめて採点するため、選択内容だけで
+    // 正解数を数える。
     val score = set.questions.indices.count { index ->
-        submitted.getOrNull(index) == true &&
-            selections.getOrNull(index) == set.questions[index].answerIndex
+        selections.getOrNull(index) == set.questions[index].answerIndex
     }
     val state = PassageSessionState(
         setId = set.id,

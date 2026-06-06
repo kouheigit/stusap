@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.vocabapp.ui.audio.MediaSoundPlayer
 import com.example.vocabapp.ui.audio.SoundPlayer
 import com.example.vocabapp.ui.audio.createSoundPlayer
+import com.example.vocabapp.ui.audio.forceMusicStreamMaxVolume
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -26,7 +27,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 internal fun rememberSoundPlayer(): SoundPlayer {
-    val player = remember { createSoundPlayer() }
+    val context = LocalContext.current
+    val player = remember { createSoundPlayer(context) }
     DisposableEffect(player) {
         onDispose { player.dispose() }
     }
@@ -100,6 +102,7 @@ internal fun rememberSpeaker(): Speaker {
         lastSpokenText.set(text)
         lastSpokenAt.set(now)
         engine.stop()
+        forceMusicStreamMaxVolume(audioManager)
         val focusResult = audioManager.requestAudioFocus(focusRequest)
         if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return
         val utteranceId = "utt-${System.nanoTime()}"

@@ -29,6 +29,7 @@ internal class MediaSoundPlayer(context: Context) {
      * 再生完了・失敗時に必ず手放す。
      */
     fun play(resId: Int, requestFocus: Boolean = true) {
+        forceMusicStreamMaxVolume(audioManager)
         if (requestFocus) audioManager.requestAudioFocus(focusRequest)
         try {
             val player = MediaPlayer.create(appContext, resId)
@@ -37,6 +38,7 @@ internal class MediaSoundPlayer(context: Context) {
                 if (requestFocus) audioManager.abandonAudioFocusRequest(focusRequest)
                 return
             }
+            player.setVolume(1.0f, 1.0f)
             synchronized(activePlayers) { activePlayers.add(player) }
             player.setOnCompletionListener {
                 it.release()
