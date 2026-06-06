@@ -1,7 +1,6 @@
 package com.example.vocabapp.ui.screen.passage
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -108,11 +106,6 @@ internal fun PassagePracticeScreen(
             repeat(set.questions.size) { list.add(null) }
         }
     }
-    val submitted = remember(setIndex) {
-        mutableStateListOf<Boolean>().also { list ->
-            repeat(set.questions.size) { list.add(false) }
-        }
-    }
     // 一括送信フローでは全問解答後にまとめて採点するため、選択内容だけで
     // 正解数を数える。
     val score = set.questions.indices.count { index ->
@@ -147,7 +140,6 @@ internal fun PassagePracticeScreen(
                 finished = false
                 documentExpanded = true
                 selections.indices.forEach { selections[it] = null }
-                submitted.indices.forEach { submitted[it] = false }
             },
             onNextSet = {
                 setIndex += 1
@@ -598,39 +590,6 @@ private fun PassageQuestionBody(
                 isSelected = selectedIndex == index,
                 onClick = { onSelect(index) }
             )
-        }
-    }
-}
-
-@Composable
-private fun FeedbackBlock(question: PassageQuestion, selectedIndex: Int?) {
-    val correct = selectedIndex == question.answerIndex
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (correct) Success.copy(alpha = 0.12f) else Danger.copy(alpha = 0.10f)
-        ),
-        border = BorderStroke(1.dp, if (correct) Success else Danger)
-    ) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = if (correct) Success else Danger,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    if (correct) "正解" else "不正解",
-                    color = if (correct) Success else Danger,
-                    fontWeight = FontWeight.Black
-                )
-                question.explanation?.let {
-                    Text(it, color = TextDark, fontSize = 13.sp, lineHeight = 18.sp)
-                }
-            }
         }
     }
 }
