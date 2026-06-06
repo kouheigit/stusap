@@ -102,6 +102,7 @@ internal fun PassagePracticeScreen(
     var finished by rememberSaveable(setIndex) { mutableStateOf(false) }
     var documentExpanded by rememberSaveable(setIndex) { mutableStateOf(true) }
     val set = sets.getOrNull(setIndex) ?: return
+    val scope = rememberCoroutineScope()
     val selections = remember(setIndex) {
         mutableStateListOf<Int?>().also { list ->
             repeat(set.questions.size) { list.add(null) }
@@ -171,7 +172,17 @@ internal fun PassagePracticeScreen(
         onToggleDocument = { documentExpanded = !documentExpanded },
         onClose = { navController.popBackStack() },
         onSelect = { optionIndex ->
-            if (!submitted[currentIndex]) selections[currentIndex] = optionIndex
+            val firstAnswer = selections[currentIndex] == null
+            selections[currentIndex] = optionIndex
+            // 初回解答のときだけ次の設問へ自動で送る。あとから選び直しても
+            // 画面が勝手に動かないよう、未解答だった場合に限定する。
+            if (firstAnswer && currentIndex < set.questions.lastIndex) {
+                val from = currentIndex
+                scope.launch {
+                    delay(AutoAdvanceDelayMs)
+                    if (currentIndex == from) currentIndex = from + 1
+                }
+            }
         },
         onSubmit = {
             if (selections[currentIndex] != null) submitted[currentIndex] = true
