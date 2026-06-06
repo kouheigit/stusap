@@ -168,7 +168,6 @@ internal fun PassagePracticeScreen(
         setPosition = setIndex + 1,
         setCount = sets.size,
         isDocumentExpanded = documentExpanded,
-        isSubmitted = submitted.getOrElse(currentIndex) { false },
         onToggleDocument = { documentExpanded = !documentExpanded },
         onClose = { navController.popBackStack() },
         onSelect = { optionIndex ->
@@ -197,7 +196,6 @@ private fun PassagePracticeContent(
     setPosition: Int,
     setCount: Int,
     isDocumentExpanded: Boolean,
-    isSubmitted: Boolean,
     onToggleDocument: () -> Unit,
     onClose: () -> Unit,
     onSelect: (Int) -> Unit,
@@ -253,7 +251,6 @@ private fun PassagePracticeContent(
             PassageQuestionBody(
                 question = question,
                 selectedIndex = state.selectedIndex,
-                isSubmitted = isSubmitted,
                 onSelect = onSelect
             )
         }
@@ -571,7 +568,6 @@ private fun PassageDocumentToggle(expanded: Boolean, onToggle: () -> Unit) {
 private fun PassageQuestionBody(
     question: PassageQuestion,
     selectedIndex: Int?,
-    isSubmitted: Boolean,
     onSelect: (Int) -> Unit
 ) {
     Column(Modifier.fillMaxWidth().background(Color.White)) {
@@ -593,9 +589,6 @@ private fun PassageQuestionBody(
                 lineHeight = 25.sp,
                 fontWeight = FontWeight.Black
             )
-            AnimatedVisibility(visible = isSubmitted) {
-                FeedbackBlock(question, selectedIndex)
-            }
         }
         HorizontalDivider(color = RuleGray)
         question.options.forEachIndexed { index, option ->
@@ -603,9 +596,6 @@ private fun PassageQuestionBody(
                 label = ('A' + index).toString(),
                 text = option,
                 isSelected = selectedIndex == index,
-                isCorrect = isSubmitted && index == question.answerIndex,
-                isWrong = isSubmitted && selectedIndex == index && index != question.answerIndex,
-                enabled = !isSubmitted,
                 onClick = { onSelect(index) }
             )
         }
@@ -650,35 +640,20 @@ private fun ChoiceRow(
     label: String,
     text: String,
     isSelected: Boolean,
-    isCorrect: Boolean,
-    isWrong: Boolean,
-    enabled: Boolean,
     onClick: () -> Unit
 ) {
-    val background = when {
-        isCorrect -> Success.copy(alpha = 0.16f)
-        isWrong -> Danger.copy(alpha = 0.14f)
-        isSelected -> SoftBlue
-        else -> Color.White
-    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 68.dp)
-            .background(background)
-            .clickable(enabled = enabled, onClick = onClick)
+            .background(if (isSelected) SoftBlue else Color.White)
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(38.dp).clip(RoundedCornerShape(4.dp)).background(
-                when {
-                    isCorrect -> Success
-                    isWrong -> Danger
-                    isSelected -> BrightBlue
-                    else -> ChoiceGray
-                }
-            ),
+            modifier = Modifier.size(38.dp).clip(RoundedCornerShape(4.dp))
+                .background(if (isSelected) BrightBlue else ChoiceGray),
             contentAlignment = Alignment.Center
         ) {
             Text(label, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -689,7 +664,7 @@ private fun ChoiceRow(
             color = TextDark,
             fontSize = 18.sp,
             lineHeight = 24.sp,
-            fontWeight = if (isSelected || isCorrect) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
             modifier = Modifier.weight(1f)
         )
     }
