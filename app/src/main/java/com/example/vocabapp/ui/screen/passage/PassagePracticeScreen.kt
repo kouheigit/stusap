@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
@@ -50,6 +51,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -74,10 +76,17 @@ import com.example.vocabapp.ui.theme.Teal
 import com.example.vocabapp.ui.theme.TextDark
 import com.example.vocabapp.ui.theme.TextMuted
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val PassageBlue = Color(0xFF168BEF)
 private val RuleGray = Color(0xFFD4DEE5)
 private val ChoiceGray = Color(0xFF8797A1)
+private val ProgressDotInactive = Color(0xFFEAF0F2)
+private val ProgressDotSize = 24.dp
+
+// 設問を初回解答してから次の設問へ自動で送るまでの待ち時間。選んだ選択肢が
+// 一瞬見えるようにわずかに遅らせる。
+private const val AutoAdvanceDelayMs = 300L
 
 @Composable
 internal fun PassagePracticeScreen(
