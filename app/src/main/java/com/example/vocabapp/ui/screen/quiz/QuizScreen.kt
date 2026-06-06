@@ -5,10 +5,10 @@ import com.example.vocabapp.ui.theme.BrightBlue
 import com.example.vocabapp.ui.navigation.Route
 
 import com.example.vocabapp.ui.screen.common.*
+import com.example.vocabapp.ui.screen.passage.PassagePracticeScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,7 +20,19 @@ import com.example.vocabapp.viewmodel.QuizViewModel
 
 
 @Composable
-internal fun QuizScreen(navController: NavHostController, viewModel: QuizViewModel = hiltViewModel()) {
+internal fun QuizScreen(navController: NavHostController) {
+    val arguments = navController.currentBackStackEntry?.arguments
+    val trainingId = arguments?.getInt("trainingId") ?: 0
+    val isReview = arguments?.getBoolean("isReview") ?: false
+    if (trainingId == 0 && !isReview) {
+        PassagePracticeScreen(navController)
+    } else {
+        WordQuizScreen(navController)
+    }
+}
+
+@Composable
+private fun WordQuizScreen(navController: NavHostController, viewModel: QuizViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     QuizTimerLifecycleEffect(
         onStart = viewModel::onScreenStarted,
