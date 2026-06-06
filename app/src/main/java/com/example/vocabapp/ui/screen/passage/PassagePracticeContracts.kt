@@ -49,4 +49,12 @@ internal data class PassageSessionState(
 
     val isCurrentAnswered: Boolean
         get() = selectedIndex != null
+
+    /** 各設問が解答済みかどうか。下部の進捗チェックの描画に使う。 */
+    val answeredFlags: List<Boolean>
+        get() = selections.map { it != null }
+
+    /** すべての設問に解答済みのときだけ一括送信（解答する）を許可する。 */
+    val allAnswered: Boolean
+        get() = selections.isNotEmpty() && selections.all { it != null }
 }
