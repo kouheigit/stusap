@@ -101,6 +101,7 @@ internal fun PassagePracticeScreen(
     }
     var finished by rememberSaveable(setIndex) { mutableStateOf(false) }
     var documentExpanded by rememberSaveable(setIndex) { mutableStateOf(true) }
+    var reviewToken by rememberSaveable(setIndex) { mutableIntStateOf(0) }
     val set = sets.getOrNull(setIndex) ?: return
     val scope = rememberCoroutineScope()
     val selections = remember(setIndex) {
@@ -131,12 +132,14 @@ internal fun PassagePracticeScreen(
     }
 
     if (finished) {
-        PassageResultScreen(
+        PassageResultReviewScreen(
             modifier = modifier,
             set = set,
             state = state,
             hasNextSet = setIndex < sets.lastIndex,
+            reviewToken = reviewToken,
             onRetry = {
+                reviewToken += 1
                 currentIndex = 0
                 remainingSec = set.timeLimitSec ?: 0
                 finished = false
@@ -178,7 +181,7 @@ internal fun PassagePracticeScreen(
             }
         },
         onSelectQuestion = { index -> currentIndex = index },
-        onSubmitAll = { finished = true }
+    onSubmitAll = { finished = true }
     )
 }
 
@@ -379,7 +382,7 @@ private fun PassageInstruction(instruction: String) {
 }
 
 @Composable
-private fun PassageDocumentPanel(documents: List<PassageDocument>, modifier: Modifier = Modifier) {
+internal fun PassageDocumentPanel(documents: List<PassageDocument>, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().background(PassageBlue).padding(horizontal = 16.dp)) {
         Column(
             modifier = Modifier
