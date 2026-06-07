@@ -96,10 +96,11 @@ internal fun rememberSpeaker(): Speaker {
     }
 
     fun speakNow(text: String, engine: TextToSpeech) {
+        val speechText = buildSpeechText(text)
         val now = System.currentTimeMillis()
-        val isSameTextRecently = lastSpokenText.get() == text && now - lastSpokenAt.get() < 800L
+        val isSameTextRecently = lastSpokenText.get() == speechText && now - lastSpokenAt.get() < 800L
         if (isSameTextRecently) return
-        lastSpokenText.set(text)
+        lastSpokenText.set(speechText)
         lastSpokenAt.set(now)
         engine.stop()
         forceMusicStreamMaxVolume(audioManager)
@@ -110,7 +111,7 @@ internal fun rememberSpeaker(): Speaker {
         val params = android.os.Bundle().apply {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
         }
-        val speakResult = engine.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        val speakResult = engine.speak(speechText, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         if (speakResult == TextToSpeech.ERROR) {
             finishSpeech(utteranceId)
         }
@@ -195,3 +196,24 @@ internal fun rememberSpeaker(): Speaker {
 }
 
 private const val AUTO_SPEAK_DELAY_MILLIS = 450L
+
+internal fun buildSpeechText(text: String): String {
+    val cleaned = text
+        .trim()
+        .replace(Regex("\\s+"), " ")
+        .replace('\u3000', ' ')
+        .replace('–', ' ')
+        .replace('—', ' ')
+        .replace('-', ' ')
+        .replace('/', ' ')
+        .replace("&", " and ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+
+    val words = cleaned.split(' ').filter { it.isNotBlank() }
+    return if (words.size >= 3) {
+        words.joinToString(", ")
+    } else {
+        cleaned
+    }
+}
