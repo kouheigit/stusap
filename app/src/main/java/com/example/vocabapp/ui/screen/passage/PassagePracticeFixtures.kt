@@ -24,7 +24,7 @@ internal object PassagePracticeFixtures {
                         "It hired a new national supplier."
                     ),
                     answerIndex = 1,
-                    explanation = "The article says the shop started buying beans from a local roasting company."
+                    explanation = "本文の第1段落に、地元の焙煎会社から豆を買い始めたとあります。"
                 ),
                 PassageQuestion(
                     number = "1-2",
@@ -36,7 +36,7 @@ internal object PassagePracticeFixtures {
                         "To raise the price of coffee."
                     ),
                     answerIndex = 0,
-                    explanation = "The discount is offered to customers who bring their own cups."
+                    explanation = "自分のカップを持参した客に割引を出していると書かれています。"
                 ),
                 PassageQuestion(
                     number = "1-3",
@@ -48,7 +48,7 @@ internal object PassagePracticeFixtures {
                         "The national supplier lowered its prices."
                     ),
                     answerIndex = 1,
-                    explanation = "Maya says the change helped the shop build a stronger relationship with local people."
+                    explanation = "マヤは、変更によって店と地域の人々との関係がより強くなったと述べています。"
                 )
             )
         ),
@@ -84,7 +84,7 @@ internal object PassagePracticeFixtures {
                         "The manager will be away."
                     ),
                     answerIndex = 2,
-                    explanation = "The notice says the pool will be closed for maintenance."
+                    explanation = "お知らせに、プールはメンテナンスのために休業するとあります。"
                 ),
                 PassageQuestion(
                     number = "2-2",
@@ -96,7 +96,7 @@ internal object PassagePracticeFixtures {
                         "Friday, July 12 in the afternoon"
                     ),
                     answerIndex = 2,
-                    explanation = "The notice states that regular public swimming restarts at 10:00 a.m. on Thursday, July 11."
+                    explanation = "お知らせには、通常の一般利用は7月11日木曜日の午前10時に再開するとあります。"
                 ),
                 PassageQuestion(
                     number = "2-3",
@@ -108,7 +108,7 @@ internal object PassagePracticeFixtures {
                         "The outdoor tennis court"
                     ),
                     answerIndex = 1,
-                    explanation = "The notice and email both say morning classes on closure dates will move to the East Sports Center."
+                    explanation = "お知らせとメールの両方に、休業期間中の午前クラスはEast Sports Centerへ移動するとあります。"
                 ),
                 PassageQuestion(
                     number = "2-4",
@@ -120,7 +120,7 @@ internal object PassagePracticeFixtures {
                         "A new monthly pass"
                     ),
                     answerIndex = 2,
-                    explanation = "The email asks members to bring their City Pool membership card."
+                    explanation = "メールで、会員証を持ってくるよう案内しています。"
                 ),
                 PassageQuestion(
                     number = "2-5",
@@ -132,7 +132,7 @@ internal object PassagePracticeFixtures {
                         "They will be free for monthly pass holders."
                     ),
                     answerIndex = 0,
-                    explanation = "The email says afternoon private lessons are canceled and will be rescheduled after reopening."
+                    explanation = "メールに、午後の個人レッスンは中止され、再開後に日程を調整するとあります。"
                 )
             )
         )
