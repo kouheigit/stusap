@@ -36,6 +36,14 @@ internal fun rememberSoundPlayer(): SoundPlayer {
 }
 
 @Composable
+internal fun ImportSuccessSoundEffect(successKey: Any?) {
+    val soundPlayer = rememberSoundPlayer()
+    LaunchedEffect(successKey) {
+        if (successKey != null) soundPlayer.playImportSuccess()
+    }
+}
+
+@Composable
 internal fun rememberMediaSoundPlayer(): MediaSoundPlayer {
     val context = LocalContext.current
     val player = remember { MediaSoundPlayer(context) }
