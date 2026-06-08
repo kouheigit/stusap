@@ -40,4 +40,44 @@ class WordImportHeaderTest {
 
         assertEquals(null, columns)
     }
+
+    @Test
+    fun validateWordImportRow_withoutTypeUsesWordDefaultEvenWhenEnglishHasSpaces() {
+        val errors = mutableListOf<String>()
+
+        val result = validateWordImportRow(
+            rowNumber = 2,
+            row = listOf("ice cream", "アイスクリーム"),
+            english = "ice cream",
+            meaning = "アイスクリーム",
+            example = "",
+            exampleTranslation = "",
+            rawType = "",
+            defaultType = CUSTOM_WORD_TYPE,
+            addError = { _, reason, _ -> errors += reason }
+        )
+
+        assertEquals(CUSTOM_WORD_TYPE, result)
+        assertEquals(emptyList<String>(), errors)
+    }
+
+    @Test
+    fun validateWordImportRow_withoutTypeUsesPhraseDefaultForIdiomImport() {
+        val errors = mutableListOf<String>()
+
+        val result = validateWordImportRow(
+            rowNumber = 2,
+            row = listOf("take care of", "世話をする"),
+            english = "take care of",
+            meaning = "世話をする",
+            example = "",
+            exampleTranslation = "",
+            rawType = "",
+            defaultType = CUSTOM_PHRASE_TYPE,
+            addError = { _, reason, _ -> errors += reason }
+        )
+
+        assertEquals(CUSTOM_PHRASE_TYPE, result)
+        assertEquals(emptyList<String>(), errors)
+    }
 }
