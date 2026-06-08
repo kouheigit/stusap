@@ -4,6 +4,8 @@ import com.example.vocabapp.MAX_IMPORT_COLUMNS
 import com.example.vocabapp.domain.model.ImportErrorRow
 
 internal const val IMPORT_INSERT_CHUNK_SIZE = 200
+internal const val CUSTOM_WORD_TYPE = "word"
+internal const val CUSTOM_PHRASE_TYPE = "phrase"
 private const val MAX_PREVIEW_DUPLICATES = 50
 private const val MAX_PREVIEW_ERRORS = 50
 private val CSV_IDIOM_TYPES = setOf("phrase", "idiom", "custom_idiom", "custom_idioms")
