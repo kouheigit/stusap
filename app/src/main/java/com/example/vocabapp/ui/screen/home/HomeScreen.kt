@@ -150,14 +150,6 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 CardButton(
-                    title = stringResource(R.string.home_sentence_import_title),
-                    subtitle = stringResource(R.string.home_sentence_import_subtitle),
-                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
-                    onClick = { navController.navigate(Route.SentenceImport.path) }
-                )
-            }
-            item {
-                CardButton(
                     title = stringResource(R.string.home_review_title),
                     subtitle = stringResource(R.string.home_review_subtitle),
                     icon = Icons.Default.Refresh,
