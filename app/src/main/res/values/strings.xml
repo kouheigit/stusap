@@ -5,6 +5,8 @@
     <string name="home_training_subtitle">目標スコア別に10問トレーニング</string>
     <string name="home_add_word_title">新規単語登録</string>
     <string name="home_add_word_subtitle">覚えたい英単語と日本語訳を追加</string>
+    <string name="home_bulk_import_title">問題一括インポート</string>
+    <string name="home_bulk_import_subtitle">単語・熟語・英語文章をファイルからまとめて登録</string>
     <string name="home_import_title">単語・熟語インポート</string>
     <string name="home_import_subtitle">Excelから保存したCSVを一括登録</string>
     <string name="home_custom_word_title">英単語</string>
