@@ -8,6 +8,7 @@ internal sealed class Route(val path: String) {
     object StudyLog : Route("study-log")
     object Settings : Route("settings")
     object AddWord : Route("add-word")
+    object BulkImport : Route("bulk-import")
     object WordImport : Route("word-import?defaultType=word")
     object IdiomImport : Route("word-import?defaultType=phrase")
     object CustomWordList : Route("custom-word-list")
