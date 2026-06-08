@@ -103,10 +103,10 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 CardButton(
-                    title = stringResource(R.string.home_import_title),
-                    subtitle = stringResource(R.string.home_import_subtitle),
+                    title = stringResource(R.string.home_bulk_import_title),
+                    subtitle = stringResource(R.string.home_bulk_import_subtitle),
                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
-                    onClick = { navController.navigate(Route.WordImport.path) }
+                    onClick = { navController.navigate(Route.BulkImport.path) }
                 )
             }
             item {
