@@ -5,6 +5,8 @@
     <string name="home_training_subtitle">目標スコア別に10問トレーニング</string>
     <string name="home_add_word_title">新規単語登録</string>
     <string name="home_add_word_subtitle">覚えたい英単語と日本語訳を追加</string>
+    <string name="home_bulk_import_title">問題一括インポート</string>
+    <string name="home_bulk_import_subtitle">単語・熟語・英語文章をファイルからまとめて登録</string>
     <string name="home_import_title">単語・熟語インポート</string>
     <string name="home_import_subtitle">Excelから保存したCSVを一括登録</string>
     <string name="home_custom_word_title">英単語</string>
@@ -57,6 +59,15 @@
     <string name="random_word_subtitle">登録済みの英単語から毎回ランダムに10問出題</string>
     <string name="random_idiom_title">ランダム英熟語</string>
     <string name="random_idiom_subtitle">登録済みの英熟語から毎回ランダムに10問出題</string>
+
+    <string name="bulk_import_screen_title">問題一括インポート</string>
+    <string name="bulk_import_screen_subtitle">取り込みたい問題の種類を選んでください</string>
+    <string name="bulk_import_word_title">英単語インポート</string>
+    <string name="bulk_import_word_subtitle">英単語と日本語訳をExcel / CSVから登録</string>
+    <string name="bulk_import_idiom_title">英熟語インポート</string>
+    <string name="bulk_import_idiom_subtitle">英熟語と日本語訳をExcel / CSVから登録</string>
+    <string name="bulk_import_sentence_title">英語文章インポート</string>
+    <string name="bulk_import_sentence_subtitle">英語文章をExcel / CSVから登録</string>
 
     <string name="sentence_import_screen_title">文章インポート</string>
     <string name="sentence_import_pick_file">文章Excel / CSVを選択</string>
