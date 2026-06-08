@@ -149,13 +149,9 @@ internal fun validateWordImportRow(
         return null
     }
     val wordType = when {
-        rawType.isBlank() -> when {
-            english.contains(Regex("\\s")) -> "phrase"
-            defaultType == "phrase" -> "phrase"
-            else -> "word"
-        }
-        rawType == "word" -> rawType
-        rawType in CSV_IDIOM_TYPES -> "phrase"
+        rawType.isBlank() -> defaultWordImportType(defaultType)
+        rawType == CUSTOM_WORD_TYPE -> rawType
+        rawType in CSV_IDIOM_TYPES -> CUSTOM_PHRASE_TYPE
         else -> {
             addError(rowNumber, "type は word / phrase / idiom / custom_idioms のみ指定できます。文章は文章インポートから取り込んでください", row)
             return null
@@ -167,6 +163,9 @@ internal fun validateWordImportRow(
     }
     return wordType
 }
+
+internal fun defaultWordImportType(defaultType: String): String =
+    if (defaultType == CUSTOM_PHRASE_TYPE) CUSTOM_PHRASE_TYPE else CUSTOM_WORD_TYPE
 
 internal fun validateSentenceImportRow(
     rowNumber: Int,
