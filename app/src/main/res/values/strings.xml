@@ -62,7 +62,10 @@
     <string name="sentence_import_pick_file">文章Excel / CSVを選択</string>
     <string name="sentence_import_change_file">別のファイルを選択</string>
     <string name="sentence_import_loading_text">処理中...</string>
-    <string name="sentence_import_success_title">登録完了！</string>
+    <string name="import_success_title">成功しました</string>
+    <string name="import_success_home">ホームへ</string>
+    <string name="word_import_success_detail">%1$d件を登録しました</string>
+    <string name="sentence_import_success_title">成功しました</string>
     <string name="sentence_import_success_detail">%1$d件登録（クイズ対応: %2$d件）</string>
     <string name="sentence_import_view_list">一覧へ</string>
     <string name="sentence_import_register_btn">文章を登録する（%1$d件）</string>
