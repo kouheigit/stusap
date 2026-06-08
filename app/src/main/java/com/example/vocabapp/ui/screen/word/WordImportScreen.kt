@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,6 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.vocabapp.R
+import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.viewmodel.WordImportViewModel
 import kotlinx.coroutines.launch
 
@@ -73,6 +77,7 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { message = it }
     }
+    ImportSuccessSoundEffect(result)
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             message = null
@@ -134,6 +139,16 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
             }
             result?.let { importResult ->
                 item {
+                    ImportSuccessCard(
+                        insertedCount = importResult.insertedCount + importResult.insertedIdiomCount,
+                        onHome = {
+                            navController.navigate(Route.Home.path) {
+                                popUpTo(Route.Home.path) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                item {
                     ImportSummaryCard(
                         title = "登録結果",
                         totalRows = importResult.totalRows,
@@ -194,6 +209,32 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImportSuccessCard(insertedCount: Int, onHome: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Success),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(R.string.import_success_title), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.word_import_success_detail, insertedCount), color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
+            }
+            Button(
+                onClick = onHome,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Success),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(Icons.Default.Home, contentDescription = null)
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.import_success_home), fontWeight = FontWeight.Bold)
             }
         }
     }
