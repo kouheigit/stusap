@@ -97,7 +97,7 @@ class CustomImportRepository @Inject constructor(
             val normalized = word.english.normalizeEnglish()
             normalized !in existing && seen.add(normalized)
         }
-        val wordItems = eligible.filter { it.type == "word" }.mapIndexed { index, word ->
+        val wordItems = eligible.filter { it.type == CUSTOM_WORD_TYPE }.mapIndexed { index, word ->
             CustomWordEntity(
                 english = word.english.trim().take(MAX_CUSTOM_ENGLISH_CHARS),
                 meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
@@ -107,7 +107,7 @@ class CustomImportRepository @Inject constructor(
                 wordType = word.type
             )
         }
-        val idiomItems = eligible.filter { it.type == "phrase" }.mapIndexed { index, word ->
+        val idiomItems = eligible.filter { it.type == CUSTOM_PHRASE_TYPE }.mapIndexed { index, word ->
             CustomIdiomEntity(
                 english = word.english.trim().take(MAX_CUSTOM_ENGLISH_CHARS),
                 meaning = word.meaning.trim().take(MAX_CUSTOM_MEANING_CHARS),
