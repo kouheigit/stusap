@@ -46,6 +46,7 @@ import com.example.vocabapp.queryDisplayName
 import com.example.vocabapp.readImportFileAsRows
 import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.ui.screen.common.BlueScaffold
+import com.example.vocabapp.ui.screen.common.ImportSuccessSoundEffect
 import com.example.vocabapp.viewmodel.SentenceImportViewModel
 import androidx.compose.ui.res.stringResource
 import com.example.vocabapp.R
@@ -68,6 +69,7 @@ internal fun SentenceImportScreen(
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { message = it }
     }
+    ImportSuccessSoundEffect(result)
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -112,7 +114,12 @@ internal fun SentenceImportScreen(
                     SentenceImportSuccessCard(
                         insertedCount = importResult.insertedCount,
                         quizReadyCount = importResult.quizReadyInsertedCount,
-                        onViewList = { navController.navigate(Route.CustomSentenceList.path) }
+                        onViewList = { navController.navigate(Route.CustomSentenceList.path) },
+                        onHome = {
+                            navController.navigate(Route.Home.path) {
+                                popUpTo(Route.Home.path) { inclusive = true }
+                            }
+                        }
                     )
                 }
             }
