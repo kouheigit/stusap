@@ -30,6 +30,13 @@ class SoundEffectsTest {
     }
 
     @Test
+    fun importSuccessSoundSegments_usesTwoBrightTonesWithShortGap() {
+        val segments = importSuccessSoundSegments()
+
+        assertEquals(listOf(740f to 90, 0f to 28, 988f to 170), segments)
+    }
+
+    @Test
     fun smoothStep_clampsBoundaryInputs() {
         val delta = 0.000_001
 

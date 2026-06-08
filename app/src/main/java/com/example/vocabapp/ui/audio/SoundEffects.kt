@@ -27,6 +27,10 @@ internal class SoundPlayer(context: Context) {
         playSynthBuffer(wrongSoundBuffer)
     }
 
+    fun playImportSuccess() {
+        playSynthBuffer(importSuccessSoundBuffer)
+    }
+
     fun playSequence(segments: List<Pair<Float, Int>>, interrupt: Boolean = true) {
         val buffer = buildSynthBuffer(segments)
         if (interrupt) {
@@ -91,6 +95,13 @@ private val correctSoundBuffer: ShortArray by lazy {
 private val wrongSoundBuffer: ShortArray by lazy {
     buildSynthBuffer(listOf(280f to 190, 0f to 45, 220f to 230))
 }
+
+private val importSuccessSoundBuffer: ShortArray by lazy {
+    buildSynthBuffer(importSuccessSoundSegments())
+}
+
+internal fun importSuccessSoundSegments(): List<Pair<Float, Int>> =
+    listOf(740f to 90, 0f to 28, 988f to 170)
 
 internal fun buildSynthBuffer(segments: List<Pair<Float, Int>>): ShortArray {
     val paddingSamples = SAMPLE_RATE * SILENCE_PADDING_MS / 1_000
