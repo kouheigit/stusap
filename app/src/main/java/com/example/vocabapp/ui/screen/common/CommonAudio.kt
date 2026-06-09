@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.vocabapp.ui.audio.MediaSoundPlayer
 import com.example.vocabapp.ui.audio.SoundPlayer
 import com.example.vocabapp.ui.audio.createSoundPlayer
-import com.example.vocabapp.ui.audio.forceMusicStreamMaxVolume
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -111,7 +110,6 @@ internal fun rememberSpeaker(): Speaker {
         lastSpokenText.set(speechText)
         lastSpokenAt.set(now)
         engine.stop()
-        forceMusicStreamMaxVolume(audioManager)
         val focusResult = audioManager.requestAudioFocus(focusRequest)
         if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return
         val utteranceId = "utt-${System.nanoTime()}"
