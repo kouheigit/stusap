@@ -80,4 +80,24 @@ class WordImportHeaderTest {
         assertEquals(CUSTOM_PHRASE_TYPE, result)
         assertEquals(emptyList<String>(), errors)
     }
+
+    @Test
+    fun validateWordImportRow_explicitWordTypeOverridesPhraseDefault() {
+        val errors = mutableListOf<String>()
+
+        val result = validateWordImportRow(
+            rowNumber = 2,
+            row = listOf("ice cream", "アイスクリーム", CUSTOM_WORD_TYPE),
+            english = "ice cream",
+            meaning = "アイスクリーム",
+            example = "",
+            exampleTranslation = "",
+            rawType = CUSTOM_WORD_TYPE,
+            defaultType = CUSTOM_PHRASE_TYPE,
+            addError = { _, reason, _ -> errors += reason }
+        )
+
+        assertEquals(CUSTOM_WORD_TYPE, result)
+        assertEquals(emptyList<String>(), errors)
+    }
 }
