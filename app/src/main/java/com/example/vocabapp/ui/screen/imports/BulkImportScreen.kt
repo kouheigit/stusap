@@ -64,21 +64,18 @@ internal fun BulkImportScreen(navController: NavHostController) {
 
 private val BulkImportOption.titleResId: Int
     get() = when (kind) {
-        BulkImportKind.Word -> R.string.bulk_import_word_title
-        BulkImportKind.Idiom -> R.string.bulk_import_idiom_title
+        BulkImportKind.WordIdiom -> R.string.bulk_import_word_title
         BulkImportKind.Sentence -> R.string.bulk_import_sentence_title
     }
 
 private val BulkImportOption.subtitleResId: Int
     get() = when (kind) {
-        BulkImportKind.Word -> R.string.bulk_import_word_subtitle
-        BulkImportKind.Idiom -> R.string.bulk_import_idiom_subtitle
+        BulkImportKind.WordIdiom -> R.string.bulk_import_word_subtitle
         BulkImportKind.Sentence -> R.string.bulk_import_sentence_subtitle
     }
 
 private val BulkImportOption.icon: ImageVector
     get() = when (kind) {
-        BulkImportKind.Word -> Icons.AutoMirrored.Filled.FormatListBulleted
-        BulkImportKind.Idiom -> Icons.Default.School
-        BulkImportKind.Sentence -> Icons.AutoMirrored.Filled.FormatListBulleted
+        BulkImportKind.WordIdiom -> Icons.AutoMirrored.Filled.FormatListBulleted
+        BulkImportKind.Sentence -> Icons.Default.School
     }
