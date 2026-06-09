@@ -62,11 +62,9 @@
 
     <string name="bulk_import_screen_title">問題一括インポート</string>
     <string name="bulk_import_screen_subtitle">取り込みたい問題の種類を選んでください</string>
-    <string name="bulk_import_word_title">英単語インポート</string>
-    <string name="bulk_import_word_subtitle">英単語と日本語訳をExcel / CSVから登録</string>
-    <string name="bulk_import_idiom_title">英熟語インポート</string>
-    <string name="bulk_import_idiom_subtitle">英熟語と日本語訳をExcel / CSVから登録</string>
-    <string name="bulk_import_sentence_title">英語文章インポート</string>
+    <string name="bulk_import_word_title">単語・熟語インポート</string>
+    <string name="bulk_import_word_subtitle">英単語・英熟語と日本語訳をExcel / CSVから登録</string>
+    <string name="bulk_import_sentence_title">文章Excel / CSV一括取込</string>
     <string name="bulk_import_sentence_subtitle">英語文章をExcel / CSVから登録</string>
 
     <string name="sentence_import_screen_title">文章インポート</string>
