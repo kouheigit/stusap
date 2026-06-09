@@ -11,11 +11,11 @@ class BulkImportOptionTest {
         val options = bulkImportOptions()
 
         assertEquals(
-            listOf(BulkImportKind.Word, BulkImportKind.Idiom, BulkImportKind.Sentence),
+            listOf(BulkImportKind.WordIdiom, BulkImportKind.Sentence),
             options.map { it.kind }
         )
         assertEquals(
-            listOf(Route.WordImport.path, Route.IdiomImport.path, Route.SentenceImport.path),
+            listOf(Route.WordImport.path, Route.SentenceImport.path),
             options.map { it.route }
         )
     }
