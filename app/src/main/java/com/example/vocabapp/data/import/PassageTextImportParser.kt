@@ -5,8 +5,9 @@ import com.example.vocabapp.domain.model.PassageConstants
 import com.example.vocabapp.domain.model.PassageDocument
 import com.example.vocabapp.domain.model.PassageQuestion
 import com.example.vocabapp.domain.model.PassageSet
+import javax.inject.Inject
 
-class PassageTextImportParser {
+class PassageTextImportParser @Inject constructor() {
     fun parse(rawText: String): PassageSet {
         val lines = rawText.lines()
         val title = lines.firstHeaderValue("TITLE", "タイトル") ?: "長文問題"
