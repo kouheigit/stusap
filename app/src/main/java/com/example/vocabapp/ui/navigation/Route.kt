@@ -19,6 +19,7 @@ internal sealed class Route(val path: String) {
     object AddSentence : Route("add-sentence")
     object SentenceImport : Route("sentence-import")
     object CustomSentenceList : Route("custom-sentence-list")
+    object CustomPassageRegistration : Route("custom-passage-registration")
     data class SentenceTrainingBlock(val blockNumber: String) : Route("sentence-block/$blockNumber") {
         companion object {
             const val PATTERN = "sentence-block/{blockNumber}"

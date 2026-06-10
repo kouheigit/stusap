@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.vocabapp.ui.screen.quiz.SentenceImportScreen
+import com.example.vocabapp.ui.screen.passage.CustomPassageRegistrationScreen
 import com.example.vocabapp.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -118,6 +119,12 @@ private fun AppNav(navController: NavHostController = rememberNavController()) {
         composable(Route.AddSentence.path) { AddSentenceScreen(navController) }
         composable(Route.SentenceImport.path) { SentenceImportScreen(navController) }
         composable(Route.CustomSentenceList.path) { CustomSentenceListScreen(navController) }
+        composable(Route.CustomPassageRegistration.path) {
+            CustomPassageRegistrationScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
+            )
+        }
         composable(
             Route.SentenceTrainingBlock.PATTERN,
             arguments = listOf(navArgument("blockNumber") { type = NavType.IntType })

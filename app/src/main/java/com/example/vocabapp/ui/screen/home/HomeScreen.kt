@@ -95,6 +95,14 @@ internal fun HomeScreen(navController: NavHostController, viewModel: HomeViewMod
             }
             item {
                 CardButton(
+                    title = "長文問題登録",
+                    subtitle = "問題文を貼り付けて4択長文問題を保存",
+                    icon = Icons.Default.Add,
+                    onClick = { navController.navigate(Route.CustomPassageRegistration.path) }
+                )
+            }
+            item {
+                CardButton(
                     title = stringResource(R.string.home_add_word_title),
                     subtitle = stringResource(R.string.home_add_word_subtitle),
                     icon = Icons.Default.Add,
