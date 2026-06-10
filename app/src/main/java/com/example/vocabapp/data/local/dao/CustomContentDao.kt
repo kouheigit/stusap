@@ -7,6 +7,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
+import com.example.vocabapp.data.local.entity.CustomPassageQuestionEntity
+import com.example.vocabapp.data.local.entity.CustomPassageSetEntity
+import com.example.vocabapp.data.local.entity.CustomPassageSummary
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
@@ -113,4 +116,37 @@ interface CustomContentDao {
 
     @Query("DELETE FROM custom_sentences")
     suspend fun deleteAllCustomSentences()
+
+    @Insert
+    suspend fun insertCustomPassageSet(item: CustomPassageSetEntity): Long
+
+    @Insert
+    suspend fun insertCustomPassageQuestions(items: List<CustomPassageQuestionEntity>): List<Long>
+
+    @Query("""
+        SELECT
+            sets.id AS id,
+            sets.title AS title,
+            sets.documentKind AS documentKind,
+            COUNT(questions.id) AS questionCount,
+            sets.timeLimitSec AS timeLimitSec,
+            sets.addedAt AS addedAt
+        FROM custom_passage_sets AS sets
+        LEFT JOIN custom_passage_questions AS questions ON questions.setId = sets.id
+        GROUP BY sets.id
+        ORDER BY sets.addedAt DESC
+    """)
+    fun observeCustomPassageSummaries(): Flow<List<CustomPassageSummary>>
+
+    @Query("SELECT * FROM custom_passage_sets WHERE id = :id")
+    suspend fun getCustomPassageSet(id: Int): CustomPassageSetEntity?
+
+    @Query("SELECT * FROM custom_passage_questions WHERE setId = :setId ORDER BY displayOrder ASC")
+    suspend fun getCustomPassageQuestions(setId: Int): List<CustomPassageQuestionEntity>
+
+    @Query("DELETE FROM custom_passage_sets WHERE id = :id")
+    suspend fun deleteCustomPassageSet(id: Int)
+
+    @Query("DELETE FROM custom_passage_sets")
+    suspend fun deleteAllCustomPassageSets()
 }

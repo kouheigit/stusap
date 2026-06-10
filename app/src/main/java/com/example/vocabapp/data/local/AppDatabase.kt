@@ -16,6 +16,8 @@ import com.example.vocabapp.data.local.dao.UserProgressDao
 import com.example.vocabapp.data.local.dao.WordDao
 import com.example.vocabapp.data.local.entity.AppSettingsEntity
 import com.example.vocabapp.data.local.entity.CustomIdiomEntity
+import com.example.vocabapp.data.local.entity.CustomPassageQuestionEntity
+import com.example.vocabapp.data.local.entity.CustomPassageSetEntity
 import com.example.vocabapp.data.local.entity.CustomSentenceEntity
 import com.example.vocabapp.data.local.entity.CustomWordEntity
 import com.example.vocabapp.data.local.entity.LessonEntity
@@ -32,6 +34,8 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
 @Database(
     entities = [
         CustomIdiomEntity::class,
+        CustomPassageSetEntity::class,
+        CustomPassageQuestionEntity::class,
         CustomSentenceEntity::class,
         CustomWordEntity::class,
         LessonEntity::class,
@@ -46,7 +50,7 @@ import com.example.vocabapp.data.local.entity.WordRelationEntity
         UserProgressEntity::class,
         AppSettingsEntity::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -221,6 +225,35 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("DELETE FROM review_words")
                 db.execSQL("DELETE FROM user_progress")
                 db.execSQL("DELETE FROM study_logs")
+            }
+        }
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `custom_passage_sets` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `documentKind` TEXT NOT NULL,
+                        `instruction` TEXT NOT NULL,
+                        `body` TEXT NOT NULL,
+                        `timeLimitSec` INTEGER,
+                        `addedAt` INTEGER NOT NULL
+                    )
+                """)
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `custom_passage_questions` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `setId` INTEGER NOT NULL,
+                        `number` TEXT NOT NULL,
+                        `stem` TEXT NOT NULL,
+                        `optionsText` TEXT NOT NULL,
+                        `answerIndex` INTEGER NOT NULL,
+                        `explanation` TEXT,
+                        `displayOrder` INTEGER NOT NULL,
+                        FOREIGN KEY(`setId`) REFERENCES `custom_passage_sets`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """)
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_passage_questions_setId` ON `custom_passage_questions` (`setId`)")
             }
         }
     }

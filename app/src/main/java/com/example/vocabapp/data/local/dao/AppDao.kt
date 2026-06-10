@@ -83,5 +83,6 @@ interface AppDao :
         deleteAllCustomWords()
         deleteAllCustomIdioms()
         deleteAllCustomSentences()
+        deleteAllCustomPassageSets()
     }
 }
