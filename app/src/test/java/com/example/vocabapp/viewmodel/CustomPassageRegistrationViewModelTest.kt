@@ -55,6 +55,22 @@ class CustomPassageRegistrationViewModelTest {
     }
 
     @Test
+    fun choiceCountStaysWithinSupportedRangeAndKeepsAnswerValid() = runTest(testDispatcher) {
+        val vm = buildViewModel()
+        vm.updateCurrentAnswerIndex(3)
+
+        vm.updateCurrentChoiceCount(1)
+        val twoChoiceState = vm.state.value
+        assertEquals(2, twoChoiceState.currentChoiceCount)
+        assertEquals(1, twoChoiceState.currentAnswerIndex)
+
+        vm.updateCurrentChoiceCount(9)
+        val fourChoiceState = vm.state.value
+        assertEquals(4, fourChoiceState.currentChoiceCount)
+        assertEquals(1, fourChoiceState.currentAnswerIndex)
+    }
+
+    @Test
     fun addManualQuestionStoresQuestionAndRestartsQuestionSetup() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.updateCurrentQuestionStem("What is the purpose of the email?")
