@@ -51,3 +51,24 @@ Add ViewModel unit tests for question-count selection, dynamic choice fields, ad
 ```bash
 GRADLE_USER_HOME=.gradle ./gradlew assembleDebug testDebugUnitTest
 ```
+
+## Implemented State
+
+The manual registration flow now supports the requested loop:
+
+1. The screen shows one question stem field.
+2. The user chooses 2, 3, or 4 choices from a selector.
+3. The screen renders the same number of choice input fields.
+4. The user chooses the correct answer and can enter an explanation.
+5. `設題を増やす` saves the current question and resets the same setup flow.
+6. `問題設定を完了` finalizes the question set and builds the preview used for saving.
+
+The screen also shows registered-question summary rows, completion status, and a save-status hint so the user can tell whether the manual question setup has been finalized.
+
+Latest verification on 2026-06-11:
+
+```bash
+GRADLE_USER_HOME=.gradle ./gradlew assembleDebug testDebugUnitTest
+```
+
+Result: `BUILD SUCCESSFUL`.
