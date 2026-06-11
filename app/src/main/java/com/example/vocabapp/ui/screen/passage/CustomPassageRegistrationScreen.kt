@@ -104,8 +104,12 @@ internal fun CustomPassageRegistrationScreen(
                 ManualQuestionSetupCard(
                     stem = state.currentQuestionStem,
                     choiceCount = state.currentChoiceCount,
+                    choices = state.currentChoices,
+                    answerIndex = state.currentAnswerIndex,
                     onStemChange = viewModel::updateCurrentQuestionStem,
-                    onChoiceCountChange = viewModel::updateCurrentChoiceCount
+                    onChoiceCountChange = viewModel::updateCurrentChoiceCount,
+                    onChoiceChange = viewModel::updateCurrentChoice,
+                    onAnswerIndexChange = viewModel::updateCurrentAnswerIndex
                 )
             }
             state.errorMessage?.let { message ->
@@ -169,8 +173,12 @@ private fun RegistrationFormatCard() {
 private fun ManualQuestionSetupCard(
     stem: String,
     choiceCount: Int,
+    choices: List<String>,
+    answerIndex: Int,
     onStemChange: (String) -> Unit,
-    onChoiceCountChange: (Int) -> Unit
+    onChoiceCountChange: (Int) -> Unit,
+    onChoiceChange: (Int, String) -> Unit,
+    onAnswerIndexChange: (Int) -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
@@ -189,6 +197,21 @@ private fun ManualQuestionSetupCard(
             ChoiceCountSelector(
                 choiceCount = choiceCount,
                 onChoiceCountChange = onChoiceCountChange
+            )
+            choices.take(choiceCount).forEachIndexed { index, choice ->
+                OutlinedTextField(
+                    value = choice,
+                    onValueChange = { onChoiceChange(index, it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("選択肢 ${('A' + index)}") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+            AnswerSelector(
+                choiceCount = choiceCount,
+                answerIndex = answerIndex,
+                onAnswerIndexChange = onAnswerIndexChange
             )
         }
     }
@@ -211,6 +234,31 @@ private fun ChoiceCountSelector(
                     onClick = {
                         expanded = false
                         onChoiceCountChange(count)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnswerSelector(
+    choiceCount: Int,
+    answerIndex: Int,
+    onAnswerIndexChange: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { expanded = true }, shape = RoundedCornerShape(8.dp)) {
+            Text("正解: ${('A' + answerIndex)}")
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            repeat(choiceCount) { index ->
+                DropdownMenuItem(
+                    text = { Text("${('A' + index)}") },
+                    onClick = {
+                        expanded = false
+                        onAnswerIndexChange(index)
                     }
                 )
             }
