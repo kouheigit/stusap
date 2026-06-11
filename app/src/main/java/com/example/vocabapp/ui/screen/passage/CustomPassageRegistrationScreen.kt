@@ -49,6 +49,7 @@ import com.example.vocabapp.ui.theme.Success
 import com.example.vocabapp.ui.theme.TextDark
 import com.example.vocabapp.ui.theme.TextMuted
 import com.example.vocabapp.viewmodel.CustomPassageRegistrationViewModel
+import com.example.vocabapp.viewmodel.ManualPassageQuestion
 
 @Composable
 internal fun CustomPassageRegistrationScreen(
@@ -116,6 +117,12 @@ internal fun CustomPassageRegistrationScreen(
                     onCompleteQuestions = viewModel::completeManualQuestionSetup
                 )
             }
+            item {
+                ManualQuestionSummaryCard(
+                    questions = state.manualQuestions,
+                    completed = state.manualQuestionSetupCompleted
+                )
+            }
             state.errorMessage?.let { message ->
                 item {
                     StatusCard(message = message, color = Danger)
@@ -169,6 +176,42 @@ private fun RegistrationFormatCard() {
             Text("貼り付け形式", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             Text("TITLE / TYPE / TIME_LIMIT と、本文・Q・A-D・ANSWER・EXPLANATION をまとめて貼れます。", color = TextDark, fontSize = 13.sp)
             Text(SAMPLE_TEXT, color = TextMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+        }
+    }
+}
+
+@Composable
+private fun ManualQuestionSummaryCard(
+    questions: List<ManualPassageQuestion>,
+    completed: Boolean
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("登録済み設題", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
+            if (questions.isEmpty()) {
+                Text("まだ設題は追加されていません", color = TextMuted, fontSize = 13.sp)
+            } else {
+                questions.forEach { question ->
+                    Text(
+                        "${question.number}: ${question.stem}",
+                        color = TextDark,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "${question.options.size}択 / 正解 ${('A' + question.answerIndex)}",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            if (completed) {
+                Text("問題設定は完了しています", color = Success, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
