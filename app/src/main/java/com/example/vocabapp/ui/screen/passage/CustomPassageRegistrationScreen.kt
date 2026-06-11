@@ -261,6 +261,7 @@ private fun ManualQuestionSetupCard(
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("設題の設定", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
+            Text("1. 設題を入力", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = stem,
                 onValueChange = onStemChange,
@@ -268,10 +269,12 @@ private fun ManualQuestionSetupCard(
                 label = { Text("設題 1題") },
                 shape = RoundedCornerShape(8.dp)
             )
+            Text("2. 何択にするか選択", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             ChoiceCountSelector(
                 choiceCount = choiceCount,
                 onChoiceCountChange = onChoiceCountChange
             )
+            Text("3. 選択肢を入力", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             choices.take(choiceCount).forEachIndexed { index, choice ->
                 OutlinedTextField(
                     value = choice,
@@ -287,6 +290,7 @@ private fun ManualQuestionSetupCard(
                 answerIndex = answerIndex,
                 onAnswerIndexChange = onAnswerIndexChange
             )
+            Text("4. 設題を増やすか完了", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = explanation,
                 onValueChange = onExplanationChange,
