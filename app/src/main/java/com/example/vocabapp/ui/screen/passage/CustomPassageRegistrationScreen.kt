@@ -82,6 +82,18 @@ internal fun CustomPassageRegistrationScreen(
                     shape = RoundedCornerShape(8.dp)
                 )
             }
+            item {
+                ManualPassageBaseFields(
+                    title = state.manualTitle,
+                    documentType = state.manualDocumentType,
+                    timeLimitSec = state.manualTimeLimitSec,
+                    body = state.manualBody,
+                    onTitleChange = viewModel::updateManualTitle,
+                    onDocumentTypeChange = viewModel::updateManualDocumentType,
+                    onTimeLimitChange = viewModel::updateManualTimeLimitSec,
+                    onBodyChange = viewModel::updateManualBody
+                )
+            }
             state.errorMessage?.let { message ->
                 item {
                     StatusCard(message = message, color = Danger)
@@ -135,6 +147,69 @@ private fun RegistrationFormatCard() {
             Text("貼り付け形式", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             Text("TITLE / TYPE / TIME_LIMIT と、本文・Q・A-D・ANSWER・EXPLANATION をまとめて貼れます。", color = TextDark, fontSize = 13.sp)
             Text(SAMPLE_TEXT, color = TextMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+        }
+    }
+}
+
+@Composable
+private fun ManualPassageBaseFields(
+    title: String,
+    documentType: String,
+    timeLimitSec: String,
+    body: String,
+    onTitleChange: (String) -> Unit,
+    onDocumentTypeChange: (String) -> Unit,
+    onTimeLimitChange: (String) -> Unit,
+    onBodyChange: (String) -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("手入力で登録", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("タイトル") },
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                listOf("article", "email", "notice").forEach { type ->
+                    OutlinedButton(
+                        onClick = { onDocumentTypeChange(type) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = type,
+                            color = if (documentType == type) DeepBlue else TextMuted,
+                            fontWeight = if (documentType == type) FontWeight.Black else FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+            OutlinedTextField(
+                value = timeLimitSec,
+                onValueChange = onTimeLimitChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("制限時間（秒）") },
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp)
+            )
+            OutlinedTextField(
+                value = body,
+                onValueChange = onBodyChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+                label = { Text("本文") },
+                shape = RoundedCornerShape(8.dp)
+            )
         }
     }
 }
