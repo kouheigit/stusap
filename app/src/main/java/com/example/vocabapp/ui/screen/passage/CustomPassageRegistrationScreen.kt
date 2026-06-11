@@ -106,10 +106,14 @@ internal fun CustomPassageRegistrationScreen(
                     choiceCount = state.currentChoiceCount,
                     choices = state.currentChoices,
                     answerIndex = state.currentAnswerIndex,
+                    explanation = state.currentExplanation,
                     onStemChange = viewModel::updateCurrentQuestionStem,
                     onChoiceCountChange = viewModel::updateCurrentChoiceCount,
                     onChoiceChange = viewModel::updateCurrentChoice,
-                    onAnswerIndexChange = viewModel::updateCurrentAnswerIndex
+                    onAnswerIndexChange = viewModel::updateCurrentAnswerIndex,
+                    onExplanationChange = viewModel::updateCurrentExplanation,
+                    onAddQuestion = viewModel::addManualQuestion,
+                    onCompleteQuestions = viewModel::completeManualQuestionSetup
                 )
             }
             state.errorMessage?.let { message ->
@@ -175,10 +179,14 @@ private fun ManualQuestionSetupCard(
     choiceCount: Int,
     choices: List<String>,
     answerIndex: Int,
+    explanation: String,
     onStemChange: (String) -> Unit,
     onChoiceCountChange: (Int) -> Unit,
     onChoiceChange: (Int, String) -> Unit,
-    onAnswerIndexChange: (Int) -> Unit
+    onAnswerIndexChange: (Int) -> Unit,
+    onExplanationChange: (String) -> Unit,
+    onAddQuestion: () -> Unit,
+    onCompleteQuestions: () -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
@@ -213,6 +221,30 @@ private fun ManualQuestionSetupCard(
                 answerIndex = answerIndex,
                 onAnswerIndexChange = onAnswerIndexChange
             )
+            OutlinedTextField(
+                value = explanation,
+                onValueChange = onExplanationChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("解説（任意）") },
+                shape = RoundedCornerShape(8.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = onAddQuestion,
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("設題を増やす")
+                }
+                Button(
+                    onClick = onCompleteQuestions,
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("問題設定を完了")
+                }
+            }
         }
     }
 }
