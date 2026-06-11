@@ -134,6 +134,10 @@ internal fun CustomPassageRegistrationScreen(
                 }
             }
             item {
+                ManualSaveStatusText(
+                    completed = state.manualQuestionSetupCompleted,
+                    hasManualQuestions = state.manualQuestions.isNotEmpty()
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = viewModel::preview,
@@ -163,6 +167,25 @@ internal fun CustomPassageRegistrationScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ManualSaveStatusText(
+    completed: Boolean,
+    hasManualQuestions: Boolean
+) {
+    val message = when {
+        completed -> "問題設定は完了しています。この内容で保存できます。"
+        hasManualQuestions -> "最後に「問題設定を完了」を押すと保存対象が確定します。"
+        else -> "手入力で登録する場合は、設題を入力して「問題設定を完了」を押してください。"
+    }
+    Text(
+        text = message,
+        color = if (completed) Success else TextMuted,
+        fontSize = 12.sp,
+        fontWeight = if (completed) FontWeight.Bold else FontWeight.Normal,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
 }
 
 @Composable
