@@ -119,6 +119,33 @@ class CustomPassageRegistrationViewModelTest {
     }
 
     @Test
+    fun addQuestionThenCompleteBuildsMultipleManualQuestions() = runTest(testDispatcher) {
+        val vm = buildViewModel()
+        vm.updateManualBody("The seminar starts at ten and ends at noon.")
+        vm.updateCurrentQuestionStem("When does the seminar start?")
+        vm.updateCurrentChoice(0, "At nine")
+        vm.updateCurrentChoice(1, "At ten")
+        vm.updateCurrentChoice(2, "At noon")
+        vm.updateCurrentChoice(3, "At three")
+        vm.updateCurrentAnswerIndex(1)
+        vm.addManualQuestion()
+        vm.updateCurrentChoiceCount(3)
+        vm.updateCurrentQuestionStem("When does the seminar end?")
+        vm.updateCurrentChoice(0, "At ten")
+        vm.updateCurrentChoice(1, "At eleven")
+        vm.updateCurrentChoice(2, "At noon")
+        vm.updateCurrentAnswerIndex(2)
+
+        vm.completeManualQuestionSetup()
+
+        val preview = vm.state.value.preview!!
+        assertEquals(2, preview.questions.size)
+        assertEquals("Q1", vm.state.value.manualQuestions[0].number)
+        assertEquals("Q2", vm.state.value.manualQuestions[1].number)
+        assertEquals(3, preview.questions[1].options.size)
+    }
+
+    @Test
     fun completingWithoutBodyShowsValidationError() = runTest(testDispatcher) {
         val vm = buildViewModel()
         vm.updateCurrentQuestionStem("What is missing?")
