@@ -1,6 +1,7 @@
 package com.example.vocabapp.ui.screen.passage
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,6 +20,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -26,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -94,6 +100,14 @@ internal fun CustomPassageRegistrationScreen(
                     onBodyChange = viewModel::updateManualBody
                 )
             }
+            item {
+                ManualQuestionSetupCard(
+                    stem = state.currentQuestionStem,
+                    choiceCount = state.currentChoiceCount,
+                    onStemChange = viewModel::updateCurrentQuestionStem,
+                    onChoiceCountChange = viewModel::updateCurrentChoiceCount
+                )
+            }
             state.errorMessage?.let { message ->
                 item {
                     StatusCard(message = message, color = Danger)
@@ -147,6 +161,59 @@ private fun RegistrationFormatCard() {
             Text("貼り付け形式", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             Text("TITLE / TYPE / TIME_LIMIT と、本文・Q・A-D・ANSWER・EXPLANATION をまとめて貼れます。", color = TextDark, fontSize = 13.sp)
             Text(SAMPLE_TEXT, color = TextMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+        }
+    }
+}
+
+@Composable
+private fun ManualQuestionSetupCard(
+    stem: String,
+    choiceCount: Int,
+    onStemChange: (String) -> Unit,
+    onChoiceCountChange: (Int) -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("設題の設定", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
+            OutlinedTextField(
+                value = stem,
+                onValueChange = onStemChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("設題 1題") },
+                shape = RoundedCornerShape(8.dp)
+            )
+            ChoiceCountSelector(
+                choiceCount = choiceCount,
+                onChoiceCountChange = onChoiceCountChange
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChoiceCountSelector(
+    choiceCount: Int,
+    onChoiceCountChange: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { expanded = true }, shape = RoundedCornerShape(8.dp)) {
+            Text("${choiceCount}択にする")
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            (2..4).forEach { count ->
+                DropdownMenuItem(
+                    text = { Text("${count}択") },
+                    onClick = {
+                        expanded = false
+                        onChoiceCountChange(count)
+                    }
+                )
+            }
         }
     }
 }
