@@ -95,4 +95,36 @@ class CustomPassageRegistrationViewModelTest {
         assertEquals(420, preview.timeLimitSec)
         assertEquals(1, preview.questions.size)
     }
+
+    @Test
+    fun completingTwoChoiceQuestionBuildsTwoChoicePreview() = runTest(testDispatcher) {
+        val vm = buildViewModel()
+        vm.updateManualBody("The shop will close at six.")
+        vm.updateCurrentChoiceCount(2)
+        vm.updateCurrentQuestionStem("When will the shop close?")
+        vm.updateCurrentChoice(0, "At five")
+        vm.updateCurrentChoice(1, "At six")
+        vm.updateCurrentAnswerIndex(1)
+
+        vm.completeManualQuestionSetup()
+
+        val preview = vm.state.value.preview!!
+        assertEquals(listOf("At five", "At six"), preview.questions.single().options)
+        assertEquals(1, preview.questions.single().answerIndex)
+    }
+
+    @Test
+    fun completingWithoutBodyShowsValidationError() = runTest(testDispatcher) {
+        val vm = buildViewModel()
+        vm.updateCurrentQuestionStem("What is missing?")
+        vm.updateCurrentChoice(0, "Body")
+        vm.updateCurrentChoice(1, "Title")
+        vm.updateCurrentChoice(2, "Time")
+        vm.updateCurrentChoice(3, "Type")
+
+        vm.completeManualQuestionSetup()
+
+        assertEquals("本文を入力してください", vm.state.value.errorMessage)
+        assertEquals(null, vm.state.value.preview)
+    }
 }
