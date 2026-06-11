@@ -2,11 +2,14 @@ package com.example.vocabapp.viewmodel
 
 import com.example.vocabapp.data.repository.CustomPassageRepository
 import com.example.vocabapp.domain.model.DocumentKind
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -22,8 +25,10 @@ import org.junit.Test
 class CustomPassageRegistrationViewModelTest {
     private lateinit var testDispatcher: TestDispatcher
 
-    private fun buildViewModel() = CustomPassageRegistrationViewModel(
-        repository = mockk<CustomPassageRepository>(relaxed = true)
+    private fun buildViewModel(
+        repository: CustomPassageRepository = mockk(relaxed = true)
+    ) = CustomPassageRegistrationViewModel(
+        repository = repository
     )
 
     @Before
@@ -126,5 +131,26 @@ class CustomPassageRegistrationViewModelTest {
 
         assertEquals("本文を入力してください", vm.state.value.errorMessage)
         assertEquals(null, vm.state.value.preview)
+    }
+
+    @Test
+    fun saveUsesCompletedManualPreview() = runTest(testDispatcher) {
+        val repository = mockk<CustomPassageRepository>()
+        coEvery { repository.save(any()) } returns 12
+        val vm = buildViewModel(repository)
+        vm.updateManualBody("The class will move to Room B.")
+        vm.updateCurrentQuestionStem("Where will the class move?")
+        vm.updateCurrentChoice(0, "Room A")
+        vm.updateCurrentChoice(1, "Room B")
+        vm.updateCurrentChoice(2, "Room C")
+        vm.updateCurrentChoice(3, "Room D")
+        vm.updateCurrentAnswerIndex(1)
+        vm.completeManualQuestionSetup()
+
+        vm.save()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repository.save(match { it.questions.single().stem == "Where will the class move?" }) }
+        assertEquals(12, vm.state.value.savedId)
     }
 }
