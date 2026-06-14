@@ -7,6 +7,7 @@ import com.example.vocabapp.ui.theme.Gold
 import com.example.vocabapp.ui.theme.TextMuted
 
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.R
 
@@ -28,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,7 +88,7 @@ internal fun ResultAccuracyCard(
                 .height(14.dp)
                 .clip(RoundedCornerShape(7.dp)),
             color = Teal,
-            trackColor = Color(0xFFDDE5EC)
+            trackColor = SoftBlue
         )
     }
 }

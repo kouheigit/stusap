@@ -33,14 +33,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -86,7 +81,20 @@ internal fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) 
                 Text("残り ${state.remainingMillis / 1000}秒", color = TextMuted, modifier = Modifier.weight(1f))
                 IconButton(onClick = { speaker.speak(question.word.english) }) { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Audio", tint = BrightBlue) }
             }
-            Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+            AnimatedMascot(
+                mood = if (state.isAnswered) {
+                    if (state.isCorrect == true) MascotMood.Cheer else MascotMood.Thinking
+                } else {
+                    MascotMood.Thinking
+                },
+                size = 74.dp,
+                message = when {
+                    state.isAnswered && state.isCorrect == true -> "いい調子です！"
+                    state.isAnswered -> "次で取り返しましょう"
+                    else -> "落ち着いて選びましょう"
+                }
+            )
+            GramCard {
                 Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(question.word.english, fontSize = 38.sp, fontWeight = FontWeight.Black, color = DeepBlue, textAlign = TextAlign.Center)
                     Text(question.word.phonetic, color = TextMuted, fontSize = 18.sp)
@@ -100,19 +108,23 @@ internal fun QuizContent(modifier: Modifier, state: QuizState, onAnswer: (Int?) 
                     else -> Color.White
                 }
                 val textColor = if (color == Color.White) TextDark else Color.White
-                Button(
+                GramPrimaryButton(
+                    text = choice.choiceText,
                     onClick = { onAnswer(choice.id) },
                     enabled = !state.isAnswered,
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = color, disabledContainerColor = color, contentColor = textColor, disabledContentColor = textColor),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(choice.choiceText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
+                    containerColor = color,
+                    contentColor = textColor,
+                    disabledContainerColor = color,
+                    disabledContentColor = textColor,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-            OutlinedButton(onClick = { onAnswer(null) }, enabled = !state.isAnswered, modifier = Modifier.fillMaxWidth().height(54.dp)) {
-                Text("わからない", fontWeight = FontWeight.Bold)
-            }
+            GramSecondaryButton(
+                text = "わからない",
+                onClick = { onAnswer(null) },
+                enabled = !state.isAnswered,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
         AnimatedVisibility(visible = state.isAnswered, modifier = Modifier.align(Alignment.Center)) {
             Box(

@@ -1,21 +1,13 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.ui.theme.AccentBlue
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -24,15 +16,15 @@ internal fun ResultActionBar(onRetry: () -> Unit, onNext: () -> Unit) {
         modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        OutlinedButton(onClick = onRetry, modifier = Modifier.weight(1f).height(54.dp)) {
-            Text("再チャレンジ", fontWeight = FontWeight.Bold)
-        }
-        Button(
+        GramSecondaryButton(
+            text = "再チャレンジ",
+            onClick = onRetry,
+            modifier = Modifier.weight(1f)
+        )
+        GramPrimaryButton(
+            text = "次へ",
             onClick = onNext,
-            modifier = Modifier.weight(1f).height(54.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-        ) {
-            Text("次へ", fontWeight = FontWeight.Bold)
-        }
+            modifier = Modifier.weight(1f)
+        )
     }
 }

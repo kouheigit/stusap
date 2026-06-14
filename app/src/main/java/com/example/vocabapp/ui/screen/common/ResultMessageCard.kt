@@ -33,9 +33,13 @@ internal fun ResultMessageCard(title: String, message: String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            AnimatedMascot(
+                mood = MascotMood.Cheer,
+                size = 96.dp,
+                message = title
+            )
             Text(title, color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
             Text(message, color = TextMuted, textAlign = TextAlign.Center, fontSize = 16.sp)
         }
     }
 }
-

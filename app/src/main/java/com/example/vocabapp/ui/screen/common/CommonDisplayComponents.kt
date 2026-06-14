@@ -64,12 +64,12 @@ internal fun WordRow(word: Word, action: @Composable () -> Unit, onClick: () -> 
 @Composable
 internal fun MasterBadge(isMaster: Boolean) {
     Box(
-        modifier = Modifier.size(92.dp).clip(CircleShape).background(if (isMaster) Gold else Color(0xFFEAF1F7)),
+        modifier = Modifier.size(92.dp).clip(CircleShape).background(if (isMaster) Gold else SoftBlue),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(34.dp))
-            Text(if (isMaster) "Master" else "Start", color = if (isMaster) Color.White else TextMuted, fontWeight = FontWeight.Black)
+            Text(if (isMaster) "Master" else "Start", color = if (isMaster) Color.White else DeepBlue, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -171,4 +171,3 @@ internal fun formatStudyTime(seconds: Int): String {
 
 internal val AddWordCardPadding = 24.dp
 internal val AddWordCardSpacing = 20.dp
-

@@ -1,19 +1,18 @@
 package com.example.vocabapp.ui.screen.common
 
-import com.example.vocabapp.ui.theme.BrightBlue
+import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +34,7 @@ internal fun ResultContentBody(
     onRetry: () -> Unit,
     onNext: () -> Unit
 ) {
-    Column(modifier = modifier.fillMaxSize().background(BrightBlue)) {
+    Column(modifier = modifier.fillMaxSize().background(SoftBlue)) {
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 20.dp),
@@ -59,7 +58,7 @@ internal fun ResultContentBody(
                 item {
                     Text(
                         "間違えた単語 (${result.wrongWords.size}語)",
-                        color = Color.White,
+                        color = DeepBlue,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.fillMaxWidth()
@@ -73,4 +72,3 @@ internal fun ResultContentBody(
         ResultActionBar(onRetry = onRetry, onNext = onNext)
     }
 }
-

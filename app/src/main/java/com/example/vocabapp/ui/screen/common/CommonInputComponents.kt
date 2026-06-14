@@ -58,7 +58,7 @@ internal fun AddWordField(
                     background = android.graphics.drawable.GradientDrawable().apply {
                         cornerRadius = 8.dp.value * resources.displayMetrics.density
                         setColor(android.graphics.Color.WHITE)
-                        setStroke((1.dp.value * resources.displayMetrics.density).toInt(), Color(0xFFB0BEC5).toArgb())
+                        setStroke((1.dp.value * resources.displayMetrics.density).toInt(), TextMuted.toArgb())
                     }
                     addTextChangedListener(object : TextWatcher {
                         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit

@@ -21,8 +21,10 @@ import androidx.navigation.navArgument
 import com.example.vocabapp.ui.screen.quiz.SentenceImportScreen
 import com.example.vocabapp.ui.screen.passage.CustomPassageListScreen
 import com.example.vocabapp.ui.screen.passage.CustomPassageRegistrationScreen
+import com.example.vocabapp.ui.screen.common.LocalGramNavController
 import com.example.vocabapp.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.compose.runtime.CompositionLocalProvider
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,112 +39,114 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun AppNav(navController: NavHostController = rememberNavController()) {
     hiltViewModel<MainViewModel>()
-    NavHost(navController = navController, startDestination = Route.Home.path) {
-        composable(Route.Home.path) { HomeScreen(navController) }
-        composable(Route.Lessons.path) { LessonListScreen(navController) }
-        composable(Route.IdiomLessons.path) { IdiomLessonListScreen(navController) }
-        composable(
-            Route.Training.PATTERN,
-            arguments = listOf(navArgument("lessonId") { type = NavType.IntType })
-        ) {
-            TrainingListScreen(navController)
-        }
-        composable(
-            Route.Quiz.PATTERN,
-            arguments = listOf(
-                navArgument("trainingId") { type = NavType.IntType; defaultValue = 0 },
-                navArgument("isReview") { type = NavType.BoolType; defaultValue = false }
-            )
-        ) { QuizScreen(navController) }
-        composable(
-            Route.Result.PATTERN,
-            arguments = listOf(navArgument("attemptId") { type = NavType.LongType })
-        ) { ResultScreen(navController) }
-        composable(Route.Review.path) { ReviewScreen(navController) }
-        composable(
-            Route.WordDetail.PATTERN,
-            arguments = listOf(navArgument("wordId") { type = NavType.IntType })
-        ) { WordDetailScreen(navController) }
-        composable(Route.StudyLog.path) { StudyLogScreen(navController) }
-        composable(Route.Settings.path) { SettingsScreen(navController) }
-        composable(Route.AddWord.path) { AddWordScreen(navController) }
-        composable(Route.BulkImport.path) { BulkImportScreen(navController) }
-        composable(
-            Route.WORD_IMPORT_PATTERN,
-            arguments = listOf(navArgument("defaultType") { type = NavType.StringType; defaultValue = "word" })
-        ) { backStackEntry ->
-            val defaultType = backStackEntry.arguments?.getString("defaultType") ?: "word"
-            WordImportScreen(navController, defaultType = defaultType)
-        }
-        composable(Route.CustomWordList.path) { CustomWordListScreen(navController) }
-        composable(Route.AddIdiom.path) { AddIdiomScreen(navController) }
-        composable(Route.CustomIdiomList.path) { CustomIdiomListScreen(navController) }
-        composable(
-            Route.CustomTraining.PATTERN,
-            arguments = listOf(navArgument("type") { type = NavType.StringType })
-        ) { CustomTrainingListScreen(navController) }
-        composable(
-            Route.CustomTrainingBlock.PATTERN,
-            arguments = listOf(
-                navArgument("type") { type = NavType.StringType },
-                navArgument("blockNumber") { type = NavType.IntType }
-            )
-        ) { backStackEntry ->
-            CustomTrainingBlockScreen(navController, checkNotNull(backStackEntry.arguments?.getInt("blockNumber")))
-        }
-        composable(
-            Route.CustomTrainingQuiz.PATTERN,
-            arguments = listOf(
-                navArgument("type") { type = NavType.StringType },
-                navArgument("setNumber") { type = NavType.IntType }
-            )
-        ) { backStackEntry ->
-            val type = checkNotNull(backStackEntry.arguments?.getString("type"))
-            val setNumber = checkNotNull(backStackEntry.arguments?.getInt("setNumber"))
-            CustomTrainingQuizScreen(
-                navController = navController,
-                viewModel = hiltViewModel(
-                    viewModelStoreOwner = backStackEntry,
-                    key = "customTrainingQuiz:$type:$setNumber"
+    CompositionLocalProvider(LocalGramNavController provides navController) {
+        NavHost(navController = navController, startDestination = Route.Home.path) {
+            composable(Route.Home.path) { HomeScreen(navController) }
+            composable(Route.Lessons.path) { LessonListScreen(navController) }
+            composable(Route.IdiomLessons.path) { IdiomLessonListScreen(navController) }
+            composable(
+                Route.Training.PATTERN,
+                arguments = listOf(navArgument("lessonId") { type = NavType.IntType })
+            ) {
+                TrainingListScreen(navController)
+            }
+            composable(
+                Route.Quiz.PATTERN,
+                arguments = listOf(
+                    navArgument("trainingId") { type = NavType.IntType; defaultValue = 0 },
+                    navArgument("isReview") { type = NavType.BoolType; defaultValue = false }
                 )
-            )
-        }
-        composable(Route.RandomCustomMenu.path) { RandomCustomMenuScreen(navController) }
-        composable(
-            Route.RandomCustomQuiz.PATTERN,
-            arguments = listOf(navArgument("type") { type = NavType.StringType })
-        ) { RandomCustomQuizScreen(navController) }
-        composable(
-            Route.Flashcard.PATTERN,
-            arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
-        ) { FlashcardScreen(navController) }
-        composable(Route.SentenceMenu.path) { SentenceMenuScreen(navController) }
-        composable(Route.AddSentence.path) { AddSentenceScreen(navController) }
-        composable(Route.SentenceImport.path) { SentenceImportScreen(navController) }
-        composable(Route.CustomSentenceList.path) { CustomSentenceListScreen(navController) }
-        composable(Route.CustomPassageRegistration.path) {
-            CustomPassageRegistrationScreen(
-                onBack = { navController.popBackStack() },
-                onSaved = {
-                    navController.navigate(Route.CustomPassageList.path) {
-                        popUpTo(Route.CustomPassageRegistration.path) { inclusive = true }
+            ) { QuizScreen(navController) }
+            composable(
+                Route.Result.PATTERN,
+                arguments = listOf(navArgument("attemptId") { type = NavType.LongType })
+            ) { ResultScreen(navController) }
+            composable(Route.Review.path) { ReviewScreen(navController) }
+            composable(
+                Route.WordDetail.PATTERN,
+                arguments = listOf(navArgument("wordId") { type = NavType.IntType })
+            ) { WordDetailScreen(navController) }
+            composable(Route.StudyLog.path) { StudyLogScreen(navController) }
+            composable(Route.Settings.path) { SettingsScreen(navController) }
+            composable(Route.AddWord.path) { AddWordScreen(navController) }
+            composable(Route.BulkImport.path) { BulkImportScreen(navController) }
+            composable(
+                Route.WORD_IMPORT_PATTERN,
+                arguments = listOf(navArgument("defaultType") { type = NavType.StringType; defaultValue = "word" })
+            ) { backStackEntry ->
+                val defaultType = backStackEntry.arguments?.getString("defaultType") ?: "word"
+                WordImportScreen(navController, defaultType = defaultType)
+            }
+            composable(Route.CustomWordList.path) { CustomWordListScreen(navController) }
+            composable(Route.AddIdiom.path) { AddIdiomScreen(navController) }
+            composable(Route.CustomIdiomList.path) { CustomIdiomListScreen(navController) }
+            composable(
+                Route.CustomTraining.PATTERN,
+                arguments = listOf(navArgument("type") { type = NavType.StringType })
+            ) { CustomTrainingListScreen(navController) }
+            composable(
+                Route.CustomTrainingBlock.PATTERN,
+                arguments = listOf(
+                    navArgument("type") { type = NavType.StringType },
+                    navArgument("blockNumber") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                CustomTrainingBlockScreen(navController, checkNotNull(backStackEntry.arguments?.getInt("blockNumber")))
+            }
+            composable(
+                Route.CustomTrainingQuiz.PATTERN,
+                arguments = listOf(
+                    navArgument("type") { type = NavType.StringType },
+                    navArgument("setNumber") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val type = checkNotNull(backStackEntry.arguments?.getString("type"))
+                val setNumber = checkNotNull(backStackEntry.arguments?.getInt("setNumber"))
+                CustomTrainingQuizScreen(
+                    navController = navController,
+                    viewModel = hiltViewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        key = "customTrainingQuiz:$type:$setNumber"
+                    )
+                )
+            }
+            composable(Route.RandomCustomMenu.path) { RandomCustomMenuScreen(navController) }
+            composable(
+                Route.RandomCustomQuiz.PATTERN,
+                arguments = listOf(navArgument("type") { type = NavType.StringType })
+            ) { RandomCustomQuizScreen(navController) }
+            composable(
+                Route.Flashcard.PATTERN,
+                arguments = listOf(navArgument("trainingId") { type = NavType.IntType })
+            ) { FlashcardScreen(navController) }
+            composable(Route.SentenceMenu.path) { SentenceMenuScreen(navController) }
+            composable(Route.AddSentence.path) { AddSentenceScreen(navController) }
+            composable(Route.SentenceImport.path) { SentenceImportScreen(navController) }
+            composable(Route.CustomSentenceList.path) { CustomSentenceListScreen(navController) }
+            composable(Route.CustomPassageRegistration.path) {
+                CustomPassageRegistrationScreen(
+                    onBack = { navController.popBackStack() },
+                    onSaved = {
+                        navController.navigate(Route.CustomPassageList.path) {
+                            popUpTo(Route.CustomPassageRegistration.path) { inclusive = true }
+                        }
                     }
-                }
-            )
+                )
+            }
+            composable(Route.CustomPassageList.path) { CustomPassageListScreen(navController) }
+            composable(
+                Route.SentenceTrainingBlock.PATTERN,
+                arguments = listOf(navArgument("blockNumber") { type = NavType.IntType })
+            ) { backStackEntry ->
+                SentenceTrainingBlockScreen(
+                    navController = navController,
+                    blockNumber = backStackEntry.arguments?.getInt("blockNumber") ?: 1
+                )
+            }
+            composable(
+                Route.SentenceQuiz.PATTERN,
+                arguments = listOf(navArgument("setNumber") { type = NavType.IntType })
+            ) { SentenceQuizScreen(navController) }
         }
-        composable(Route.CustomPassageList.path) { CustomPassageListScreen(navController) }
-        composable(
-            Route.SentenceTrainingBlock.PATTERN,
-            arguments = listOf(navArgument("blockNumber") { type = NavType.IntType })
-        ) { backStackEntry ->
-            SentenceTrainingBlockScreen(
-                navController = navController,
-                blockNumber = backStackEntry.arguments?.getInt("blockNumber") ?: 1
-            )
-        }
-        composable(
-            Route.SentenceQuiz.PATTERN,
-            arguments = listOf(navArgument("setNumber") { type = NavType.IntType })
-        ) { SentenceQuizScreen(navController) }
     }
 }

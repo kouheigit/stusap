@@ -23,16 +23,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -40,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,12 +48,7 @@ import com.example.vocabapp.domain.model.Training
 
 @Composable
 internal fun LessonCard(lesson: Lesson, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+    GramCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -77,12 +66,7 @@ internal fun LessonCard(lesson: Lesson, onClick: () -> Unit) {
 
 @Composable
 internal fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int) -> Unit, onFlashcard: () -> Unit = {}) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onQuiz),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+    GramCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onQuiz)) {
         Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(training.title, color = TextMuted, fontWeight = FontWeight.Bold)
@@ -97,7 +81,7 @@ internal fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         repeat(3) { index ->
-                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFDDE5EC), modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Star, contentDescription = null, tint = SoftBlue, modifier = Modifier.size(24.dp))
                         }
                         Spacer(Modifier.width(10.dp))
                         Text("未挑戦", color = TextMuted)
@@ -119,12 +103,13 @@ internal fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Button(onClick = onQuiz, colors = ButtonDefaults.buttonColors(containerColor = AccentBlue), shape = CircleShape, modifier = Modifier.size(86.dp)) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = null)
-                        Text("開始", fontSize = 12.sp)
-                    }
-                }
+                GramPrimaryButton(
+                    text = "開始",
+                    icon = Icons.Default.PlayArrow,
+                    onClick = onQuiz,
+                    modifier = Modifier.width(96.dp),
+                    containerColor = AccentBlue
+                )
             }
         }
         Row(Modifier.fillMaxWidth()) {
@@ -145,4 +130,3 @@ internal fun TrainingCard(training: Training, onQuiz: () -> Unit, onDetail: (Int
         }
     }
 }
-
