@@ -10,6 +10,8 @@ import com.example.vocabapp.ui.theme.AccentBlue
 
 import com.example.vocabapp.ui.theme.BrightBlue
 
+import com.example.vocabapp.ui.theme.SoftBlue
+
 import com.example.vocabapp.ui.theme.DeepBlue
 
 import com.example.vocabapp.ui.navigation.Route
@@ -17,7 +19,9 @@ import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.ui.screen.common.*
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,8 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -64,61 +66,76 @@ internal fun SentenceMenuScreen(
     val sentences by viewModel.sentences.collectAsStateWithLifecycle()
     BlueScaffold(title = stringResource(R.string.home_sentence_title), onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(
-                        onClick = { navController.navigate(Route.AddSentence.path) },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
-                        Spacer(Modifier.width(4.dp))
-                        Text(stringResource(R.string.sentence_menu_add_button), color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Button(
-                        onClick = { navController.navigate(Route.CustomSentenceList.path) },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
-                        Spacer(Modifier.width(4.dp))
-                        Text(stringResource(R.string.sentence_menu_list_button), color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
+                AnimatedMascot(
+                    mood = MascotMood.Idle,
+                    size = 92.dp,
+                    message = "文章問題で読解力をアップしましょう！"
+                )
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Button(
-                        onClick = { navController.navigate(Route.SentenceImport.path) },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = Color.White)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.home_sentence_import_title), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Text(
-                        stringResource(R.string.sentence_menu_import_hint),
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 4.dp)
+                GramCard {
+                    SentenceMenuActionRow(
+                        onClick = { navController.navigate(Route.AddSentence.path) },
+                        icon = Icons.Default.Add,
+                        title = stringResource(R.string.sentence_menu_add_button),
+                        subtitle = "新しい文章問題を登録する"
                     )
                 }
             }
             item {
-                SectionTitle("100問ごとのまとまり")
+                GramCard {
+                    SentenceMenuActionRow(
+                        onClick = { navController.navigate(Route.CustomSentenceList.path) },
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                        title = stringResource(R.string.sentence_menu_list_button),
+                        subtitle = "登録済みの文章問題を確認する"
+                    )
+                }
+            }
+            item {
+                GramCard {
+                    SentenceMenuActionRow(
+                        onClick = { navController.navigate(Route.SentenceImport.path) },
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
+                        title = stringResource(R.string.home_sentence_import_title),
+                        subtitle = stringResource(R.string.sentence_menu_import_hint)
+                    )
+                }
+            }
+            item {
+                Text("100問ごとのまとまり", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Black)
             }
             if (sentences.isEmpty()) {
                 item { EmptyCard(stringResource(R.string.sentence_menu_start_empty)) }
             } else {
                 val blocks = sentences.chunked(SENTENCE_BLOCK_SIZE)
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        blocks.take(3).forEachIndexed { blockIndex, block ->
+                            val start = blockIndex * SENTENCE_BLOCK_SIZE + 1
+                            val label = "${start}~${start + block.size - 1}問"
+                            GramCard(modifier = Modifier.weight(1f)) {
+                                Column(
+                                    modifier = Modifier.padding(14.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    GramCircularProgress(
+                                        progress = (block.size / SENTENCE_BLOCK_SIZE.toFloat()).coerceIn(0f, 1f),
+                                        label = "${(block.size * 100 / SENTENCE_BLOCK_SIZE)}%"
+                                    )
+                                    Text(label, color = DeepBlue, fontSize = 12.sp, fontWeight = FontWeight.Black)
+                                    Text(if (block.size >= SENTENCE_BLOCK_SIZE) "Master" else "学習中", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
                 items(blocks.size) { blockIndex ->
                     val blockNumber = blockIndex + 1
                     val start = blockIndex * SENTENCE_BLOCK_SIZE + 1
@@ -135,7 +152,7 @@ internal fun SentenceMenuScreen(
                 }
             }
             item {
-                SectionTitle(stringResource(R.string.sentence_menu_about_section))
+                Text(stringResource(R.string.sentence_menu_about_section), color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Black)
             }
             item {
                 Card(
@@ -177,6 +194,37 @@ internal fun SentenceMenuScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SentenceMenuActionRow(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(BrightBlue.copy(alpha = 0.14f), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = BrightBlue, modifier = Modifier.size(28.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, color = DeepBlue, fontSize = 18.sp, fontWeight = FontWeight.Black)
+            Text(subtitle, color = TextMuted, fontSize = 13.sp)
+        }
+        Text("›", color = BrightBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
     }
 }
 

@@ -35,14 +35,9 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -71,7 +66,7 @@ internal fun WordDetailScreen(navController: NavHostController, viewModel: WordD
         ) {
             item {
                 word?.let {
-                    Card(shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                    GramCard {
                         Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(it.english, fontSize = 34.sp, fontWeight = FontWeight.Black, color = DeepBlue, modifier = Modifier.weight(1f))
@@ -86,32 +81,26 @@ internal fun WordDetailScreen(navController: NavHostController, viewModel: WordD
                                 relations.forEach { rel -> Text("${rel.relatedWord}: ${rel.relatedMeaning}", color = TextDark) }
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                                OutlinedButton(
+                                GramSecondaryButton(
+                                    text = if (it.isFavorite) "お気に入り中" else "お気に入り",
+                                    icon = if (it.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                     onClick = { viewModel.setFavorite(!it.isFavorite) },
                                     modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        if (it.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                        contentDescription = null,
-                                        tint = if (it.isFavorite) Danger else BrightBlue
-                                    )
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(if (it.isFavorite) "お気に入り中" else "お気に入り")
-                                }
-                                OutlinedButton(
+                                )
+                                GramSecondaryButton(
+                                    text = if (it.isLearned) "学習済み" else "未学習",
+                                    icon = Icons.Default.Check,
                                     onClick = { viewModel.setLearned(!it.isLearned) },
                                     modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(Icons.Default.Check, contentDescription = null, tint = if (it.isLearned) Success else BrightBlue)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(if (it.isLearned) "学習済み" else "未学習")
-                                }
+                                )
                             }
-                            Button(onClick = viewModel::addReview, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)) {
-                                Icon(Icons.Default.BookmarkBorder, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("復習対象に追加")
-                            }
+                            GramPrimaryButton(
+                                text = "復習対象に追加",
+                                icon = Icons.Default.BookmarkBorder,
+                                onClick = viewModel::addReview,
+                                modifier = Modifier.fillMaxWidth(),
+                                containerColor = AccentBlue
+                            )
                         }
                     }
                 } ?: CircularProgressIndicator()

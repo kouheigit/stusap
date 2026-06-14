@@ -9,6 +9,7 @@ import com.example.vocabapp.ui.theme.AccentBlue
 import com.example.vocabapp.ui.theme.BrightBlue
 
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.ui.navigation.Route
 
@@ -35,10 +36,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -80,30 +77,22 @@ internal fun CustomSentenceListScreen(
     }
     BlueScaffold(title = "登録文章一覧 (${sentences.size})", onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(
+                    GramPrimaryButton(
+                        text = "文章を追加",
+                        icon = Icons.Default.Add,
                         onClick = { navController.navigate(Route.AddSentence.path) },
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
-                        Spacer(Modifier.width(4.dp))
-                        Text("文章を追加", color = DeepBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
             item {
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                GramCard {
                     Row(
                         Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -127,11 +116,7 @@ internal fun CustomSentenceListScreen(
             }
             if (displayed.isEmpty()) {
                 item {
-                    Card(
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    GramCard {
                         Column(
                             Modifier.padding(24.dp).fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -182,11 +167,7 @@ internal fun SentenceRow(index: Int, sentence: CustomSentenceEntity, onDelete: (
         )
     }
 
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Row(
             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -231,4 +212,3 @@ internal fun SentenceRow(index: Int, sentence: CustomSentenceEntity, onDelete: (
         }
     }
 }
-

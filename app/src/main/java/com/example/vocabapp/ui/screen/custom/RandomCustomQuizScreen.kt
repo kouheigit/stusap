@@ -1,6 +1,6 @@
 package com.example.vocabapp
 
-import com.example.vocabapp.ui.theme.BrightBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.ui.navigation.Route
 
@@ -39,7 +39,7 @@ internal fun RandomCustomMenuScreen(navController: NavHostController) {
         onBack = { navController.popBackStack() }
     ) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -100,7 +100,7 @@ internal fun RandomCustomQuizScreen(
                 CircularProgressIndicator()
             }
             state.questions.isEmpty() -> EmptyMessage(
-                Modifier.padding(inner).background(BrightBlue),
+                Modifier.padding(inner).background(SoftBlue),
                 stringResource(
                     R.string.random_quiz_requires_four,
                     if (isIdiom) {

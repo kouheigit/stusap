@@ -34,10 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -52,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,11 +89,12 @@ internal fun AddSentenceScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            AnimatedMascot(
+                mood = MascotMood.Wave,
+                size = 84.dp,
+                message = stringResource(R.string.add_sentence_mascot)
+            )
+            GramCard {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(
@@ -157,45 +156,33 @@ internal fun AddSentenceScreen(
                     if (validationMsg != null) {
                         Text(validationMsg, color = Danger, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
-                    Button(
-                        onClick = { viewModel.save(sentence, meaning) },
+                    GramPrimaryButton(
+                        text = "保存",
+                        icon = Icons.Default.Check,
                         enabled = isValidSentence && meaning.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("登録する", fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                    }
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { viewModel.save(sentence, meaning) }
+                    )
                 }
             }
             if (saved) {
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Success),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                GramCard {
                     Row(
                         Modifier.padding(16.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("登録しました", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("登録しました", color = Success, fontWeight = FontWeight.Bold)
                         TextButton(
                             onClick = { navController.navigate(Route.CustomSentenceList.path) },
-                            colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                            colors = ButtonDefaults.textButtonColors(contentColor = Success)
                         ) {
                             Text("一覧へ", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
                 }
             }
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            GramCard {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("入力形式", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     Text("① そのまま英文を入力（6語以上必要）", color = TextMuted, fontSize = 12.sp)

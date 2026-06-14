@@ -17,8 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,8 +43,11 @@ import com.example.vocabapp.util.errorImportLog
 import com.example.vocabapp.queryDisplayName
 import com.example.vocabapp.readImportFileAsRows
 import com.example.vocabapp.ui.navigation.Route
+import com.example.vocabapp.ui.screen.common.AnimatedMascot
 import com.example.vocabapp.ui.screen.common.BlueScaffold
+import com.example.vocabapp.ui.screen.common.GramPrimaryButton
 import com.example.vocabapp.ui.screen.common.ImportSuccessSoundEffect
+import com.example.vocabapp.ui.screen.common.MascotMood
 import com.example.vocabapp.viewmodel.SentenceImportViewModel
 import androidx.compose.ui.res.stringResource
 import com.example.vocabapp.R
@@ -94,6 +95,12 @@ internal fun SentenceImportScreen(
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item {
+                AnimatedMascot(
+                    mood = if (result != null) MascotMood.Cheer else MascotMood.Wave,
+                    message = if (result != null) "文章インポートが完了しました" else "文章問題に使う英文をまとめて取り込めます"
+                )
+            }
             item {
                 SentenceFilePickerButton(
                     hasLoadedFile = preview != null || result != null,
@@ -172,35 +179,23 @@ internal fun SentenceImportScreen(
 
 @Composable
 private fun SentenceFilePickerButton(hasLoadedFile: Boolean, onClick: () -> Unit) {
-    Button(
+    GramPrimaryButton(
+        text = if (hasLoadedFile) stringResource(R.string.sentence_import_change_file) else stringResource(R.string.sentence_import_pick_file),
+        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = BrightBlue),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(
-            if (hasLoadedFile) stringResource(R.string.sentence_import_change_file) else stringResource(R.string.sentence_import_pick_file),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
 private fun SentenceRegisterButton(count: Int, enabled: Boolean, onClick: () -> Unit) {
-    Button(
+    GramPrimaryButton(
+        text = stringResource(R.string.sentence_import_register_btn, count),
+        icon = Icons.Default.Check,
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Success),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Icon(Icons.Default.Check, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.sentence_import_register_btn, count), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-    }
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 private val IMPORT_MIME_TYPES = arrayOf(

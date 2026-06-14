@@ -43,6 +43,8 @@ import com.example.vocabapp.ui.theme.Success
 import com.example.vocabapp.ui.theme.TextDark
 import com.example.vocabapp.ui.theme.TextMuted
 import com.example.vocabapp.data.repository.CAPACITY_LOW_THRESHOLD
+import com.example.vocabapp.ui.screen.common.GramCard
+import com.example.vocabapp.ui.screen.common.GramSecondaryButton
 
 @Composable
 internal fun SentenceFileNameCard(fileName: String) {
@@ -126,32 +128,24 @@ internal fun SentenceImportSuccessCard(
     onViewList: () -> Unit,
     onHome: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Success),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(stringResource(R.string.import_success_title), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
-                Text(stringResource(R.string.sentence_import_success_detail, insertedCount, quizReadyCount), color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
+                Text(stringResource(R.string.import_success_title), color = Success, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.sentence_import_success_detail, insertedCount, quizReadyCount), color = TextDark, fontSize = 13.sp)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 TextButton(onClick = onViewList, colors = ButtonDefaults.textButtonColors(contentColor = Color.White)) {
-                    Text(stringResource(R.string.sentence_import_view_list), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.sentence_import_view_list), color = Success, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(4.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Success, modifier = Modifier.size(16.dp))
                 }
-                Button(
+                GramSecondaryButton(
+                    text = stringResource(R.string.import_success_home),
+                    icon = Icons.Default.Home,
                     onClick = onHome,
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Success),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.import_success_home), fontWeight = FontWeight.Bold)
-                }
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }

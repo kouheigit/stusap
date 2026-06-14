@@ -1,8 +1,6 @@
 package com.example.vocabapp
 
-import com.example.vocabapp.ui.theme.BrightBlue
-
-import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.ui.navigation.Route
 
@@ -16,26 +14,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -64,64 +53,37 @@ internal fun CustomTrainingListScreen(navController: NavHostController, viewMode
     }
     BlueScaffold(title = title, onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(
+                    GramPrimaryButton(
+                        text = if (isIdiom) {
+                            stringResource(R.string.custom_idiom_register)
+                        } else {
+                            stringResource(R.string.custom_word_register)
+                        },
+                        icon = Icons.Default.Add,
                         onClick = { navController.navigate(if (isIdiom) Route.AddIdiom.path else Route.AddWord.path) },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = BrightBlue)
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            if (isIdiom) {
-                                stringResource(R.string.custom_idiom_register)
-                            } else {
-                                stringResource(R.string.custom_word_register)
-                            },
-                            color = DeepBlue,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Button(
+                        modifier = Modifier.weight(1f).height(56.dp)
+                    )
+                    GramSecondaryButton(
+                        text = stringResource(R.string.custom_registered_list),
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                         onClick = { navController.navigate(listRoute) },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null, tint = BrightBlue)
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            stringResource(R.string.custom_registered_list),
-                            color = DeepBlue,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                        modifier = Modifier.weight(1f).height(56.dp)
+                    )
                 }
                 if (isIdiom) {
                     Spacer(Modifier.height(8.dp))
-                    Button(
+                    GramSecondaryButton(
+                        text = stringResource(R.string.custom_idiom_import),
+                        icon = Icons.Default.FileUpload,
                         onClick = { navController.navigate(Route.IdiomImport.path) },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = BrightBlue)
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            stringResource(R.string.custom_idiom_import),
-                            color = DeepBlue,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    )
                 }
             }
             item { SectionTitle(stringResource(R.string.custom_block_100)) }
@@ -182,7 +144,7 @@ internal fun CustomTrainingBlockScreen(
         onBack = { navController.popBackStack() }
     ) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {

@@ -35,8 +35,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -101,7 +99,15 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Button(
+                AnimatedMascot(
+                    mood = if (result != null) MascotMood.Cheer else MascotMood.Wave,
+                    message = if (result != null) "インポートが完了しました" else "Excel / CSV から単語と熟語を登録できます"
+                )
+            }
+            item {
+                GramPrimaryButton(
+                    text = "Excel / CSVファイルを選択",
+                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                     onClick = {
                         picker.launch(
                             arrayOf(
@@ -112,14 +118,8 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
                             )
                         )
                     },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrightBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Excel / CSVファイルを選択", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             if (isLoading) {
                 item {
@@ -172,17 +172,13 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
                 }
                 if (result == null) {
                     item {
-                        Button(
+                        GramPrimaryButton(
+                            text = "登録する",
+                            icon = Icons.Default.Check,
                             onClick = { viewModel.registerPreview() },
                             enabled = currentPreview.newCount > 0 && !isLoading,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Success),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Icon(Icons.Default.Check, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("登録する", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        }
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
                 if (currentPreview.newWords.isNotEmpty()) {
@@ -216,26 +212,18 @@ internal fun WordImportScreen(navController: NavHostController, defaultType: Str
 
 @Composable
 private fun ImportSuccessCard(insertedCount: Int, onHome: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Success),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(stringResource(R.string.import_success_title), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
-                Text(stringResource(R.string.word_import_success_detail, insertedCount), color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
+                Text(stringResource(R.string.import_success_title), color = Success, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.word_import_success_detail, insertedCount), color = TextDark, fontSize = 13.sp)
             }
-            Button(
+            GramSecondaryButton(
+                text = stringResource(R.string.import_success_home),
+                icon = Icons.Default.Home,
                 onClick = onHome,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Success),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(Icons.Default.Home, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.import_success_home), fontWeight = FontWeight.Bold)
-            }
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

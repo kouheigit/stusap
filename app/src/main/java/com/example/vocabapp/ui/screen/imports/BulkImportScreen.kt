@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.vocabapp.ui.screen.common.BlueScaffold
 import com.example.vocabapp.ui.screen.common.CardButton
+import com.example.vocabapp.ui.screen.common.AnimatedMascot
+import com.example.vocabapp.ui.screen.common.MascotMood
 import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.TextDark
 
@@ -39,6 +41,12 @@ internal fun BulkImportScreen(navController: NavHostController) {
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item {
+                AnimatedMascot(
+                    mood = MascotMood.Wave,
+                    message = "取り込みたい形式を選びましょう"
+                )
+            }
             item {
                 Text(
                     stringResource(R.string.bulk_import_screen_subtitle),
