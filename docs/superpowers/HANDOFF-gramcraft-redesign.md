@@ -18,6 +18,14 @@
 5. `cdca696` Phase C — quiz / result / passage / flashcard / review / training
 6. （本コミット）docs — この HANDOFF と `stusap_fix.md`
 
+### Phase Z 最終検証（このセッションで実施）
+- `GRADLE_USER_HOME=.gradle ./gradlew clean assembleDebug testDebugUnitTest` = **BUILD SUCCESSFUL in 4m 39s（53 tasks、53 executed＝フルのクリーン実行）**。
+- ユニットテスト: **31 テストクラス・全 PASS（failures=0 / errors=0、合計 ~190 件）**。
+- `rg -n "Color\(0x" app/.../ui/screen -g '*.kt'` = **CLEAN（ヒットなし）**。
+- `rg -n "TODO|FIXME" app/.../ui/screen` = **なし**。
+- 既存の KAPT 警告（language version 2.0 fallback / unrecognized processor options）は継続。今回変更由来の失敗はなし。
+- **残るのは目視確認のみ**（ユーザー側で実施）。
+
 ### 状態
 - ブランチ `passage-bulk-submit`、**push はしていない**（ローカルコミットのみ）。
 - 目視確認はユーザー方針どおりユーザー側で実施する（このホストのエミュは SystemUI ANR で不可）。
