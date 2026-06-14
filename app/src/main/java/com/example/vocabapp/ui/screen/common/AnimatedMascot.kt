@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vocabapp.R
 import com.example.vocabapp.ui.theme.DeepBlue
 import com.example.vocabapp.ui.theme.TextMuted
 
@@ -41,41 +40,21 @@ internal fun AnimatedMascot(
     size: Dp = 92.dp,
     message: String? = null
 ) {
+    val motion = mascotMotionFor(mood)
     val transition = rememberInfiniteTransition(label = "robota")
     val bob by transition.animateFloat(
-        initialValue = -4f,
-        targetValue = 6f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = if (mood == MascotMood.Cheer) 520 else 1300),
-            repeatMode = RepeatMode.Reverse
-        ),
+        initialValue = motion.bobFrom, targetValue = motion.bobTo,
+        animationSpec = infiniteRepeatable(tween(motion.bobDurationMillis), RepeatMode.Reverse),
         label = "robotaBob"
     )
     val rotate by transition.animateFloat(
-        initialValue = when (mood) {
-            MascotMood.Wave -> -6f
-            MascotMood.Thinking -> -2f
-            else -> -3f
-        },
-        targetValue = when (mood) {
-            MascotMood.Wave -> 9f
-            MascotMood.Thinking -> 4f
-            MascotMood.Cheer -> 6f
-            else -> 3f
-        },
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = if (mood == MascotMood.Wave) 640 else 1500),
-            repeatMode = RepeatMode.Reverse
-        ),
+        initialValue = motion.rotateFrom, targetValue = motion.rotateTo,
+        animationSpec = infiniteRepeatable(tween(motion.rotateDurationMillis), RepeatMode.Reverse),
         label = "robotaRotate"
     )
     val scale by transition.animateFloat(
-        initialValue = 0.96f,
-        targetValue = if (mood == MascotMood.Cheer) 1.08f else 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = if (mood == MascotMood.Cheer) 520 else 1200),
-            repeatMode = RepeatMode.Reverse
-        ),
+        initialValue = motion.minScale, targetValue = motion.maxScale,
+        animationSpec = infiniteRepeatable(tween(motion.scaleDurationMillis), RepeatMode.Reverse),
         label = "robotaScale"
     )
 
@@ -85,8 +64,11 @@ internal fun AnimatedMascot(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
+            if (motion.showConfetti) {
+                ConfettiOverlay(modifier = Modifier.matchParentSize())
+            }
             Image(
-                painter = painterResource(R.drawable.robota_mascot),
+                painter = painterResource(mascotDrawable(mood)),
                 contentDescription = null,
                 modifier = Modifier
                     .size(size)
