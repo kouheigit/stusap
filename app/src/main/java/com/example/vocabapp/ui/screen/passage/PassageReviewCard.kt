@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,7 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.vocabapp.ui.screen.common.GramCard
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.TextDark
 import com.example.vocabapp.ui.theme.TextMuted
 
@@ -35,13 +35,10 @@ internal fun PassageReviewCard(
     review: PassageQuestionReview,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    GramCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(horizontal = 12.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             ReviewHeader(review)
@@ -61,7 +58,7 @@ internal fun PassageReviewCard(
                     text = review.selectedText ?: "未解答",
                     chipLabel = review.selectedIndex?.let { passageChoiceLabel(it) },
                     chipColor = if (review.isCorrect) PassageReviewCorrect else PassageReviewWrong,
-                    backgroundColor = if (review.isCorrect) PassageReviewSectionFill else Color(0xFFFCEBF6),
+                    backgroundColor = if (review.isCorrect) PassageReviewSectionFill else SoftBlue,
                     textColor = if (review.isCorrect) PassageReviewCorrect else PassageReviewWrong
                 )
                 ReviewAnswerSection(

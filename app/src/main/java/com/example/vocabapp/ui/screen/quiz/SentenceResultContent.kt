@@ -14,9 +14,8 @@ import com.example.vocabapp.ui.theme.TextDark
 
 import com.example.vocabapp.ui.theme.AccentBlue
 
-import com.example.vocabapp.ui.theme.BrightBlue
-
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.ui.screen.common.*
 
@@ -41,14 +40,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -110,18 +103,14 @@ internal fun SentenceResultContent(
         medalScale.animateTo(1f, animationSpec = tween(100))
     }
 
-    Column(modifier.fillMaxSize().background(BrightBlue)) {
+    Column(modifier.fillMaxSize().background(SoftBlue)) {
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                GramCard {
                     Column(
                         Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -150,7 +139,7 @@ internal fun SentenceResultContent(
                             progress = { animProgress.value },
                             modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)),
                             color = Teal,
-                            trackColor = Color(0xFFDDE5EC)
+                            trackColor = SoftBlue
                         )
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -220,33 +209,26 @@ internal fun SentenceResultContent(
             Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Button(
+            GramPrimaryButton(
+                text = "もう一度",
+                icon = Icons.Default.Refresh,
                 onClick = onRetry,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(Icons.Default.Refresh, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("もう一度", fontSize = 17.sp, fontWeight = FontWeight.Bold)
-            }
+                containerColor = AccentBlue
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(
+                GramSecondaryButton(
+                    text = "文章問題メニュー",
                     onClick = onMenu,
                     modifier = Modifier.weight(1f).height(48.dp)
-                ) {
-                    Text("文章問題メニュー", fontWeight = FontWeight.Bold)
-                }
-                Button(
+                )
+                GramPrimaryButton(
+                    text = "ホーム",
+                    icon = Icons.Default.Home,
                     onClick = onHome,
                     modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Home, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text("ホーム", fontWeight = FontWeight.Bold)
-                }
+                    containerColor = DeepBlue
+                )
             }
         }
     }

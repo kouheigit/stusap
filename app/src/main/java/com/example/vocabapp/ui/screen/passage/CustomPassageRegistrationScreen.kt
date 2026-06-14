@@ -16,10 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Preview
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -41,10 +37,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vocabapp.domain.model.PassageSet
+import com.example.vocabapp.ui.screen.common.AnimatedMascot
 import com.example.vocabapp.ui.screen.common.BlueScaffold
-import com.example.vocabapp.ui.theme.BrightBlue
+import com.example.vocabapp.ui.screen.common.GramCard
+import com.example.vocabapp.ui.screen.common.GramPrimaryButton
+import com.example.vocabapp.ui.screen.common.GramSecondaryButton
+import com.example.vocabapp.ui.screen.common.MascotMood
 import com.example.vocabapp.ui.theme.DeepBlue
 import com.example.vocabapp.ui.theme.Danger
+import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.Success
 import com.example.vocabapp.ui.theme.TextDark
 import com.example.vocabapp.ui.theme.TextMuted
@@ -70,10 +71,17 @@ internal fun CustomPassageRegistrationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .background(BrightBlue),
+                .background(SoftBlue),
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item {
+                AnimatedMascot(
+                    mood = MascotMood.Wave,
+                    size = 84.dp,
+                    message = "長文と設題をまとめて登録しましょう"
+                )
+            }
             item {
                 RegistrationFormatCard()
             }
@@ -139,30 +147,21 @@ internal fun CustomPassageRegistrationScreen(
                     hasManualQuestions = state.manualQuestions.isNotEmpty()
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedButton(
+                    GramSecondaryButton(
+                        text = "プレビュー",
+                        icon = Icons.Default.Preview,
                         onClick = viewModel::preview,
                         modifier = Modifier
                             .weight(1f)
-                            .height(52.dp),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Preview, contentDescription = null)
-                        Spacer(Modifier.padding(3.dp))
-                        Text("プレビュー")
-                    }
-                    Button(
+                    )
+                    GramPrimaryButton(
+                        text = if (state.isSaving) "保存中" else "保存",
+                        icon = Icons.Default.Check,
                         onClick = viewModel::save,
                         enabled = !state.isSaving,
                         modifier = Modifier
                             .weight(1f)
-                            .height(52.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                        Spacer(Modifier.padding(3.dp))
-                        Text(if (state.isSaving) "保存中" else "保存")
-                    }
+                    )
                 }
             }
         }
@@ -190,11 +189,7 @@ private fun ManualSaveStatusText(
 
 @Composable
 private fun RegistrationFormatCard() {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("貼り付け形式", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             Text("TITLE / TYPE / TIME_LIMIT と、本文・Q・A-D・ANSWER・EXPLANATION をまとめて貼れます。", color = TextDark, fontSize = 13.sp)
@@ -208,11 +203,7 @@ private fun ManualQuestionSummaryCard(
     questions: List<ManualPassageQuestion>,
     completed: Boolean
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("登録済み設題", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             if (questions.isEmpty()) {
@@ -254,11 +245,7 @@ private fun ManualQuestionSetupCard(
     onAddQuestion: () -> Unit,
     onCompleteQuestions: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("設題の設定", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             Text("1. 設題を入力", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -299,21 +286,16 @@ private fun ManualQuestionSetupCard(
                 shape = RoundedCornerShape(8.dp)
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(
+                GramSecondaryButton(
+                    text = "設題を増やす",
                     onClick = onAddQuestion,
-                    modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("設題を増やす")
-                }
-                Button(
+                    modifier = Modifier.weight(1f)
+                )
+                GramPrimaryButton(
+                    text = "問題設定を完了",
                     onClick = onCompleteQuestions,
-                    modifier = Modifier.weight(1f).height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("問題設定を完了")
-                }
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
@@ -379,11 +361,7 @@ private fun ManualPassageBaseFields(
     onTimeLimitChange: (String) -> Unit,
     onBodyChange: (String) -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("手入力で登録", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 16.sp)
             OutlinedTextField(
@@ -434,11 +412,7 @@ private fun ManualPassageBaseFields(
 @Composable
 private fun PassagePreviewCard(set: PassageSet) {
     val document = set.documents.first()
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(document.title ?: "長文問題", color = DeepBlue, fontWeight = FontWeight.Black, fontSize = 17.sp)
             Text("種類: ${document.kind.name.lowercase()} / 設問: ${set.questions.size}問 / 制限時間: ${set.timeLimitSec ?: 300}秒", color = TextMuted, fontSize = 12.sp)
@@ -453,11 +427,7 @@ private fun PassagePreviewCard(set: PassageSet) {
 
 @Composable
 private fun StatusCard(message: String, color: Color) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Text(
             text = message,
             color = color,

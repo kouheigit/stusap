@@ -1,26 +1,19 @@
 package com.example.vocabapp.ui.screen.passage
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,9 +32,12 @@ import com.example.vocabapp.domain.model.PassageSet as DomainPassageSet
 import com.example.vocabapp.ui.navigation.Route
 import com.example.vocabapp.ui.screen.common.BlueScaffold
 import com.example.vocabapp.ui.screen.common.EmptyCard
+import com.example.vocabapp.ui.screen.common.GramCard
+import com.example.vocabapp.ui.screen.common.GramPrimaryButton
 import com.example.vocabapp.ui.theme.BrightBlue
 import com.example.vocabapp.ui.theme.DeepBlue
 import com.example.vocabapp.ui.theme.Danger
+import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.TextDark
 import com.example.vocabapp.ui.theme.TextMuted
 import com.example.vocabapp.viewmodel.CustomPassageListViewModel
@@ -67,23 +63,19 @@ internal fun CustomPassageListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .background(BrightBlue),
+                .background(SoftBlue),
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Button(
+                GramPrimaryButton(
+                    text = "長文問題を登録",
+                    icon = Icons.Default.Add,
                     onClick = { navController.navigate(Route.CustomPassageRegistration.path) },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("長文問題を登録", fontWeight = FontWeight.Bold)
-                }
+                        .fillMaxWidth(),
+                    containerColor = DeepBlue
+                )
             }
             state.errorMessage?.let { message ->
                 item {
@@ -108,12 +100,7 @@ internal fun CustomPassageListScreen(
 
 @Composable
 private fun PassageSummaryCard(summary: CustomPassageSummary, onClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
-    ) {
+    GramCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -130,11 +117,7 @@ private fun PassageSummaryCard(summary: CustomPassageSummary, onClick: () -> Uni
 
 @Composable
 private fun MessageCard(message: String, color: Color) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    GramCard {
         Text(message, color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp))
     }
 }

@@ -1,12 +1,15 @@
 package com.example.vocabapp.ui.screen.passage
 
-import androidx.compose.ui.graphics.Color
+import com.example.vocabapp.ui.theme.Danger
+import com.example.vocabapp.ui.theme.SoftBlue
+import com.example.vocabapp.ui.theme.Success
+import com.example.vocabapp.ui.theme.TextMuted
 
-internal val PassageReviewCorrect = Color(0xFF4ABFC2)
-internal val PassageReviewWrong = Color(0xFFD33EA7)
-internal val PassageReviewSectionFill = Color(0xFFEAF4FB)
-internal val PassageReviewSectionLine = Color(0xFFD5E1EA)
-internal val PassageReviewMuted = Color(0xFF8A97A2)
+internal val PassageReviewCorrect = Success
+internal val PassageReviewWrong = Danger
+internal val PassageReviewSectionFill = SoftBlue
+internal val PassageReviewSectionLine = SoftBlue
+internal val PassageReviewMuted = TextMuted
 
 internal data class PassageQuestionReview(
     val question: PassageQuestion,

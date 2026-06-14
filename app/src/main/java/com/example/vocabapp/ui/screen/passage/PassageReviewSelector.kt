@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vocabapp.ui.theme.BrightBlue
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 @Composable
 internal fun PassageReviewSelector(
@@ -73,7 +74,7 @@ internal fun PassageReviewSelector(
                         .size(28.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(Color.White)
-                        .border(1.dp, Color(0xFFD0D8DE), RoundedCornerShape(4.dp)),
+                        .border(1.dp, SoftBlue, RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

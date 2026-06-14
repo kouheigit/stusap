@@ -31,15 +31,10 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,10 +61,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.vocabapp.ui.navigation.Route
+import com.example.vocabapp.ui.screen.common.AnimatedMascot
+import com.example.vocabapp.ui.screen.common.GramCard
+import com.example.vocabapp.ui.screen.common.GramPrimaryButton
+import com.example.vocabapp.ui.screen.common.GramSecondaryButton
+import com.example.vocabapp.ui.screen.common.MascotMood
 import com.example.vocabapp.ui.theme.AccentBlue
 import com.example.vocabapp.ui.theme.BrightBlue
 import com.example.vocabapp.ui.theme.Danger
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.PassageEmailBorder
+import com.example.vocabapp.ui.theme.PassageEmailChrome
+import com.example.vocabapp.ui.theme.PassageEmailField
+import com.example.vocabapp.ui.theme.PassageEmailFieldBorder
+import com.example.vocabapp.ui.theme.PassagePaperBorder
+import com.example.vocabapp.ui.theme.PassagePaperInk
 import com.example.vocabapp.ui.theme.SoftBlue
 import com.example.vocabapp.ui.theme.Success
 import com.example.vocabapp.ui.theme.Teal
@@ -78,10 +84,10 @@ import com.example.vocabapp.ui.theme.TextMuted
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val PassageBlue = Color(0xFF168BEF)
-private val RuleGray = Color(0xFFD4DEE5)
-private val ChoiceGray = Color(0xFF8797A1)
-private val ProgressDotInactive = Color(0xFFEAF0F2)
+private val PassageBlue = SoftBlue
+private val RuleGray = SoftBlue
+private val ChoiceGray = TextMuted
+private val ProgressDotInactive = SoftBlue
 private val ProgressDotSize = 24.dp
 
 // 設問を初回解答してから次の設問へ自動で送るまでの待ち時間。選んだ選択肢が
@@ -201,7 +207,7 @@ private fun PassagePracticeContent(
 ) {
     val question = set.questions[state.currentIndex]
 
-    Column(modifier.fillMaxSize().background(Color.White)) {
+    Column(modifier.fillMaxSize().background(SoftBlue)) {
         PassagePracticeTopBar(
             currentNumber = state.currentIndex + 1,
             totalCount = set.questions.size,
@@ -276,8 +282,8 @@ private fun PassagePracticeTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                shape = RoundedCornerShape(3.dp),
-                color = Color(0xFF8C72E8)
+                shape = RoundedCornerShape(8.dp),
+                color = BrightBlue
             ) {
                 Text(
                     "長文問題",
@@ -322,7 +328,7 @@ private fun PassagePracticeTopBar(
                 )
             }
         }
-        HorizontalDivider(color = DeepBlue, thickness = 4.dp)
+        HorizontalDivider(color = BrightBlue, thickness = 4.dp)
     }
 }
 
@@ -338,7 +344,7 @@ private fun PassageTimerBar(remainingSec: Int, progress: Float) {
             progress = { progress.coerceIn(0f, 1f) },
             modifier = Modifier.weight(1f).height(12.dp).clip(RoundedCornerShape(8.dp)),
             color = Teal,
-            trackColor = Color(0xFFEAF0F2)
+            trackColor = SoftBlue
         )
         Spacer(Modifier.width(12.dp))
         Text(
@@ -358,7 +364,7 @@ private fun PassageInstruction(instruction: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().background(Color(0xFFE8F4FF), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+            modifier = Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .border(1.dp, RuleGray, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -407,12 +413,12 @@ private fun ArticleDocument(document: PassageDocument) {
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Text(
             document.title ?: "Article",
-            color = Color(0xFF202020),
+            color = PassagePaperInk,
             fontSize = 26.sp,
             lineHeight = 32.sp,
             fontFamily = FontFamily.Serif
         )
-        HorizontalDivider(color = Color.Black, thickness = 4.dp)
+        HorizontalDivider(color = PassagePaperBorder, thickness = 4.dp)
         PassageBodyText(document.body)
     }
 }
@@ -420,19 +426,19 @@ private fun ArticleDocument(document: PassageDocument) {
 @Composable
 private fun NoticeDocument(document: PassageDocument) {
     Column(
-        modifier = Modifier.border(2.dp, Color(0xFF303030)).fillMaxWidth(),
+        modifier = Modifier.border(2.dp, PassagePaperBorder).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             document.title ?: "Notice",
-            color = Color(0xFF202020),
+            color = PassagePaperInk,
             fontSize = 26.sp,
             lineHeight = 32.sp,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         )
-        HorizontalDivider(color = Color(0xFF303030), thickness = 2.dp)
+        HorizontalDivider(color = PassagePaperBorder, thickness = 2.dp)
         // 親が縦スクロールのため高さ制約が無限になる。IntrinsicSize.Min で
         // セルの fillMaxHeight を最も高いセルに揃え、スクロール内でも安全に描画する。
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
@@ -446,12 +452,12 @@ private fun NoticeDocument(document: PassageDocument) {
 @Composable
 private fun NoticeCell(text: String, modifier: Modifier, header: Boolean) {
     Box(
-        modifier = modifier.border(1.dp, Color(0xFF303030)).padding(12.dp),
+        modifier = modifier.border(1.dp, PassagePaperBorder).padding(12.dp),
         contentAlignment = if (header) Alignment.TopCenter else Alignment.TopStart
     ) {
         Text(
             text,
-            color = Color(0xFF202020),
+            color = PassagePaperInk,
             fontSize = if (header) 21.sp else 22.sp,
             lineHeight = if (header) 25.sp else 31.sp,
             fontWeight = if (header) FontWeight.Black else FontWeight.Normal,
@@ -464,7 +470,7 @@ private fun NoticeCell(text: String, modifier: Modifier, header: Boolean) {
 private fun EmailDocument(document: PassageDocument) {
     val header = document.header
     Column(
-        modifier = Modifier.fillMaxWidth().background(Color(0xFFC7C7C7)).border(2.dp, Color(0xFF555555)).padding(8.dp),
+        modifier = Modifier.fillMaxWidth().background(PassageEmailChrome).border(2.dp, PassageEmailBorder).padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         if (header != null) {
@@ -474,13 +480,13 @@ private fun EmailDocument(document: PassageDocument) {
             EmailHeaderRow("Subject:", header.subject)
         }
         Column(
-            modifier = Modifier.fillMaxWidth().background(Color.White).border(1.dp, Color(0xFF777777)).padding(16.dp),
+            modifier = Modifier.fillMaxWidth().background(Color.White).border(1.dp, PassageEmailFieldBorder).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             document.body.split("\n\n").forEach { paragraph ->
                 Text(
                     paragraph,
-                    color = Color(0xFF202020),
+                    color = PassagePaperInk,
                     fontSize = 23.sp,
                     lineHeight = 33.sp,
                     fontFamily = FontFamily.Serif
@@ -495,19 +501,19 @@ private fun EmailHeaderRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             label,
-            color = Color(0xFF202020),
+            color = PassagePaperInk,
             fontSize = 19.sp,
             fontWeight = FontWeight.Black,
-            modifier = Modifier.width(82.dp).background(Color(0xFFD9D9D9)).border(1.dp, Color(0xFF777777)).padding(4.dp),
+            modifier = Modifier.width(82.dp).background(PassageEmailField).border(1.dp, PassageEmailFieldBorder).padding(4.dp),
             maxLines = 1
         )
         Spacer(Modifier.width(8.dp))
         Text(
             value,
-            color = Color(0xFF202020),
+            color = PassagePaperInk,
             fontSize = 18.sp,
             fontFamily = FontFamily.Serif,
-            modifier = Modifier.weight(1f).background(Color.White).border(1.dp, Color(0xFF777777)).padding(horizontal = 8.dp, vertical = 3.dp),
+            modifier = Modifier.weight(1f).background(Color.White).border(1.dp, PassageEmailFieldBorder).padding(horizontal = 8.dp, vertical = 3.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -523,7 +529,7 @@ private fun PassageBodyText(body: String) {
         paragraphs.forEach { paragraph ->
             Text(
                 paragraph,
-                color = Color(0xFF202020),
+                color = PassagePaperInk,
                 fontSize = 21.sp,
                 lineHeight = 34.sp,
                 fontFamily = FontFamily.Serif
@@ -553,7 +559,7 @@ private fun PassageDocumentToggle(expanded: Boolean, onToggle: () -> Unit) {
             Spacer(Modifier.width(14.dp))
             Text(
                 if (expanded) "問題を閉じる" else "問題を開く",
-                color = Color.White,
+                color = DeepBlue,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Black
             )
@@ -567,7 +573,8 @@ private fun PassageQuestionBody(
     selectedIndex: Int?,
     onSelect: (Int) -> Unit
 ) {
-    Column(Modifier.fillMaxWidth().background(Color.White)) {
+    GramCard {
+    Column(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
             Surface(shape = RoundedCornerShape(4.dp), color = DeepBlue) {
                 Text(
@@ -596,6 +603,7 @@ private fun PassageQuestionBody(
                 onClick = { onSelect(index) }
             )
         }
+    }
     }
 }
 
@@ -686,20 +694,15 @@ private fun BottomPracticeBar(
             }
         }
         // 全問解答するまで一括送信を無効にする。最後にまとめて答え合わせする。
-        Button(
+        GramPrimaryButton(
+            text = "解答する",
             onClick = onSubmitAll,
             enabled = allAnswered,
             modifier = Modifier.width(190.dp).fillMaxHeight(),
-            shape = RoundedCornerShape(0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentBlue,
-                disabledContainerColor = Color(0xFFCAD7DD),
-                contentColor = Color.White,
-                disabledContentColor = Color.White
-            )
-        ) {
-            Text("解答する", fontSize = 20.sp, fontWeight = FontWeight.Black)
-        }
+            containerColor = AccentBlue,
+            disabledContainerColor = SoftBlue,
+            disabledContentColor = TextMuted
+        )
     }
 }
 
@@ -716,18 +719,15 @@ private fun PassageResultScreen(
     val total = set.questions.size
     val wrong = total - state.score
     Column(
-        modifier = modifier.fillMaxSize().background(BrightBlue).padding(20.dp),
+        modifier = modifier.fillMaxSize().background(SoftBlue).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Spacer(Modifier.height(22.dp))
-        Text("結果", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
-        Text(set.id, color = SoftBlue, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        AnimatedMascot(mood = MascotMood.Cheer, size = 92.dp, message = "長文問題の結果です")
+        Text("結果", color = DeepBlue, fontSize = 32.sp, fontWeight = FontWeight.Black)
+        Text(set.id, color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        GramCard {
             Column(
                 Modifier.padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -741,35 +741,27 @@ private fun PassageResultScreen(
                 }
             }
         }
-        Button(
+        GramPrimaryButton(
+            text = "リトライ",
+            icon = Icons.Default.Refresh,
             onClick = onRetry,
             modifier = Modifier.fillMaxWidth().height(54.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Icon(Icons.Default.Refresh, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("リトライ", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        }
+            containerColor = DeepBlue
+        )
         if (hasNextSet) {
-            Button(
+            GramPrimaryButton(
+                text = "次のセット",
+                icon = Icons.Default.PlayArrow,
                 onClick = onNextSet,
                 modifier = Modifier.fillMaxWidth().height(54.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("次のセット", fontWeight = FontWeight.Black, fontSize = 18.sp)
-            }
+                containerColor = AccentBlue
+            )
         }
-        OutlinedButton(
+        GramSecondaryButton(
+            text = "ホームへ戻る",
             onClick = onHome,
-            modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text("ホームへ戻る", color = Color.White, fontWeight = FontWeight.Bold)
-        }
+            modifier = Modifier.fillMaxWidth().height(54.dp)
+        )
     }
 }
 

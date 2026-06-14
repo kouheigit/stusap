@@ -8,9 +8,8 @@ import com.example.vocabapp.ui.theme.TextMuted
 
 import com.example.vocabapp.ui.theme.AccentBlue
 
-import com.example.vocabapp.ui.theme.BrightBlue
-
 import com.example.vocabapp.ui.theme.DeepBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.ui.navigation.Route
 
@@ -37,14 +36,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -183,7 +179,7 @@ internal fun CustomWordQuizResultContent(
     }
 
     Column(
-        modifier = modifier.background(BrightBlue).padding(20.dp),
+        modifier = modifier.background(SoftBlue).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -231,35 +227,33 @@ internal fun CustomWordQuizResultContent(
                     .height(14.dp)
                     .clip(RoundedCornerShape(7.dp)),
                 color = Teal,
-                trackColor = Color(0xFFDDE5EC)
+                trackColor = SoftBlue
             )
         }
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        GramCard {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                AnimatedMascot(mood = MascotMood.Cheer, size = 92.dp, message = title)
                 Text(title, color = DeepBlue, fontSize = 28.sp, fontWeight = FontWeight.Black)
                 Text(message, color = TextMuted, textAlign = TextAlign.Center, fontSize = 16.sp)
             }
         }
         Spacer(Modifier.weight(1f))
-        Button(
+        GramPrimaryButton(
+            text = stringResource(R.string.result_retry),
+            icon = Icons.Default.Refresh,
             onClick = onRetry,
             modifier = Modifier.fillMaxWidth().height(54.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-        ) {
-            Icon(Icons.Default.Refresh, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.result_retry), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        }
-        OutlinedButton(onClick = onHome, modifier = Modifier.fillMaxWidth().height(54.dp)) {
-            Text(stringResource(R.string.result_home))
-        }
+            containerColor = AccentBlue
+        )
+        GramSecondaryButton(
+            text = stringResource(R.string.result_home),
+            icon = Icons.Default.Home,
+            onClick = onHome,
+            modifier = Modifier.fillMaxWidth().height(54.dp)
+        )
     }
 }

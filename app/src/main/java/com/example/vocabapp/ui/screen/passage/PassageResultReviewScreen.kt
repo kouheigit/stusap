@@ -17,10 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.vocabapp.ui.screen.common.GramPrimaryButton
+import com.example.vocabapp.ui.screen.common.GramSecondaryButton
 import com.example.vocabapp.ui.theme.AccentBlue
 import com.example.vocabapp.ui.theme.BrightBlue
 import com.example.vocabapp.ui.theme.DeepBlue
@@ -66,7 +65,7 @@ internal fun PassageResultReviewScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BrightBlue)
+            .background(SoftBlue)
     ) {
         ReviewTopBar(
             score = state.score,
@@ -127,7 +126,7 @@ private fun ReviewTopBar(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(shape = RoundedCornerShape(3.dp), color = Color(0xFF8C72E8)) {
+            Surface(shape = RoundedCornerShape(8.dp), color = BrightBlue) {
                 Text(
                     "長文問題",
                     color = Color.White,
@@ -160,13 +159,13 @@ private fun ReviewTopBar(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            OutlinedButton(onClick = onRetry) {
-                Icon(Icons.Default.Refresh, contentDescription = null)
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("やり直す")
-            }
+            GramSecondaryButton(
+                text = "やり直す",
+                icon = Icons.Default.Refresh,
+                onClick = onRetry
+            )
         }
-        androidx.compose.material3.HorizontalDivider(color = DeepBlue, thickness = 4.dp)
+        androidx.compose.material3.HorizontalDivider(color = BrightBlue, thickness = 4.dp)
     }
 }
 
@@ -212,27 +211,18 @@ private fun ReviewActionBar(
             .padding(horizontal = 12.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        OutlinedButton(
+        GramSecondaryButton(
+            text = if (showDocument) "問題文を閉じる" else "問題文を確認",
             onClick = onToggleDocument,
-            modifier = Modifier.weight(1f).height(54.dp),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(if (showDocument) "問題文を閉じる" else "問題文を確認", color = AccentBlue, fontWeight = FontWeight.Bold)
-        }
-        Button(
+            modifier = Modifier.weight(1f).height(54.dp)
+        )
+        GramPrimaryButton(
+            text = if (isLastReview && !hasNextSet) "ホームへ" else "次へ",
+            icon = if (isLastReview && !hasNextSet) Icons.Default.Home else null,
             onClick = if (isLastReview && !hasNextSet) onHome else onNext,
             modifier = Modifier.weight(1f).height(54.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            if (isLastReview && !hasNextSet) {
-                Icon(Icons.Default.Home, contentDescription = null)
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("ホームへ", fontWeight = FontWeight.Black, fontSize = 18.sp)
-            } else {
-                Text("次へ", fontWeight = FontWeight.Black, fontSize = 18.sp)
-            }
-        }
+            containerColor = AccentBlue
+        )
     }
 }
 

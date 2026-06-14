@@ -35,14 +35,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -134,11 +129,16 @@ internal fun SentenceQuizContent(
                 fontSize = 15.sp,
                 fontWeight = if (state.isAnswered) FontWeight.Bold else FontWeight.Normal
             )
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            AnimatedMascot(
+                mood = if (state.isAnswered && state.isCorrect == true) MascotMood.Cheer else MascotMood.Point,
+                size = 74.dp,
+                message = if (state.isAnswered) {
+                    if (state.isCorrect == true) "正解です！" else "答えを確認しましょう"
+                } else {
+                    "空欄に入る順番で選びましょう"
+                }
+            )
+            GramCard {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     val nextSlot = if (state.isAnswered) -1 else state.selectedWords.size
                     val annotated = buildAnnotatedSentenceTemplate(question.template, nextSlot)
@@ -189,9 +189,9 @@ internal fun SentenceQuizContent(
                         filledWord != null -> AccentBlue.copy(alpha = 0.5f)
                         else -> Color.Transparent
                     }
-                    Card(
+                    androidx.compose.material3.Card(
                         shape = RoundedCornerShape(6.dp),
-                        colors = CardDefaults.cardColors(containerColor = bgColor),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = bgColor),
                         border = androidx.compose.foundation.BorderStroke(1.5.dp, borderColor),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -234,58 +234,36 @@ internal fun SentenceQuizContent(
                             isSelected -> Color.White.copy(alpha = 0.3f)
                             else -> AccentBlue
                         }
-                        Button(
+                        GramPrimaryButton(
+                            text = word,
                             onClick = { if (!isSelected && !state.isAnswered) onSelectChoice(choiceIdx) },
                             enabled = !isSelected && !state.isAnswered,
+                            containerColor = containerColor,
+                            contentColor = Color.White,
+                            disabledContainerColor = containerColor,
+                            disabledContentColor = Color.White,
                             modifier = Modifier.weight(1f).height(46.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = containerColor,
-                                disabledContainerColor = containerColor
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                word,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+                        )
                     }
                     if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
             if (!state.isAnswered) {
                 val lastWord = state.selectedWords.lastOrNull()
-                OutlinedButton(
+                GramSecondaryButton(
+                    text = if (lastWord != null) "「$lastWord」をもどす" else "もどす",
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
                     onClick = onUndo,
                     enabled = lastWord != null,
                     modifier = Modifier.fillMaxWidth().height(46.dp)
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        if (lastWord != null) "「$lastWord」をもどす" else "もどす",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                )
             } else {
-                Button(
+                GramPrimaryButton(
+                    text = if (state.currentIndex >= state.questions.lastIndex) "結果を見る" else "次の問題",
                     onClick = onNext,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        if (state.currentIndex >= state.questions.lastIndex) "結果を見る" else "次の問題",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    containerColor = DeepBlue
+                )
             }
         }
     }

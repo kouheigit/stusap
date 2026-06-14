@@ -31,15 +31,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -82,15 +77,15 @@ internal fun FlashcardScreen(navController: NavHostController, viewModel: Flashc
                 LinearProgressIndicator(
                     progress = { (index + 1) / words.size.toFloat() },
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                    color = AccentBlue, trackColor = Color.White
+                    color = BrightBlue, trackColor = Color.White
+                )
+                AnimatedMascot(
+                    mood = if (revealed) MascotMood.Cheer else MascotMood.Thinking,
+                    size = 78.dp,
+                    message = if (revealed) "意味を確認しました" else "カードをタップして意味を確認"
                 )
                 word?.let { w ->
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        modifier = Modifier.fillMaxWidth().weight(1f).clickable { viewModel.toggleReveal() },
-                        elevation = CardDefaults.cardElevation(6.dp)
-                    ) {
+                    GramCard(modifier = Modifier.fillMaxWidth().weight(1f).clickable { viewModel.toggleReveal() }) {
                         Column(
                             Modifier.fillMaxSize().padding(28.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -120,17 +115,18 @@ internal fun FlashcardScreen(navController: NavHostController, viewModel: Flashc
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedButton(
+                    GramSecondaryButton(
+                        text = "← 前へ",
                         onClick = viewModel::prev,
                         enabled = index > 0,
                         modifier = Modifier.weight(1f).height(54.dp)
-                    ) { Text("← 前へ", fontWeight = FontWeight.Bold) }
-                    Button(
+                    )
+                    GramPrimaryButton(
+                        text = "次へ →",
                         onClick = viewModel::next,
                         enabled = index < words.lastIndex,
-                        modifier = Modifier.weight(1f).height(54.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrightBlue)
-                    ) { Text("次へ →", fontWeight = FontWeight.Bold) }
+                        modifier = Modifier.weight(1f).height(54.dp)
+                    )
                 }
             }
         }

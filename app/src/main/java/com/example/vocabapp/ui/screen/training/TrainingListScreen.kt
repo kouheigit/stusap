@@ -1,6 +1,6 @@
 package com.example.vocabapp
 
-import com.example.vocabapp.ui.theme.BrightBlue
+import com.example.vocabapp.ui.theme.SoftBlue
 
 import com.example.vocabapp.ui.navigation.Route
 
@@ -30,7 +30,7 @@ internal fun TrainingListScreen(navController: NavHostController, viewModel: Tra
     val sectionTitle = if (isIdiom) "英熟語 トレーニング一覧" else "トレーニング一覧"
     BlueScaffold(title = screenTitle, onBack = { navController.popBackStack() }) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner).background(BrightBlue),
+            modifier = Modifier.fillMaxSize().padding(inner).background(SoftBlue),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
