@@ -4,15 +4,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-internal val DeepBlue = Color(0xFF123F34)
-internal val BrightBlue = Color(0xFF58CC02)
-internal val AccentBlue = Color(0xFF1CB0F6)
-internal val SoftBlue = Color(0xFFEAF8EF)
-internal val TextDark = Color(0xFF18312A)
-internal val TextMuted = Color(0xFF6F837C)
-internal val Success = Color(0xFF58CC02)
-internal val Danger = Color(0xFFE5395A)
-internal val Gold = Color(0xFFFFC943)
+// Palette extracted pixel-strict from GramCraft comps (see design_progress.md §2).
+internal val DeepBlue = Color(0xFF1E3A2C)        // dark heading/body text (was #123F34)
+internal val BrightBlue = Color(0xFF21A357)      // primary green (was #58CC02 yellow-green — wrong hue)
+internal val HeaderGreen = Color(0xFF1A9A57)     // TopAppBar background green
+internal val AccentBlue = Color(0xFF0E9CE6)      // info / accuracy %
+internal val SoftBlue = Color(0xFFF4FBF6)        // mint screen background
+internal val TextDark = Color(0xFF1E3A2C)
+internal val TextMuted = Color(0xFF7A8C84)
+internal val Success = Color(0xFF21A357)
+internal val Danger = Color(0xFFFF5B71)
+internal val Gold = Color(0xFFFFC83D)
 internal val Teal = Color(0xFF00C2A8)
 internal val PassagePaperInk = Color(0xFF202020)
 internal val PassagePaperBorder = Color(0xFF303030)

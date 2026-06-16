@@ -6,10 +6,12 @@ import com.example.vocabapp.ui.theme.BrightBlue
 
 import com.example.vocabapp.ui.theme.DeepBlue
 import com.example.vocabapp.ui.theme.Gold
+import com.example.vocabapp.ui.theme.HeaderGreen
 import com.example.vocabapp.ui.theme.SoftBlue
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
@@ -47,11 +49,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.vocabapp.R
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.vocabapp.domain.model.ContentType
@@ -95,7 +101,7 @@ internal fun BlueScaffold(
                     }
                 },
                 actions = { actions() },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DeepBlue)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = HeaderGreen)
             )
         },
         bottomBar = {
@@ -114,39 +120,59 @@ internal fun GramBottomNavigation(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = activeRoute ?: backStackEntry?.destination?.route.orEmpty()
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .background(SoftBlue)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
-        GramBottomItem(
-            label = "ホーム",
-            icon = Icons.Default.Check,
-            active = currentRoute == Route.Home.path,
-            onClick = {
-                navController.navigate(Route.Home.path) {
-                    launchSingleTop = true
-                    popUpTo(Route.Home.path)
+        if (currentRoute == Route.Home.path) {
+            Image(
+                painter = painterResource(R.drawable.gram_home_robot_cutout),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-18).dp)
+                    .size(48.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(5.dp, RoundedCornerShape(28.dp))
+                .clip(RoundedCornerShape(28.dp))
+                .background(Color.White)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            GramBottomItem(
+                label = "ホーム",
+                icon = Icons.Default.Home,
+                active = currentRoute == Route.Home.path,
+                onClick = {
+                    navController.navigate(Route.Home.path) {
+                        launchSingleTop = true
+                        popUpTo(Route.Home.path)
+                    }
                 }
+            )
+            GramBottomItem(
+                label = "レッスン",
+                icon = Icons.Default.School,
+                active = currentRoute.startsWith(Route.CustomTraining.PATTERN.substringBefore("/{")),
+                onClick = { navController.navigate(Route.customTraining(ContentType.WORD.routeValue)) }
+            )
+            GramBottomItem("復習", Icons.Default.Refresh, currentRoute == Route.Review.path) {
+                navController.navigate(Route.Review.path)
             }
-        )
-        GramBottomItem(
-            label = "レッスン",
-            icon = Icons.Default.School,
-            active = currentRoute.startsWith(Route.CustomTraining.PATTERN.substringBefore("/{")),
-            onClick = { navController.navigate(Route.customTraining(ContentType.WORD.routeValue)) }
-        )
-        GramBottomItem("復習", Icons.Default.Refresh, currentRoute == Route.Review.path) {
-            navController.navigate(Route.Review.path)
-        }
-        GramBottomItem("学習ログ", Icons.AutoMirrored.Filled.FormatListBulleted, currentRoute == Route.StudyLog.path) {
-            navController.navigate(Route.StudyLog.path)
-        }
-        GramBottomItem("設定", Icons.Default.Settings, currentRoute == Route.Settings.path) {
-            navController.navigate(Route.Settings.path)
+            GramBottomItem("学習ログ", Icons.AutoMirrored.Filled.FormatListBulleted, currentRoute == Route.StudyLog.path) {
+                navController.navigate(Route.StudyLog.path)
+            }
+            GramBottomItem("設定", Icons.Default.Settings, currentRoute == Route.Settings.path) {
+                navController.navigate(Route.Settings.path)
+            }
         }
     }
 }
@@ -163,7 +189,7 @@ private fun GramBottomItem(
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .background(if (active) BrightBlue.copy(alpha = 0.16f) else Color.Transparent)
-            .padding(horizontal = 8.dp, vertical = 5.dp),
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(icon, contentDescription = null, tint = if (active) BrightBlue else TextMuted, modifier = Modifier.size(21.dp))
